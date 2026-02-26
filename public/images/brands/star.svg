@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 60" fill="none">
+  <!-- Star Micronics — 5-point star + text -->
+  <polygon points="20,8 23.5,18 34,18 25.5,24.5 28.5,35 20,28.5 11.5,35 14.5,24.5 6,18 16.5,18" fill="white"/>
+  <text x="42" y="28" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="800" fill="white">Star</text>
+  <text x="42" y="46" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="400" fill="white" opacity="0.75" letter-spacing="1">Micronics</text>
+</svg>
