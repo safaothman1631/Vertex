@@ -24,15 +24,18 @@ export default function RegisterPage() {
     setLoading(true)
     setError('')
     const fullName = firstName + ' ' + lastName
+    const redirectTo = `${window.location.origin}/auth/confirm?next=/login`
     const { data, error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: redirectTo,
+      },
     })
     if (error) { setError(error.message) }
     else if (data.user) {
       await supabase.from('profiles').upsert({ id: data.user.id, email, full_name: fullName, role: 'user' })
       setSuccess(true)
-      setTimeout(() => router.push('/login'), 2500)
     }
     setLoading(false)
   }
@@ -41,10 +44,14 @@ export default function RegisterPage() {
     return (
       <div className="auth-page-wrap">
         <div className="auth-modal-card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3.5rem', marginBottom: 16 }}>✅</div>
+          <div style={{ fontSize: '3.5rem', marginBottom: 16 }}>📧</div>
           <h2>{t.auth.accountCreated}</h2>
-          <p className="auth-sub">{t.auth.checkEmail}</p>
-          <Link href="/login" className="btn-primary btn-full btn-lg" style={{ marginTop: 24, display: 'block' }}>{t.auth.goSignIn}</Link>
+          <p className="auth-sub" style={{ marginBottom: 12 }}>{t.auth.checkEmail}</p>
+          <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', color: '#92400e', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 14 }}>
+            ئیمەیڵێکی ڤێریفیکەیشنت بۆ نێردراوە بۆ <strong>{email}</strong>.<br />
+            تکایە ئیمەیڵەکەت بپشکنە و لینکەکە کلیک بکە پێش داخیل بوون.
+          </div>
+          <Link href="/login" className="btn-primary btn-full btn-lg" style={{ display: 'block' }}>{t.auth.goSignIn}</Link>
         </div>
       </div>
     )
