@@ -1,6 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 60" fill="none">
-  <!-- Square — filled square icon + wordmark -->
-  <rect x="8" y="10" width="36" height="36" rx="6" fill="white"/>
-  <rect x="16" y="18" width="20" height="20" rx="3" fill="#1a1a2e"/>
-  <text x="54" y="37" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="700" fill="white">Square</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 160 60"><rect width="36" height="36" x="8" y="10" fill="#fff" rx="6"/><rect width="20" height="20" x="16" y="18" fill="#1a1a2e" rx="3"/><text x="54" y="37" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="700">Square</text></svg>
