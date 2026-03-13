@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 52" fill="none" width="220" height="52">
+  <defs>
+    <linearGradient id="vGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a5b4fc"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon: stylized V diamond -->
+  <g transform="translate(0, 4)">
+    <!-- Left arm -->
+    <polygon points="4,4 14,4 22,22 12,22" fill="url(#iconGrad)" opacity="0.9"/>
+    <!-- Right arm -->
+    <polygon points="26,4 36,4 28,22 18,22" fill="url(#iconGrad)" opacity="0.75"/>
+    <!-- Bottom tip -->
+    <polygon points="12,22 28,22 20,34" fill="url(#iconGrad)"/>
+  </g>
+
+  <!-- VERTEX text -->
+  <text
+    x="48"
+    y="36"
+    font-family="Inter, system-ui, sans-serif"
+    font-weight="800"
+    font-size="26"
+    letter-spacing="-0.5"
+    fill="url(#vGrad)"
+  >VERTEX</text>
+
+  <!-- Subtle underline accent -->
+  <rect x="48" y="42" width="58" height="2" rx="1" fill="url(#vGrad)" opacity="0.4"/>
+</svg>
