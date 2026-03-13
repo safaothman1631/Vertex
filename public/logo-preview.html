@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vertex Logo Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #07080f; color: #eef0f8; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 48px; }
+
+    h3 { color: #8891b8; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
+
+    .preview-box {
+      display: flex; flex-direction: column; align-items: center; gap: 32px;
+    }
+
+    /* Dark bg (website navbar) */
+    .bg-dark {
+      background: rgba(10,10,15,0.92);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 32px 48px;
+      display: flex; flex-direction: column; align-items: center; gap: 24px;
+    }
+
+    /* White bg */
+    .bg-white {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 32px 48px;
+      display: flex; flex-direction: column; align-items: center; gap: 24px;
+    }
+
+    .logo-inline {
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .logo-text {
+      font-weight: 900;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #6366f1, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Sizes */
+    .size-sm .logo-text { font-size: 1.1rem; }
+    .size-sm svg { width: 24px; height: 24px; }
+
+    .size-md .logo-text { font-size: 1.6rem; }
+    .size-md svg { width: 36px; height: 36px; }
+
+    .size-lg .logo-text { font-size: 2.2rem; }
+    .size-lg svg { width: 48px; height: 48px; }
+
+    .row { display: flex; align-items: center; gap: 40px; flex-wrap: wrap; justify-content: center; }
+
+    .label { font-size: 0.72rem; color: #525878; margin-top: 8px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="preview-box">
+    <div>
+      <h3>🌑 Dark Background (Navbar)</h3>
+      <div class="bg-dark">
+        <div class="row">
+          <!-- Small -->
+          <div style="text-align:center">
+            <div class="logo-inline size-sm">
+              <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#6366f1"/>
+                    <stop offset="100%" stop-color="#a5b4fc"/>
+                  </linearGradient>
+                </defs>
+                <polygon points="4,6 14,6 20,20 10,20" fill="url(#g1)" opacity="0.9"/>
+                <polygon points="26,6 36,6 30,20 20,20" fill="url(#g1)" opacity="0.75"/>
+                <polygon points="10,20 30,20 20,34" fill="url(#g1)"/>
+              </svg>
+              <span class="logo-text">VERTEX</span>
+            </div>
+            <p class="label">Small</p>
+          </div>
+
+          <!-- Medium -->
+          <div style="text-align:center">
+            <div class="logo-inline size-md">
+              <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#6366f1"/>
+                    <stop offset="100%" stop-color="#a5b4fc"/>
+                  </linearGradient>
+                </defs>
+                <polygon points="4,6 14,6 20,20 10,20" fill="url(#g2)" opacity="0.9"/>
+                <polygon points="26,6 36,6 30,20 20,20" fill="url(#g2)" opacity="0.75"/>
+                <polygon points="10,20 30,20 20,34" fill="url(#g2)"/>
+              </svg>
+              <span class="logo-text">VERTEX</span>
+            </div>
+            <p class="label">Medium</p>
+          </div>
+
+          <!-- Large -->
+          <div style="text-align:center">
+            <div class="logo-inline size-lg">
+              <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#6366f1"/>
+                    <stop offset="100%" stop-color="#a5b4fc"/>
+                  </linearGradient>
+                </defs>
+                <polygon points="4,6 14,6 20,20 10,20" fill="url(#g3)" opacity="0.9"/>
+                <polygon points="26,6 36,6 30,20 20,20" fill="url(#g3)" opacity="0.75"/>
+                <polygon points="10,20 30,20 20,34" fill="url(#g3)"/>
+              </svg>
+              <span class="logo-text">VERTEX</span>
+            </div>
+            <p class="label">Large</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3>⬜ White Background</h3>
+      <div class="bg-white">
+        <div class="logo-inline size-lg">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#818cf8"/>
+              </linearGradient>
+            </defs>
+            <polygon points="4,6 14,6 20,20 10,20" fill="url(#g4)" opacity="0.9"/>
+            <polygon points="26,6 36,6 30,20 20,20" fill="url(#g4)" opacity="0.75"/>
+            <polygon points="10,20 30,20 20,34" fill="url(#g4)"/>
+          </svg>
+          <span class="logo-text">VERTEX</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; color: #525878; font-size: 0.75rem; max-width: 360px; line-height: 1.8;">
+      Colors: <code style="color:#6366f1">#6366f1</code> → <code style="color:#a5b4fc">#a5b4fc</code><br>
+      Font: Inter 900 · Icon: Geometric V shape
+    </div>
+  </div>
+
+</body>
+</html>
