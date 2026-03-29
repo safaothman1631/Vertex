@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { LocaleProvider } from '@/contexts/locale'
+import ScrollbarEffect from '@/components/ui/ScrollbarEffect'
+import { ToastProvider } from '@/components/ui/Toast'
 
 export const metadata: Metadata = {
   title: 'Vertex — Professional POS Equipment',
@@ -16,7 +18,10 @@ export default function RootLayout({
     <html lang="ckb" dir="rtl">
       <body>
         <LocaleProvider>
-          {children}
+          <ToastProvider>
+            <ScrollbarEffect />
+            {children}
+          </ToastProvider>
         </LocaleProvider>
       </body>
     </html>

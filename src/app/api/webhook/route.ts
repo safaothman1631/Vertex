@@ -23,10 +23,12 @@ export async function POST(request: Request) {
 
     if (orderId) {
       const supabase = await createClient()
+      // Idempotency: only update if still pending
       await supabase
         .from('orders')
         .update({ status: 'processing' })
         .eq('id', orderId)
+        .eq('status', 'pending')
     }
   }
 

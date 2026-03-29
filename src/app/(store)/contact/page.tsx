@@ -7,6 +7,7 @@ import { useT } from '@/contexts/locale'
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
+  const [hp, setHp] = useState('') // Honeypot field — bots fill this
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -15,8 +16,20 @@ export default function ContactPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (hp) return // Bot detected
     setLoading(true)
     setError('')
+    // Basic email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setError('Please enter a valid email address')
+      setLoading(false)
+      return
+    }
+    if (form.name.length > 200 || form.subject.length > 300 || form.message.length > 5000) {
+      setError('Please shorten your input')
+      setLoading(false)
+      return
+    }
     const { error } = await supabase.from('contact_messages').insert(form)
     if (error) {
       setError('Failed to send message. Please try again.')
@@ -92,6 +105,11 @@ export default function ContactPage() {
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <h2 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: 4 }}>{t.contact.title}</h2>
+
+                {/* Honeypot — hidden from users, bots fill it */}
+                <div style={{ position: 'absolute', left: -9999, opacity: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
+                  <input tabIndex={-1} autoComplete="off" value={hp} onChange={e => setHp(e.target.value)} />
+                </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   {(['name', 'email'] as const).map((key) => (

@@ -1,34 +1,70 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase-server'
-import type { CartItem, ShippingAddress } from '@/types'
+import type { ShippingAddress } from '@/types'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
 })
 
+function isValidShippingAddress(a: unknown): a is ShippingAddress {
+  if (!a || typeof a !== 'object') return false
+  const o = a as Record<string, unknown>
+  return typeof o.name === 'string' && o.name.length > 0 && o.name.length <= 200
+    && typeof o.email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(o.email)
+    && typeof o.address === 'string' && o.address.length > 0
+    && typeof o.city === 'string' && o.city.length > 0
+    && typeof o.country === 'string' && o.country.length > 0
+    && typeof o.zip === 'string'
+}
+
 export async function POST(request: Request) {
   try {
-    const { items, shippingAddress }: { items: CartItem[]; shippingAddress: ShippingAddress } =
-      await request.json()
+    const body = await request.json()
+    const items: { productId: string; quantity: number }[] = body.items
+    const shippingAddress: unknown = body.shippingAddress
 
-    if (!items || items.length === 0) {
+    if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
+    }
+    if (!isValidShippingAddress(shippingAddress)) {
+      return NextResponse.json({ error: 'Invalid shipping address' }, { status: 400 })
     }
 
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError) {
-      console.error('[checkout] auth error:', authError.message)
-      return NextResponse.json({ error: 'Auth error: ' + authError.message }, { status: 401 })
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Please log in to continue' }, { status: 401 })
     }
-    if (!user) return NextResponse.json({ error: 'Unauthorized – please log in first' }, { status: 401 })
+
+    // Fetch prices from DB — never trust client prices
+    const productIds = items.map(i => i.productId)
+    const { data: dbProducts, error: prodErr } = await supabase
+      .from('products')
+      .select('id, name, brand, price, images, in_stock')
+      .in('id', productIds)
+
+    if (prodErr || !dbProducts || dbProducts.length === 0) {
+      return NextResponse.json({ error: 'Failed to load products' }, { status: 400 })
+    }
+
+    const productMap = new Map(dbProducts.map(p => [p.id, p]))
+
+    // Validate all products exist and are in stock
+    for (const { productId, quantity } of items) {
+      const p = productMap.get(productId)
+      if (!p) return NextResponse.json({ error: `Product not found` }, { status: 400 })
+      if (!p.in_stock) return NextResponse.json({ error: `${p.name} is out of stock` }, { status: 400 })
+      if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+        return NextResponse.json({ error: 'Invalid quantity' }, { status: 400 })
+      }
+    }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-    const lineItems = items.map(({ product, quantity }) => {
-      // Build absolute image URL — product may have `img` (string) or `images` (array)
-      const imgPath = (product as unknown as { img?: string }).img ?? product.images?.[0]
+    const lineItems = items.map(({ productId, quantity }) => {
+      const p = productMap.get(productId)!
+      const imgPath = p.images?.[0]
       const absoluteImages: string[] = imgPath
         ? [imgPath.startsWith('http') ? imgPath : `${appUrl}${imgPath}`]
         : []
@@ -37,17 +73,20 @@ export async function POST(request: Request) {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: product.name,
+            name: p.name,
             ...(absoluteImages.length > 0 ? { images: absoluteImages } : {}),
-            description: product.brand ?? undefined,
+            description: p.brand ?? undefined,
           },
-          unit_amount: Math.round(product.price * 100),
+          unit_amount: Math.round(p.price * 100),
         },
         quantity,
       }
     })
 
-    const total = items.reduce((acc, { product, quantity }) => acc + product.price * quantity, 0)
+    const total = items.reduce((acc, { productId, quantity }) => {
+      const p = productMap.get(productId)!
+      return acc + p.price * quantity
+    }, 0)
 
     // Create order in DB first
     const { data: order, error: orderError } = await supabase
@@ -61,25 +100,20 @@ export async function POST(request: Request) {
       .select()
       .single()
 
-    if (orderError) {
-      console.error('[checkout] order insert error:', orderError.message, orderError.details)
-      return NextResponse.json({ error: 'DB error: ' + orderError.message }, { status: 500 })
+    if (orderError || !order) {
+      console.error('[checkout] order insert error:', orderError?.message)
+      return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
     }
-    if (!order) throw new Error('Failed to create order – no data returned')
 
-    // Insert order items
-    const { error: itemsError } = await supabase.from('order_items').insert(
-      items.map(({ product, quantity }) => ({
+    // Insert order items with DB prices
+    await supabase.from('order_items').insert(
+      items.map(({ productId, quantity }) => ({
         order_id: order.id,
-        product_id: product.id,
+        product_id: productId,
         quantity,
-        price: product.price,
+        price: productMap.get(productId)!.price,
       }))
     )
-    if (itemsError) {
-      console.error('[checkout] order_items insert error:', itemsError.message)
-      // Don't block checkout for this – Stripe is more important
-    }
 
     let session: import('stripe').Stripe.Checkout.Session
     try {
@@ -95,7 +129,7 @@ export async function POST(request: Request) {
     } catch (stripeErr: unknown) {
       const msg = stripeErr instanceof Error ? stripeErr.message : String(stripeErr)
       console.error('[checkout] Stripe error:', msg)
-      throw new Error('Stripe: ' + msg)
+      return NextResponse.json({ error: 'Payment service unavailable' }, { status: 500 })
     }
 
     // Update order with stripe session id
@@ -107,9 +141,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: session.url })
   } catch (error: unknown) {
     console.error('Checkout error:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Checkout failed' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Checkout failed' }, { status: 500 })
   }
 }

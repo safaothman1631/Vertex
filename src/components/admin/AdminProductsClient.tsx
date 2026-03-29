@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { Plus, Pencil, Trash2, X, Eye, EyeOff } from 'lucide-react'
 import type { Product } from '@/types'
@@ -36,6 +36,19 @@ export default function AdminProductsClient({ products: initial }: { products: P
   const [showNewBrand, setShowNewBrand] = useState(false)
   const [extraBrands, setExtraBrands] = useState<string[]>([])
   const supabase = createClient()
+  const modalRef = useRef<HTMLDivElement>(null)
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showForm) {
+      document.body.style.overflow = 'hidden'
+      // Scroll modal content to top
+      if (modalRef.current) modalRef.current.scrollTop = 0
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [showForm])
 
   // All unique categories (existing + defaults + newly added)
   const allCats = useMemo(() => {
@@ -187,7 +200,7 @@ export default function AdminProductsClient({ products: initial }: { products: P
       {/* Modal */}
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: '16px' }}>
-          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div ref={modalRef} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? 'Edit Product' : 'New Product'}</h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)' }}><X size={20} /></button>

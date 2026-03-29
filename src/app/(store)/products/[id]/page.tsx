@@ -18,6 +18,15 @@ export default async function ProductDetailPage({
 
   if (!product) notFound()
 
-  return <ProductDetailClient product={product} />
+  // Fetch related products (same category, exclude current, limit 4)
+  const { data: related } = await supabase
+    .from('products')
+    .select('*')
+    .eq('category', product.category)
+    .eq('hidden', false)
+    .neq('id', product.id)
+    .limit(4)
+
+  return <ProductDetailClient product={product} relatedProducts={related ?? []} />
 }
 

@@ -169,6 +169,9 @@ const ar = {
     redirecting: 'جارٍ التحويل إلى الدفع...',
     payStripe: 'الدفع عبر Stripe',
     stripeRedirect: 'ستُحوَّل إلى صفحة الدفع الآمنة على Stripe',
+    fieldRequired: 'هذا الحقل مطلوب',
+    invalidEmail: 'بريد إلكتروني غير صالح',
+    invalidZip: 'رمز بريدي غير صالح',
   },
 
   checkoutSuccess: {
@@ -196,6 +199,13 @@ const ar = {
     orderId: 'رقم الطلب',
     date: 'التاريخ',
     total: 'الإجمالي',
+    viewDetails: 'عرض التفاصيل',
+    orderDetails: 'تفاصيل الطلب',
+    items: 'المنتجات',
+    shippingAddress: 'عنوان الشحن',
+    subtotal: 'المجموع الفرعي',
+    qty: 'الكمية',
+    close: 'إغلاق',
     status: {
       pending: 'قيد الانتظار',
       processing: 'جارٍ المعالجة',
@@ -348,6 +358,8 @@ const ar = {
     specs: 'المواصفات',
     keySpecs: 'المواصفات الرئيسية',
     reviews: 'تقييمات',
+    quantity: 'الكمية',
+    relatedProducts: 'منتجات ذات صلة',
   },
 
   // ── COMMON

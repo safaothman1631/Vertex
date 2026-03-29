@@ -204,8 +204,8 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
               const isAdded = addedId === p.id
               return (
                 <div key={p.id}
-                  style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .22s cubic-bezier(.22,1,.36,1), box-shadow .22s, border-color .22s' }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = 'translateY(-6px)'; el.style.boxShadow = '0 16px 40px rgba(0,0,0,.35)'; el.style.borderColor = 'rgba(99,102,241,.3)' }}
+                  style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .22s cubic-bezier(.22,1,.36,1), box-shadow .22s, border-color .22s', opacity: p.in_stock ? 1 : 0.7 }}
+                  onMouseEnter={e => { if (!p.in_stock) return; const el = e.currentTarget as HTMLDivElement; el.style.transform = 'translateY(-6px)'; el.style.boxShadow = '0 16px 40px rgba(0,0,0,.35)'; el.style.borderColor = 'rgba(99,102,241,.3)' }}
                   onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = ''; el.style.boxShadow = ''; el.style.borderColor = 'var(--border)' }}
                 >
                   {/* Image */}
@@ -218,6 +218,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                     <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 4 }}>
                       {p.is_hot && <span style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', fontSize: '.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.hot}</span>}
                       {p.is_new && <span style={{ background: 'var(--gradient)', color: '#fff', fontSize: '.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.new}</span>}
+                      {!p.in_stock && <span style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)', color: '#fff', fontSize: '.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>Out of Stock</span>}
                     </div>
                     <div style={{ position: 'absolute', top: 8, right: 8 }} onClick={e => e.preventDefault()}>
                       <WishlistButton productId={p.id} size={14} />
@@ -245,15 +246,15 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
 
                   {/* Add to cart */}
                   <div style={{ padding: '6px 16px 16px' }}>
-                    <button onClick={() => handleAddToCart(p)} style={{
+                    <button onClick={() => p.in_stock && handleAddToCart(p)} disabled={!p.in_stock} style={{
                       width: '100%', padding: '10px', borderRadius: 11, fontWeight: 700, fontSize: '.82rem',
-                      cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                      cursor: p.in_stock ? 'pointer' : 'not-allowed', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
                       transition: 'all .2s',
-                      background: isAdded ? 'rgba(16,185,129,.15)' : 'var(--primary)',
-                      color: isAdded ? '#10b981' : '#fff',
-                      boxShadow: isAdded ? 'none' : '0 4px 12px rgba(99,102,241,.28)',
+                      background: !p.in_stock ? 'var(--bg3)' : isAdded ? 'rgba(16,185,129,.15)' : 'var(--primary)',
+                      color: !p.in_stock ? 'var(--text3)' : isAdded ? '#10b981' : '#fff',
+                      boxShadow: (!p.in_stock || isAdded) ? 'none' : '0 4px 12px rgba(99,102,241,.28)',
                     }}>
-                      {isAdded ? t.productCard.added : <><ShoppingCart size={13} /> {t.productCard.addToCart}</>}
+                      {!p.in_stock ? 'Out of Stock' : isAdded ? t.productCard.added : <><ShoppingCart size={13} /> {t.productCard.addToCart}</>}
                     </button>
                   </div>
                 </div>

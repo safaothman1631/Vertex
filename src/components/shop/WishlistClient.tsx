@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, ShoppingCart, Trash2, ExternalLink } from 'lucide-react'
+import { ShoppingCart, Trash2, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
 import { useCartStore } from '@/store/cart'
 import type { WishlistItem } from '@/types'
 import { useT } from '@/contexts/locale'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function WishlistClient({
   initialItems,
@@ -41,16 +42,12 @@ export default function WishlistClient({
   return (
     <>
       {items.length === 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', gap: 16 }}>
-          <div style={{ width: 80, height: 80, borderRadius: 24, background: 'rgba(99,102,241,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Heart size={36} style={{ color: 'var(--text3)' }} />
-          </div>
-          <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text2)' }}>{t.wishlist.empty}</p>
-          <p style={{ fontSize: '.88rem', color: 'var(--text3)', maxWidth: 300, textAlign: 'center' }}>{t.wishlist.emptyDesc}</p>
-          <Link href="/products" style={{ marginTop: 8, padding: '10px 24px', background: 'var(--primary)', color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: '.9rem', textDecoration: 'none' }}>
-            {t.wishlist.browsePrducts}
-          </Link>
-        </div>
+        <EmptyState
+          icon="❤️"
+          title={t.wishlist.empty}
+          subtitle={t.wishlist.emptyDesc}
+          action={{ label: t.wishlist.browsePrducts, href: '/products' }}
+        />
       )}
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
       {items.map((item) => {

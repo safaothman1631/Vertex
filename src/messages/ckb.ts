@@ -171,6 +171,9 @@ const ckb = {
     redirecting: 'گواستنەوە بۆ پەرداخت...',
     payStripe: 'پەرداخت لە ڕێگای Stripe',
     stripeRedirect: 'دەگوێزرێیتەوە بۆ پەیجی پەرداختی ئەمنی Stripe',
+    fieldRequired: 'ئەم خانەیە پێویستە',
+    invalidEmail: 'ئیمەیڵ هەڵەیە',
+    invalidZip: 'کۆدی پۆستی هەڵەیە',
   },
 
   // ── CHECKOUT SUCCESS
@@ -199,6 +202,13 @@ const ckb = {
     orderId: 'ناسنامەی داواکاری',
     date: 'بەروار',
     total: 'کۆی گشتی',
+    viewDetails: 'وردەکارییەکان',
+    orderDetails: 'وردەکاری داواکاری',
+    items: 'کاڵاکان',
+    shippingAddress: 'ناونیشانی ناردن',
+    subtotal: 'کۆی لاوەکی',
+    qty: 'دانە',
+    close: 'داخستن',
     status: {
       pending: 'چاوەڕوان',
       processing: 'پرۆسەکردن',
@@ -351,6 +361,8 @@ const ckb = {
     specs: 'تایبەتمەندییەکان',
     keySpecs: 'تایبەتمەندییە کێلەکان',
     reviews: 'پێداچوونەوە',
+    quantity: 'بڕی',
+    relatedProducts: 'بەرهەمە پەیوەندییەکان',
   },
 
   // ── COMMON

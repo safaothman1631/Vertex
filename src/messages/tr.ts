@@ -171,6 +171,9 @@ const tr = {
     redirecting: 'Ödeme sayfasına yönlendiriliyor...',
     payStripe: 'Stripe ile Öde',
     stripeRedirect: 'Stripe güvenli ödeme sayfasına yönlendirileceksiniz',
+    fieldRequired: 'Bu alan zorunludur',
+    invalidEmail: 'Geçersiz e-posta adresi',
+    invalidZip: 'Geçersiz posta kodu',
   },
 
   checkoutSuccess: {
@@ -198,6 +201,13 @@ const tr = {
     orderId: 'Sipariş No',
     date: 'Tarih',
     total: 'Toplam',
+    viewDetails: 'Detayları Gör',
+    orderDetails: 'Sipariş Detayı',
+    items: 'Ürünler',
+    shippingAddress: 'Teslimat Adresi',
+    subtotal: 'Ara Toplam',
+    qty: 'Adet',
+    close: 'Kapat',
     status: {
       pending: 'Beklemede',
       processing: 'İşleniyor',
@@ -350,6 +360,8 @@ const tr = {
     specs: 'Özellikler',
     keySpecs: 'Temel Özellikler',
     reviews: 'yorum',
+    quantity: 'Adet',
+    relatedProducts: 'İlgili Ürünler',
   },
 
   // ── COMMON

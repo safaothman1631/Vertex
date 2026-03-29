@@ -1,13 +1,17 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useCartStore } from '@/store/cart'
 import { useRouter } from 'next/navigation'
-import { ShoppingBag, CreditCard, Truck, Lock } from 'lucide-react'
+import { ShoppingBag, CreditCard, Truck, Lock, AlertCircle } from 'lucide-react'
 import type { ShippingAddress } from '@/types'
 import { useT } from '@/contexts/locale'
 
 const EMPTY: ShippingAddress = { name: '', email: '', address: '', city: '', country: '', zip: '' }
+type FieldKey = keyof ShippingAddress
+type FieldErrors = Partial<Record<FieldKey, string>>
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function CheckoutPage() {
   const t = useT()
@@ -15,17 +19,60 @@ export default function CheckoutPage() {
   const [form, setForm] = useState<ShippingAddress>(EMPTY)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  const [touched, setTouched] = useState<Partial<Record<FieldKey, boolean>>>({})
   const router = useRouter()
+
+  const validate = useCallback((field: FieldKey, value: string): string => {
+    const v = value.trim()
+    if (!v) return t.checkout.fieldRequired ?? 'This field is required'
+    if (field === 'email' && !EMAIL_RE.test(v)) return t.checkout.invalidEmail ?? 'Invalid email address'
+    if (field === 'zip' && v.length < 3) return t.checkout.invalidZip ?? 'Invalid zip code'
+    return ''
+  }, [t])
+
+  function handleChange(field: FieldKey, value: string) {
+    setForm(prev => ({ ...prev, [field]: value }))
+    if (touched[field]) {
+      const err = validate(field, value)
+      setFieldErrors(prev => ({ ...prev, [field]: err }))
+    }
+  }
+
+  function handleBlur(field: FieldKey) {
+    setTouched(prev => ({ ...prev, [field]: true }))
+    const err = validate(field, form[field])
+    setFieldErrors(prev => ({ ...prev, [field]: err }))
+  }
+
+  function validateAll(): boolean {
+    const fields: FieldKey[] = ['name', 'email', 'address', 'city', 'country', 'zip']
+    const errors: FieldErrors = {}
+    const allTouched: Partial<Record<FieldKey, boolean>> = {}
+    let valid = true
+    for (const f of fields) {
+      allTouched[f] = true
+      const err = validate(f, form[f])
+      if (err) { errors[f] = err; valid = false }
+    }
+    setTouched(allTouched)
+    setFieldErrors(errors)
+    return valid
+  }
 
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault()
+    if (!validateAll()) return
     setLoading(true)
     setError('')
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, shippingAddress: form }),
+        body: JSON.stringify({
+          items: items.map(i => ({ productId: i.product.id, quantity: i.quantity })),
+          shippingAddress: form,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Checkout failed')
@@ -44,13 +91,22 @@ export default function CheckoutPage() {
     return null
   }
 
-  const inputStyle: React.CSSProperties = {
+  const inputStyle = (field: FieldKey): React.CSSProperties => ({
     width: '100%', padding: '11px 14px', borderRadius: 10,
-    background: 'var(--bg3)', border: '1px solid var(--border)',
+    background: 'var(--bg3)',
+    border: `1px solid ${touched[field] && fieldErrors[field] ? '#ef4444' : 'var(--border)'}`,
     color: 'var(--text)', fontSize: '.92rem', outline: 'none',
     transition: 'border-color .2s', boxSizing: 'border-box',
     fontFamily: 'inherit',
-  }
+  })
+
+  const fieldError = (field: FieldKey) =>
+    touched[field] && fieldErrors[field] ? (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: '.75rem', color: '#ef4444' }}>
+        <AlertCircle size={12} />
+        {fieldErrors[field]}
+      </div>
+    ) : null
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg0)', padding: '48px 0 80px' }}>
@@ -82,32 +138,38 @@ export default function CheckoutPage() {
                   {/* Name */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.fullName}</label>
-                    <input type="text" required placeholder="Safa Othman" value={form.name} onChange={e => setForm({...form, name: e.target.value})} style={inputStyle} />
+                    <input type="text" placeholder="Safa Othman" value={form.name} onChange={e => handleChange('name', e.target.value)} onBlur={() => handleBlur('name')} style={inputStyle('name')} />
+                    {fieldError('name')}
                   </div>
                   {/* Email */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.email}</label>
-                    <input type="email" required placeholder="you@email.com" value={form.email} onChange={e => setForm({...form, email: e.target.value})} style={inputStyle} />
+                    <input type="email" placeholder="you@email.com" value={form.email} onChange={e => handleChange('email', e.target.value)} onBlur={() => handleBlur('email')} style={inputStyle('email')} />
+                    {fieldError('email')}
                   </div>
                   {/* Address */}
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.address}</label>
-                    <input type="text" required placeholder="123 Main Street, Apt 4B" value={form.address} onChange={e => setForm({...form, address: e.target.value})} style={inputStyle} />
+                    <input type="text" placeholder="123 Main Street, Apt 4B" value={form.address} onChange={e => handleChange('address', e.target.value)} onBlur={() => handleBlur('address')} style={inputStyle('address')} />
+                    {fieldError('address')}
                   </div>
                   {/* City */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.city}</label>
-                    <input type="text" required placeholder="New York" value={form.city} onChange={e => setForm({...form, city: e.target.value})} style={inputStyle} />
+                    <input type="text" placeholder="New York" value={form.city} onChange={e => handleChange('city', e.target.value)} onBlur={() => handleBlur('city')} style={inputStyle('city')} />
+                    {fieldError('city')}
                   </div>
                   {/* Country */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.country}</label>
-                    <input type="text" required placeholder="United States" value={form.country} onChange={e => setForm({...form, country: e.target.value})} style={inputStyle} />
+                    <input type="text" placeholder="United States" value={form.country} onChange={e => handleChange('country', e.target.value)} onBlur={() => handleBlur('country')} style={inputStyle('country')} />
+                    {fieldError('country')}
                   </div>
                   {/* ZIP */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.zip}</label>
-                    <input type="text" required placeholder="10001" value={form.zip} onChange={e => setForm({...form, zip: e.target.value})} style={inputStyle} />
+                    <input type="text" placeholder="10001" value={form.zip} onChange={e => handleChange('zip', e.target.value)} onBlur={() => handleBlur('zip')} style={inputStyle('zip')} />
+                    {fieldError('zip')}
                   </div>
                 </div>
               </div>

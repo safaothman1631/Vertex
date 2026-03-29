@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X, ShoppingCart, Star } from 'lucide-react'
-import type { ProductData } from '@/data/products'
+import type { Product } from '@/types'
 import { useCartStore } from '@/store/cart'
 import QuickView from './QuickView'
 import { useT } from '@/contexts/locale'
@@ -18,7 +18,7 @@ interface BrandCard {
 
 interface Props {
   brand: BrandCard | null
-  products: ProductData[]
+  products: Product[]
   onClose: () => void
 }
 
@@ -29,7 +29,7 @@ export default function BrandDrawer({ brand, products, onClose }: Props) {
   const [closing, setClosing] = useState(false)
   const addItem = useCartStore((s) => s.addItem)
   const [addedId, setAddedId] = useState<string | null>(null)
-  const [qvProduct, setQvProduct] = useState<ProductData | null>(null)
+  const [qvProduct, setQvProduct] = useState<Product | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
   /* ── mount guard (SSR) ── */
@@ -59,15 +59,8 @@ export default function BrandDrawer({ brand, products, onClose }: Props) {
     setTimeout(onClose, 420)
   }
 
-  function handleAddToCart(p: ProductData) {
-    addItem({
-      id: p.id, name: p.name, brand: p.brand, model: p.model,
-      category: p.category, price: p.priceNum, old_price: null,
-      description: p.desc, specs: p.specs,
-      images: p.img ? [p.img] : [],
-      rating: p.rating, review_count: p.reviews,
-      in_stock: true, is_new: p.isNew, is_hot: p.isHot, created_at: '',
-    })
+  function handleAddToCart(p: Product) {
+    addItem(p)
     setAddedId(p.id)
     setTimeout(() => setAddedId(null), 1400)
   }
@@ -212,7 +205,7 @@ export default function BrandDrawer({ brand, products, onClose }: Props) {
 function BrandProductCard({
   p, index, isAdded, visible, onAdd, onQuickView, brandC1,
 }: {
-  p: ProductData
+  p: Product
   index: number
   isAdded: boolean
   visible: boolean
@@ -222,6 +215,7 @@ function BrandProductCard({
 }) {
   const t = useT()
   const [hovered, setHovered] = useState(false)
+  const img = p.images?.[0]
 
   return (
     <div
@@ -235,7 +229,6 @@ function BrandProductCard({
         display: 'flex',
         flexDirection: 'column',
         cursor: 'pointer',
-        /* stagger slide-up */
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(40px)',
         transition: `opacity 0.4s ease ${0.08 + index * 0.055}s, transform 0.45s cubic-bezier(0.22,1,0.36,1) ${0.08 + index * 0.055}s, border-color 0.2s, box-shadow 0.2s`,
@@ -245,10 +238,10 @@ function BrandProductCard({
     >
       {/* image */}
       <div style={{ position: 'relative', height: 160, background: '#fff', flexShrink: 0, overflow: 'hidden' }}>
-        {p.img ? (
+        {img ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={p.img}
+            src={img}
             alt={p.name}
             style={{
               width: '100%', height: '100%', objectFit: 'contain', padding: 16,
@@ -257,19 +250,14 @@ function BrandProductCard({
             }}
           />
         ) : (
-          <div style={{
-            width: '100%', height: '100%', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: '3rem',
-            background: `linear-gradient(135deg, ${p.pa1}, ${p.pa2})`,
-          }}>
-            <span style={{ color: '#fff', fontWeight: 900, fontSize: '1.4rem', opacity: 0.9 }}>{p.artType}</span>
-          </div>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>📦</div>
         )}
 
         {/* badges */}
         <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
-          {p.isHot && <span style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', fontSize: '.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.hot}</span>}
-          {p.isNew && <span style={{ background: 'var(--gradient)', color: '#fff', fontSize: '.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.new}</span>}
+          {p.is_hot && <span style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', fontSize: '.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.hot}</span>}
+          {p.is_new && <span style={{ background: 'var(--gradient)', color: '#fff', fontSize: '.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.new}</span>}
+          {!p.in_stock && <span style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)', color: '#fff', fontSize: '.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>Out of Stock</span>}
         </div>
 
         {/* quick-view hint */}
@@ -292,22 +280,22 @@ function BrandProductCard({
           {[1,2,3,4,5].map(s => (
             <Star key={s} size={10} fill={s <= Math.round(p.rating) ? '#f59e0b' : 'none'} stroke={s <= Math.round(p.rating) ? '#f59e0b' : 'var(--border)'} />
           ))}
-          <span style={{ fontSize: '.66rem', color: 'var(--text3)', marginLeft: 3 }}>({p.reviews})</span>
+          <span style={{ fontSize: '.66rem', color: 'var(--text3)', marginLeft: 3 }}>({p.review_count})</span>
         </div>
-        <div style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)', marginTop: 4 }}>{p.price}</div>
+        <div style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)', marginTop: 4 }}>${p.price.toFixed(2)}</div>
       </div>
 
       {/* add to cart */}
-      <div style={{ padding: '4px 14px 14px' }} onClick={e => { e.stopPropagation(); onAdd() }}>
+      <div style={{ padding: '4px 14px 14px' }} onClick={e => { e.stopPropagation(); if (p.in_stock) onAdd() }}>
         <button style={{
           width: '100%', padding: '9px', borderRadius: 11, fontWeight: 700, fontSize: '.8rem',
-          cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-          background: isAdded ? 'rgba(16,185,129,.15)' : `linear-gradient(135deg, ${brandC1}, ${brandC1}cc)`,
-          color: isAdded ? '#10b981' : '#fff',
+          cursor: p.in_stock ? 'pointer' : 'not-allowed', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+          background: !p.in_stock ? 'var(--bg3)' : isAdded ? 'rgba(16,185,129,.15)' : `linear-gradient(135deg, ${brandC1}, ${brandC1}cc)`,
+          color: !p.in_stock ? 'var(--text3)' : isAdded ? '#10b981' : '#fff',
           transition: 'all .22s',
-          boxShadow: isAdded ? 'none' : `0 4px 14px ${brandC1}44`,
+          boxShadow: (!p.in_stock || isAdded) ? 'none' : `0 4px 14px ${brandC1}44`,
         }}>
-          {isAdded ? t.productCard.added : <><ShoppingCart size={12} /> {t.productCard.addToCart}</>}
+          {!p.in_stock ? 'Out of Stock' : isAdded ? t.productCard.added : <><ShoppingCart size={12} /> {t.productCard.addToCart}</>}
         </button>
       </div>
     </div>

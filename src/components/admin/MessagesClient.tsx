@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase-client'
-import { Mail, Phone, MapPin, Check, RefreshCw } from 'lucide-react'
+import { Mail, Check, RefreshCw, Trash2 } from 'lucide-react'
 
 interface Msg {
   id: string
@@ -17,6 +17,7 @@ interface Msg {
 export default function MessagesClient({ initial }: { initial: Msg[] }) {
   const [messages, setMessages] = useState(initial)
   const [marking, setMarking] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const supabase = createClient()
 
   async function markRead(id: string) {
@@ -24,6 +25,14 @@ export default function MessagesClient({ initial }: { initial: Msg[] }) {
     await supabase.from('contact_messages').update({ is_read: true }).eq('id', id)
     setMessages((prev) => prev.map((m) => m.id === id ? { ...m, is_read: true } : m))
     setMarking(null)
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this message?')) return
+    setDeleting(id)
+    await supabase.from('contact_messages').delete().eq('id', id)
+    setMessages(prev => prev.filter(m => m.id !== id))
+    setDeleting(null)
   }
 
   const unread = messages.filter((m) => !m.is_read).length
@@ -87,24 +96,42 @@ export default function MessagesClient({ initial }: { initial: Msg[] }) {
                   <span style={{ fontSize: '.78rem', color: 'var(--text3)' }}>
                     {new Date(msg.created_at).toLocaleString()}
                   </span>
-                  {!msg.is_read && (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {!msg.is_read && (
+                      <button
+                        onClick={() => markRead(msg.id)}
+                        disabled={marking === msg.id}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 5,
+                          background: 'rgba(99,102,241,.12)', color: 'var(--primary)',
+                          border: '1px solid rgba(99,102,241,.3)',
+                          borderRadius: 8, padding: '5px 12px', fontSize: '.78rem',
+                          fontWeight: 700, cursor: 'pointer',
+                        }}
+                      >
+                        {marking === msg.id
+                          ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} />
+                          : <Check size={12} />}
+                        Mark as read
+                      </button>
+                    )}
                     <button
-                      onClick={() => markRead(msg.id)}
-                      disabled={marking === msg.id}
+                      onClick={() => handleDelete(msg.id)}
+                      disabled={deleting === msg.id}
+                      title="Delete message"
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 5,
-                        background: 'rgba(99,102,241,.12)', color: 'var(--primary)',
-                        border: '1px solid rgba(99,102,241,.3)',
-                        borderRadius: 8, padding: '5px 12px', fontSize: '.78rem',
+                        display: 'flex', alignItems: 'center',
+                        background: 'rgba(239,68,68,.1)', color: '#ef4444',
+                        border: '1px solid rgba(239,68,68,.2)',
+                        borderRadius: 8, padding: '5px 10px', fontSize: '.78rem',
                         fontWeight: 700, cursor: 'pointer',
                       }}
                     >
-                      {marking === msg.id
+                      {deleting === msg.id
                         ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} />
-                        : <Check size={12} />}
-                      Mark as read
+                        : <Trash2 size={12} />}
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
 

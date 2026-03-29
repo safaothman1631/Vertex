@@ -31,7 +31,7 @@ export default function ProductCard({ product: p }: Props) {
       description: p.desc, specs: p.specs,
       images: p.img ? [p.img] : [],
       rating: p.rating, review_count: p.reviews,
-      in_stock: true, is_new: p.isNew, is_hot: p.isHot, created_at: '',
+      in_stock: true, is_new: p.isNew, is_hot: p.isHot, hidden: false, created_at: '',
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
@@ -122,7 +122,7 @@ export default function ProductCard({ product: p }: Props) {
         </div>
       </div>
 
-      {qvOpen && <QuickView product={p} onClose={() => setQvOpen(false)} onAddToCart={handleAddToCart} />}
+      {qvOpen && <QuickView product={p as unknown as import('@/types').Product} onClose={() => setQvOpen(false)} onAddToCart={handleAddToCart} />}
     </>
   )
 }

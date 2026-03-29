@@ -10,6 +10,7 @@ export default function SettingsClient({ user, profile }: { user: { id: string; 
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
+  const [changingPw, setChangingPw] = useState(false)
   const [pwMsg, setPwMsg] = useState('')
   const [pwErr, setPwErr] = useState(false)
   const supabase = createClient()
@@ -36,9 +37,16 @@ export default function SettingsClient({ user, profile }: { user: { id: string; 
   async function savePassword(e: React.FormEvent) {
     e.preventDefault()
     setPwMsg('')
+    if (!pwForm.current) { setPwErr(true); setPwMsg('Please enter your current password'); return }
     if (pwForm.next !== pwForm.confirm) { setPwErr(true); setPwMsg('Passwords do not match'); return }
     if (pwForm.next.length < 8) { setPwErr(true); setPwMsg('Password must be at least 8 characters'); return }
+    if (!/[A-Z]/.test(pwForm.next) || !/[0-9]/.test(pwForm.next)) { setPwErr(true); setPwMsg('Password must contain uppercase letter and number'); return }
+    setChangingPw(true)
+    // Verify current password by re-authenticating
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email!, password: pwForm.current })
+    if (signInErr) { setPwErr(true); setPwMsg('Current password is incorrect'); setChangingPw(false); return }
     const { error } = await supabase.auth.updateUser({ password: pwForm.next })
+    setChangingPw(false)
     if (error) { setPwErr(true); setPwMsg(error.message) }
     else { setPwErr(false); setPwMsg('Password updated successfully!'); setPwForm({ current: '', next: '', confirm: '' }) }
   }
@@ -96,6 +104,7 @@ export default function SettingsClient({ user, profile }: { user: { id: string; 
             </div>
             <form onSubmit={savePassword} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
+                { key: 'current', label: 'Current Password' },
                 { key: 'next', label: 'New Password' },
                 { key: 'confirm', label: 'Confirm New Password' },
               ].map(({ key, label }) => (
@@ -110,8 +119,8 @@ export default function SettingsClient({ user, profile }: { user: { id: string; 
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button type="submit" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '.85rem', cursor: 'pointer' }}>
-                  <Lock size={14} /> Update Password
+                <button type="submit" disabled={changingPw} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '.85rem', cursor: changingPw ? 'not-allowed' : 'pointer', opacity: changingPw ? 0.6 : 1 }}>
+                  <Lock size={14} /> {changingPw ? 'Verifying...' : 'Update Password'}
                 </button>
               </div>
             </form>

@@ -46,10 +46,9 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 input,select,textarea{font-family:inherit;border:none;outline:none}
 ul{list-style:none}
 
-/* Scrollbar */
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:var(--bg1)}
-::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px}
+/* Hide native scrollbar — replaced by custom overlay scrollbar */
+::-webkit-scrollbar{display:none !important;width:0 !important}
+html{scrollbar-width:none;-ms-overflow-style:none}
 
 /* ============================================================
    UTILITIES
@@ -267,10 +266,11 @@ ul{list-style:none}
 .prod-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:var(--transition);display:flex;flex-direction:column;position:relative}
 .prod-card:hover{border-color:rgba(99,102,241,.35);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.5)}
 .prod-badges{position:absolute;top:12px;left:12px;display:flex;gap:6px;z-index:1;flex-wrap:wrap}
-.badge-new,.badge-hot,.badge-sale{padding:4px 10px;border-radius:100px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.badge-new,.badge-hot,.badge-sale,.badge-out{padding:4px 10px;border-radius:100px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
 .badge-new{background:rgba(68,136,255,.2);color:var(--blue);border:1px solid rgba(68,136,255,.3)}
 .badge-hot{background:rgba(99,102,241,.2);color:var(--primary);border:1px solid rgba(99,102,241,.3)}
 .badge-sale{background:rgba(0,230,118,.2);color:var(--green);border:1px solid rgba(0,230,118,.3)}
+.badge-out{background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.3)}
 .prod-img{height:160px;display:flex;align-items:center;justify-content:center;font-size:4rem;background:var(--bg3);border-bottom:1px solid var(--border);overflow:hidden}
 .prod-photo{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff;padding:12px;transition:transform 0.3s ease}
 .prod-card:hover .prod-photo{transform:scale(1.06)}
@@ -424,6 +424,32 @@ ul{list-style:none}
 @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 @keyframes pageEnter{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes toastIn{0%{opacity:0;transform:translateY(16px) scale(.95)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fadeInUp{0%{opacity:0;transform:translateY(24px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ============================================================
+   MICRO-INTERACTIONS
+   ============================================================ */
+/* Buttons pulse on active */
+.btn:active,.admin-btn:active{transform:scale(.96)}
+.btn,.admin-btn{transition:all .2s cubic-bezier(.4,0,.2,1)}
+
+/* Card lift on hover */
+.card-hover{transition:transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s cubic-bezier(.4,0,.2,1),border-color .25s ease}
+.card-hover:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.35);border-color:rgba(99,102,241,.2)}
+
+/* Glow ring on focus for inputs */
+input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+
+/* Badge pulse for unread */
+.badge-pulse{animation:pulse 2s infinite}
+
+/* Subtle link underline on hover */
+.link-hover{position:relative;text-decoration:none}
+.link-hover::after{content:'';position:absolute;bottom:-2px;left:0;width:0;height:2px;background:var(--primary);border-radius:99px;transition:width .25s ease}
+.link-hover:hover::after{width:100%}
 
 /* ============================================================
    ALIASES / HELPERS for Next.js components

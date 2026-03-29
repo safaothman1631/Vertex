@@ -8,7 +8,9 @@ export async function GET(request: NextRequest) {
   const token_hash = searchParams.get('token_hash')
   const code = searchParams.get('code')
   const type = searchParams.get('type') as EmailOtpType | null
-  const next = searchParams.get('next') ?? '/login'
+  const nextParam = searchParams.get('next') ?? '/login'
+  // Prevent open redirect — only allow relative paths
+  const next = nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/login'
 
   const cookieStore = await cookies()
   const supabase = createServerClient(

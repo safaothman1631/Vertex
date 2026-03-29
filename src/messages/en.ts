@@ -171,6 +171,9 @@ const en = {
     redirecting: 'Redirecting to payment...',
     payStripe: 'Pay via Stripe',
     stripeRedirect: 'You will be redirected to Stripe\'s secure payment page',
+    fieldRequired: 'This field is required',
+    invalidEmail: 'Invalid email address',
+    invalidZip: 'Invalid zip code',
   },
 
   // ── CHECKOUT SUCCESS
@@ -199,6 +202,13 @@ const en = {
     orderId: 'Order ID',
     date: 'Date',
     total: 'Total',
+    viewDetails: 'View Details',
+    orderDetails: 'Order Details',
+    items: 'Items',
+    shippingAddress: 'Shipping Address',
+    subtotal: 'Subtotal',
+    qty: 'Qty',
+    close: 'Close',
     status: {
       pending: 'Pending',
       processing: 'Processing',
@@ -351,6 +361,8 @@ const en = {
     specs: 'Specifications',
     keySpecs: 'Key Specifications',
     reviews: 'Reviews',
+    quantity: 'Quantity',
+    relatedProducts: 'Related Products',
   },
 
   // ── COMMON

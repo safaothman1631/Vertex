@@ -1,11 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { ProductData } from '@/data/products'
+import type { Product } from '@/types'
 import { useT } from '@/contexts/locale'
 
 interface Props {
-  product: ProductData
+  product: Product
   onClose: () => void
   onAddToCart: () => void
 }
@@ -13,6 +13,7 @@ interface Props {
 export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
   const [mounted, setMounted] = useState(false)
   const t = useT()
+  const img = p.images?.[0]
 
   useEffect(() => {
     setMounted(true)
@@ -25,8 +26,6 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
     }
   }, [onClose])
 
-  const artStyle = { '--pa1': p.pa1, '--pa2': p.pa2 } as React.CSSProperties
-
   if (!mounted) return null
 
   return createPortal(
@@ -37,9 +36,9 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
         <div className="qv-inner">
           {/* Left — image */}
           <div className="qv-img-wrap">
-            {p.img ? (
+            {img ? (
               <img
-                src={p.img}
+                src={img}
                 alt={p.name}
                 className="qv-prod-img"
                 onError={(e) => {
@@ -50,12 +49,10 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
               />
             ) : null}
             <div
-              className="prod-art qv-art-fallback"
-              style={{ ...artStyle, display: p.img ? 'none' : 'flex' }}
+              className="qv-art-fallback"
+              style={{ display: img ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '5rem', width: '100%', height: '100%' }}
             >
-              <span className="prod-art-type">{p.artType}</span>
-              <span className="prod-art-brand">{p.artBrand}</span>
-              <span className="prod-art-name">{p.name}</span>
+              📦
             </div>
           </div>
 
@@ -68,15 +65,22 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
             <div className="prod-rating" style={{ margin: '8px 0' }}>
               <span className="stars">{'★'.repeat(Math.round(p.rating))}</span>
               <span className="rnum">{p.rating}</span>
-              <span className="rcnt">({p.reviews.toLocaleString()} {t.quickView.reviews})</span>
+              <span className="rcnt">({p.review_count.toLocaleString()} {t.quickView.reviews})</span>
             </div>
 
             <div className="prod-price" style={{ margin: '12px 0' }}>
-              <span className="pm" style={{ fontSize: '1.6rem' }}>{p.price}</span>
+              <span className="pm" style={{ fontSize: '1.6rem' }}>${p.price.toFixed(2)}</span>
+              {p.old_price && <span className="po">${p.old_price.toFixed(2)}</span>}
             </div>
 
+            {!p.in_stock && (
+              <div style={{ display: 'inline-block', background: 'rgba(249,115,22,.12)', color: '#f97316', fontWeight: 700, fontSize: '.8rem', padding: '5px 12px', borderRadius: 20, marginBottom: 12 }}>
+                Out of Stock
+              </div>
+            )}
+
             <p style={{ color: 'var(--text2)', lineHeight: 1.7, fontSize: '.95rem', marginBottom: 16 }}>
-              {p.desc}
+              {p.description}
             </p>
 
             <h4 className="qv-specs-title">{t.quickView.specs}</h4>
@@ -89,10 +93,10 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
             <div className="qv-actions">
               <button
                 className="btn btn-primary"
-                style={{ flex: 1 }}
-                onClick={() => { onAddToCart(); onClose() }}
+                style={{ flex: 1, opacity: p.in_stock ? 1 : 0.5, cursor: p.in_stock ? 'pointer' : 'not-allowed' }}
+                onClick={() => { if (p.in_stock) { onAddToCart(); onClose() } }}
               >
-                {t.quickView.addToCart}
+                {p.in_stock ? t.quickView.addToCart : 'Out of Stock'}
               </button>
               <button className="btn btn-outline" onClick={onClose}>{t.quickView.close}</button>
             </div>

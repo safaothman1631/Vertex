@@ -3,8 +3,9 @@
 import { useCartStore } from '@/store/cart'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
+import { Trash2, Plus, Minus } from 'lucide-react'
 import { useT } from '@/contexts/locale'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore()
@@ -12,19 +13,13 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <ShoppingBag size={60} className="mx-auto mb-4 opacity-30" />
-        <h2 className="text-2xl font-bold mb-2">{t.cartPage.empty}</h2>
-        <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
-          {t.cartPage.emptyDesc}
-        </p>
-        <Link
-          href="/products"
-          className="inline-block px-6 py-3 rounded-xl font-bold text-white"
-          style={{ background: 'var(--accent)' }}
-        >
-          {t.cartPage.browseProducts}
-        </Link>
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        <EmptyState
+          icon="🛒"
+          title={t.cartPage.empty}
+          subtitle={t.cartPage.emptyDesc}
+          action={{ label: t.cartPage.browseProducts, href: '/products' }}
+        />
       </div>
     )
   }
