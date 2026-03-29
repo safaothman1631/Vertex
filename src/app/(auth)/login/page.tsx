@@ -15,6 +15,11 @@ function LoginForm() {
   const [resendLoading, setResendLoading] = useState(false)
   const [resendSent, setResendSent] = useState(false)
   const [verified, setVerified] = useState(false)
+  const [forgotMode, setForgotMode] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [forgotSent, setForgotSent] = useState(false)
+  const [forgotError, setForgotError] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -31,6 +36,24 @@ function LoginForm() {
     await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: redirectTo } })
     setResendSent(true)
     setResendLoading(false)
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault()
+    setForgotLoading(true)
+    setForgotError('')
+    const res = await fetch('/api/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: forgotEmail }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      setForgotError(json.error || 'Something went wrong')
+    } else {
+      setForgotSent(true)
+    }
+    setForgotLoading(false)
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -71,6 +94,36 @@ function LoginForm() {
       <div className="auth-modal-card">
 
         <div className="auth-logo">Ver<span style={{ color: 'var(--primary)' }}>tex</span></div>
+
+        {/* ── FORGOT PASSWORD VIEW ── */}
+        {forgotMode ? (
+          <>
+            <h2>{t.auth.forgotPasswordTitle}</h2>
+            <p className="auth-sub">{t.auth.forgotPasswordSub}</p>
+            {forgotSent ? (
+              <div style={{ background: '#d1fae5', border: '1px solid #6ee7b7', color: '#065f46', borderRadius: 10, padding: '16px', marginBottom: 16, textAlign: 'center', fontWeight: 600 }}>
+                {t.auth.resetLinkSent}
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="auth-form">
+                <div className="input-group">
+                  <label>{t.auth.email}</label>
+                  <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} placeholder="you@business.com" required />
+                </div>
+                {forgotError && <p className="auth-error-msg">{forgotError}</p>}
+                <button type="submit" disabled={forgotLoading} className="btn-primary btn-full btn-lg">
+                  {forgotLoading ? t.auth.sendingLink : t.auth.sendResetLink}
+                </button>
+              </form>
+            )}
+            <p className="auth-switch">
+              <button type="button" onClick={() => { setForgotMode(false); setForgotSent(false); setForgotError('') }} className="switch-btn" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                ← {t.auth.backToSignIn}
+              </button>
+            </p>
+          </>
+        ) : (
+          <>
         <h2>{t.auth.welcomeBack}</h2>
         <p className="auth-sub">{t.auth.signInSub}</p>
 
@@ -107,7 +160,7 @@ function LoginForm() {
           <div className="input-group">
             <label>{t.auth.password}</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
-            <a href="#" className="forgot-link" onClick={e => e.preventDefault()}>{t.auth.forgotPassword}</a>
+            <button type="button" className="forgot-link" onClick={() => { setForgotMode(true); setForgotEmail(email) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>{t.auth.forgotPassword}</button>
           </div>
           {error && <p className="auth-error-msg">{error}</p>}
           <button type="submit" disabled={loading} className="btn-primary btn-full btn-lg">
@@ -122,6 +175,8 @@ function LoginForm() {
           {t.auth.noAccount}{' '}
           <Link href="/register" className="switch-btn">{t.auth.signUpFree}</Link>
         </p>
+          </>
+        )}
       </div>
     </div>
   )
