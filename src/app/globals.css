@@ -656,6 +656,9 @@ ul{list-style:none}
 .admin-page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid var(--border)}
 .admin-page-title{font-size:1.7rem;font-weight:900;color:var(--text);letter-spacing:-.02em}
 .admin-page-sub{font-size:.85rem;color:var(--text2);margin-top:4px}
+/* Admin form grid */
+.admin-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:480px){.admin-form-grid{grid-template-columns:1fr}}
 @media(max-width:900px){
   .admin-sidebar{width:200px}
   .admin-main{margin-left:200px;padding:24px}
@@ -663,9 +666,28 @@ ul{list-style:none}
 }
 @media(max-width:640px){
   .admin-shell{padding-top:0}
-  .admin-sidebar{transform:translateX(-100%)}
-  .admin-main{margin-left:0;padding:16px}
-  .admin-stats{grid-template-columns:1fr 1fr}
+  .admin-sidebar{transform:translateX(-100%);width:260px;transition:transform .25s ease;z-index:200}
+  .admin-sidebar.admin-sidebar-open{transform:translateX(0)}
+  .admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
+  .admin-main{margin-left:0;padding:0}
+  .admin-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:90}
+  .admin-topbar-menu{background:none;border:none;cursor:pointer;color:var(--text);display:flex;align-items:center;padding:4px}
+  .admin-topbar-brand{font-size:.95rem;font-weight:900;color:var(--text)}
+  .admin-topbar-close-placeholder{width:30px}
+  .admin-page-head{margin:16px 16px 20px;padding-bottom:16px}
+  .admin-page-title{font-size:1.3rem}
+  .admin-table-wrap{display:none}
+  .admin-mobile-cards{display:flex;flex-direction:column;gap:10px;padding:0 16px 24px}
+  .admin-product-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+  .admin-stats{grid-template-columns:1fr 1fr;padding:0 16px;margin-bottom:20px}
+  .admin-stat-card{padding:16px}
+  .admin-stat-val{font-size:1.6rem}
+  div[style*="justifyContent: 'flex-end'"][style*="marginBottom: '16px'"]{padding:0 16px}
+}
+@media(min-width:641px){
+  .admin-topbar{display:none}
+  .admin-mobile-cards{display:none}
+  .admin-table-wrap{display:block}
 }
 
 /* ═══════════════════════════════════════

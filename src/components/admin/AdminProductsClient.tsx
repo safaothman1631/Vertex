@@ -62,8 +62,8 @@ export default function AdminProductsClient({ products: initial }: { products: P
         </button>
       </div>
 
-      {/* Table */}
-      <div className="admin-card">
+      {/* Desktop Table */}
+      <div className="admin-card admin-table-wrap">
         <table className="admin-table">
           <thead>
             <tr>
@@ -106,16 +106,46 @@ export default function AdminProductsClient({ products: initial }: { products: P
         </table>
       </div>
 
+      {/* Mobile Cards */}
+      <div className="admin-mobile-cards">
+        {products.length === 0 ? (
+          <div style={{ textAlign: 'center', color: 'var(--text2)', padding: '40px 0' }}>No products yet</div>
+        ) : products.map((p) => (
+          <div key={p.id} className="admin-product-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: '.95rem', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace', marginTop: 2 }}>{p.brand} · {p.model}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+                <button onClick={() => openEdit(p)} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Pencil size={15} /></button>
+                <button onClick={() => handleDelete(p.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '1rem' }}>${p.price.toFixed(2)}</span>
+              <span style={{ fontSize: '.75rem', color: 'var(--text2)', textTransform: 'capitalize', background: 'var(--bg3)', borderRadius: 6, padding: '2px 8px' }}>{p.category}</span>
+              {p.in_stock
+                ? <span className="admin-badge admin-badge-green">In Stock</span>
+                : <span className="admin-badge admin-badge-red">Out</span>
+              }
+              {p.is_new && <span className="admin-badge admin-badge-blue">New</span>}
+              {p.is_hot && <span className="admin-badge admin-badge-yellow">Hot</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Modal */}
       {showForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '16px' }}>
-          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: '28px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: '16px' }}>
+          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? 'Edit Product' : 'New Product'}</h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)' }}><X size={20} /></button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div className="admin-form-grid">
               {([
                 { key: 'name', label: 'Product Name', span: 2 },
                 { key: 'brand', label: 'Brand' },
