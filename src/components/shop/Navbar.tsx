@@ -173,10 +173,10 @@ export default function Navbar() {
                   }}>
                     {initials}
                   </div>
-                  <span style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--text)', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span className="nav-profile-name" style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--text)', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {user.name.split(' ')[0]}
                   </span>
-                  <ChevronDown size={13} style={{ color: 'var(--text2)', transition: 'transform .2s', transform: profileOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} />
+                  <ChevronDown size={13} className="nav-profile-chevron" style={{ color: 'var(--text2)', transition: 'transform .2s', transform: profileOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} />
                 </button>
 
                 {/* Dropdown */}
@@ -263,8 +263,8 @@ export default function Navbar() {
                 }}
               >
                 <Globe size={14} />
-                {LANG_OPTIONS.find(o => o.value === locale)?.label}
-                <ChevronDown size={11} style={{ transform: langOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }} />
+                <span className="nav-lang-label">{LANG_OPTIONS.find(o => o.value === locale)?.label}</span>
+                <ChevronDown size={11} className="nav-lang-chevron" style={{ transform: langOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }} />
               </button>
               {langOpen && (
                 <div style={{
