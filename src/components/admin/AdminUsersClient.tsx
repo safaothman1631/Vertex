@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase-client'
 import { Trash2, ShieldCheck, User, Eye, X, ShoppingBag } from 'lucide-react'
 import type { Profile } from '@/types'
 
@@ -11,22 +10,42 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
   const [users, setUsers] = useState<UserWithOrders[]>(initial)
   const [detail, setDetail] = useState<UserWithOrders | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
-  const supabase = createClient()
+  const [error, setError] = useState<string | null>(null)
 
   async function handleRoleToggle(id: string, current: 'user' | 'admin') {
     const next = current === 'admin' ? 'user' : 'admin'
     setUpdatingId(id)
-    await supabase.from('profiles').update({ role: next }).eq('id', id)
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, role: next } : u))
-    if (detail?.id === id) setDetail(prev => prev ? { ...prev, role: next } : prev)
+    setError(null)
+    const res = await fetch('/api/admin/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: id, role: next }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setError(data.error ?? 'Failed to update role')
+    } else {
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, role: next } : u))
+      if (detail?.id === id) setDetail(prev => prev ? { ...prev, role: next } : prev)
+    }
     setUpdatingId(null)
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this user and all their data?')) return
-    await supabase.from('profiles').delete().eq('id', id)
-    setUsers(prev => prev.filter(u => u.id !== id))
-    if (detail?.id === id) setDetail(null)
+    setError(null)
+    const res = await fetch('/api/admin/users', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: id }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setError(data.error ?? 'Failed to delete user')
+    } else {
+      setUsers(prev => prev.filter(u => u.id !== id))
+      if (detail?.id === id) setDetail(null)
+    }
   }
 
   const admins = users.filter(u => u.role === 'admin').length
@@ -34,6 +53,12 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
 
   return (
     <div>
+      {error && (
+        <div style={{ margin: '0 0 16px', padding: '12px 16px', borderRadius: 10, background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.3)', color: '#ef4444', fontSize: '.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{error}</span>
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0 4px' }}><X size={14} /></button>
+        </div>
+      )}
       <div className="admin-page-head">
         <div>
           <h1 className="admin-page-title">Users</h1>
