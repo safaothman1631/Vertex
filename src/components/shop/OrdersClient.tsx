@@ -51,8 +51,6 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
   const stepIdx = STATUS_STEPS.indexOf(order.status)
   const isCancelled = order.status === 'cancelled'
 
-  const STATUS_ICONS: Record<string, string> = { pending: 'clock', processing: 'loader', shipped: 'truck', delivered: 'check', cancelled: 'x' }
-
   return createPortal(
     <div
       style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}

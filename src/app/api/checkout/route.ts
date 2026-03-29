@@ -155,10 +155,11 @@ export async function POST(request: Request) {
 
     // Increment coupon used_count
     if (appliedCouponId) {
-      await supabase.rpc('increment_coupon_used', { coupon_id: appliedCouponId }).catch(() => {
+      const { error: rpcErr } = await supabase.rpc('increment_coupon_used', { coupon_id: appliedCouponId })
+      if (rpcErr) {
         // Fallback: direct update
-        supabase.from('coupons').update({ used_count: discount > 0 ? 1 : 0 }).eq('id', appliedCouponId)
-      })
+        await supabase.from('coupons').update({ used_count: discount > 0 ? 1 : 0 }).eq('id', appliedCouponId)
+      }
     }
 
     let session: import('stripe').Stripe.Checkout.Session

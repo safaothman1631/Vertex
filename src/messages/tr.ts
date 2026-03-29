@@ -224,6 +224,10 @@ const tr = {
     subtotal: 'Ara Toplam',
     qty: 'Adet',
     close: 'Kapat',
+    pageHeadLine1: 'Sipariş',
+    pageHeadLine2: 'Geçmişiniz',
+    totalOrders: 'Toplam Sipariş',
+    totalSpent: 'Toplam Harcama',
     status: {
       pending: 'Beklemede',
       processing: 'İşleniyor',

@@ -225,6 +225,10 @@ const en = {
     subtotal: 'Subtotal',
     qty: 'Qty',
     close: 'Close',
+    pageHeadLine1: 'Your',
+    pageHeadLine2: 'Order History',
+    totalOrders: 'Total Orders',
+    totalSpent: 'Total Spent',
     status: {
       pending: 'Pending',
       processing: 'Processing',

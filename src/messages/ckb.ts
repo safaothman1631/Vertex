@@ -225,6 +225,10 @@ const ckb = {
     subtotal: 'کۆی لاوەکی',
     qty: 'دانە',
     close: 'داخستن',
+    pageHeadLine1: 'مێژووی',
+    pageHeadLine2: 'داواکارییەکانت',
+    totalOrders: 'کۆی داواکارییەکان',
+    totalSpent: 'کۆی خەرجکراو',
     status: {
       pending: 'چاوەڕوان',
       processing: 'پرۆسەکردن',

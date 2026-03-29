@@ -222,6 +222,10 @@ const ar = {
     subtotal: 'المجموع الفرعي',
     qty: 'الكمية',
     close: 'إغلاق',
+    pageHeadLine1: 'سجل',
+    pageHeadLine2: 'طلباتك',
+    totalOrders: 'إجمالي الطلبات',
+    totalSpent: 'إجمالي الإنفاق',
     status: {
       pending: 'قيد الانتظار',
       processing: 'جارٍ المعالجة',
