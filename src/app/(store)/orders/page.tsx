@@ -16,7 +16,7 @@ export default async function OrdersPage() {
 
   return (
     <div style={{ maxWidth: 860, margin: '0 auto', padding: '40px 20px' }}>
-      <OrdersClient orders={orders as Order[] | null} />
+      <OrdersClient orders={orders as Order[] | null} userId={user.id} />
     </div>
   )
 }

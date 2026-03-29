@@ -4,9 +4,11 @@ import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { useT } from '@/contexts/locale'
 import type { Order } from '@/types'
+import type { LucideIcon } from 'lucide-react'
 import { Package, X, MapPin, ShoppingBag, ChevronRight, Clock, Truck, CheckCircle2, XCircle, RefreshCw } from 'lucide-react'
 import EmptyState from '@/components/ui/EmptyState'
 import OrdersPageHeader from '@/components/shop/OrdersPageHeader'
+import { createClient } from '@/lib/supabase-client'
 
 const STATUS_COLORS: Record<string, string> = {
   pending: '#f59e0b',
@@ -17,6 +19,20 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 const STATUS_STEPS = ['pending', 'processing', 'shipped', 'delivered']
+
+const STATUS_STEP_COLORS: Record<string, string> = {
+  pending: '#f59e0b',
+  processing: '#3b82f6',
+  shipped: '#6366f1',
+  delivered: '#22c55e',
+}
+
+const STATUS_ICONS: Record<string, LucideIcon> = {
+  pending: Clock,
+  processing: RefreshCw,
+  shipped: Truck,
+  delivered: CheckCircle2,
+}
 
 /* Detail Modal */
 function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => void }) {
@@ -50,7 +66,8 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
         <div style={{ padding: '22px 24px 18px', background: 'linear-gradient(135deg, var(--bg2), var(--bg1))', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
-              <span style={{ fontSize: '.72rem', fontWeight: 800, padding: '3px 10px', borderRadius: 99, textTransform: 'capitalize' as const, background: sc + '20', color: sc, border: '1px solid ' + sc + '40', display: 'inline-block', marginBottom: 8 }}>
+              <span style={{ fontSize: '.72rem', fontWeight: 800, padding: '4px 12px', borderRadius: 99, textTransform: 'capitalize' as const, background: sc + '20', color: sc, border: '1px solid ' + sc + '40', display: 'inline-flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: sc, display: 'inline-block', boxShadow: '0 0 6px ' + sc }} />
                 {t.orders.status[order.status as keyof typeof t.orders.status] ?? order.status}
               </span>
               <div style={{ fontWeight: 900, fontSize: '1.1rem' }}>{t.orders.orderDetails}</div>
@@ -64,17 +81,19 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
           {!isCancelled && (
             <div style={{ marginTop: 20, display: 'flex', alignItems: 'flex-start' }}>
               {STATUS_STEPS.map((step, i) => {
+                const stepColor = STATUS_STEP_COLORS[step] ?? '#6366f1'
                 const done = i <= stepIdx
                 const active = i === stepIdx
+                const StepIcon = STATUS_ICONS[step] ?? Package
                 return (
                   <div key={step} style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', position: 'relative' as const }}>
                     {i > 0 && (
-                      <div style={{ position: 'absolute' as const, top: 12, right: '50%', width: '100%', height: 2, background: i <= stepIdx ? sc : 'var(--border)' }} />
+                      <div style={{ position: 'absolute' as const, top: 13, right: '50%', width: '100%', height: 2, background: i <= stepIdx ? STATUS_STEP_COLORS[STATUS_STEPS[i - 1]] ?? 'var(--border)' : 'var(--border)', transition: 'background .4s' }} />
                     )}
-                    <div style={{ width: 26, height: 26, borderRadius: '50%', zIndex: 1, background: active ? sc : done ? sc + '30' : 'var(--bg3)', border: '2px solid ' + (done ? sc : 'var(--border)'), display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? '#fff' : done ? sc : 'var(--text3)', fontSize: '.65rem', fontWeight: 800, boxShadow: active ? '0 0 12px ' + sc + '60' : 'none' }}>
-                      {i + 1}
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', zIndex: 1, background: active ? stepColor : done ? stepColor + '25' : 'var(--bg3)', border: '2px solid ' + (done ? stepColor : 'var(--border)'), display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? '#fff' : done ? stepColor : 'var(--text3)', boxShadow: active ? '0 0 14px ' + stepColor + '80' : 'none', transition: 'all .4s' }}>
+                      <StepIcon size={11} />
                     </div>
-                    <div style={{ fontSize: '.6rem', marginTop: 5, color: done ? 'var(--text)' : 'var(--text3)', fontWeight: done ? 700 : 400, textAlign: 'center' as const }}>
+                    <div style={{ fontSize: '.6rem', marginTop: 5, color: done ? stepColor : 'var(--text3)', fontWeight: done ? 700 : 400, textAlign: 'center' as const, transition: 'color .4s' }}>
                       {t.orders.status[step as keyof typeof t.orders.status] ?? step}
                     </div>
                   </div>
@@ -160,7 +179,7 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
     <button type="button" onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ width: '100%', textAlign: 'start' as const, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
       <div style={{ background: 'var(--bg2)', border: '1px solid ' + (hovered ? sc + 'aa' : 'var(--border)'), borderRadius: 18, overflow: 'hidden', transform: hovered ? 'translateY(-3px)' : 'none', boxShadow: hovered ? '0 12px 40px rgba(0,0,0,.35)' : '0 2px 16px rgba(0,0,0,.25)', transition: 'all .22s cubic-bezier(.21,1.02,.73,1)', display: 'flex' }}>
-        <div style={{ width: 4, flexShrink: 0, background: sc }} />
+        <div style={{ width: 5, flexShrink: 0, background: 'linear-gradient(180deg, ' + sc + ', ' + sc + '55)' }} />
         <div style={{ flex: 1, padding: '18px 20px 18px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -173,7 +192,8 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: '.72rem', fontWeight: 800, padding: '4px 12px', borderRadius: 99, textTransform: 'capitalize' as const, background: sc + '18', color: sc, border: '1px solid ' + sc + '40' }}>
+              <span style={{ fontSize: '.72rem', fontWeight: 800, padding: '4px 12px', borderRadius: 99, textTransform: 'capitalize' as const, display: 'inline-flex', alignItems: 'center', gap: 5, background: sc + '18', color: sc, border: '1px solid ' + sc + '40' }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: sc, display: 'inline-block', boxShadow: '0 0 5px ' + sc }} />
                 {t.orders.status[order.status as keyof typeof t.orders.status] ?? order.status}
               </span>
               <ChevronRight size={15} style={{ color: hovered ? sc : 'var(--text3)', transition: 'all .2s', transform: hovered ? 'translateX(2px)' : 'none' }} />
@@ -221,15 +241,34 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
 }
 
 /* Main */
-export default function OrdersClient({ orders }: { orders: Order[] | null }) {
+export default function OrdersClient({ orders: initialOrders, userId }: { orders: Order[] | null; userId: string }) {
   const t = useT()
+  const [orders, setOrders] = useState<Order[]>(initialOrders ?? [])
   const [selected, setSelected] = useState<Order | null>(null)
-  const totalSpent = (orders ?? []).reduce((sum, o) => sum + o.total, 0)
+
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel('orders-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${userId}` },
+        (payload) => {
+          const updated = payload.new as Partial<Order>
+          setOrders(prev => prev.map(o => o.id === updated.id ? { ...o, ...updated } : o))
+          setSelected(prev => prev && prev.id === updated.id ? { ...prev, ...updated } : prev)
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [userId])
+
+  const totalSpent = orders.reduce((sum, o) => sum + o.total, 0)
 
   return (
     <div style={{ minHeight: '60vh' }}>
-      <OrdersPageHeader totalOrders={orders?.length ?? 0} totalSpent={totalSpent} />
-      {!orders || orders.length === 0 ? (
+      <OrdersPageHeader totalOrders={orders.length} totalSpent={totalSpent} />
+      {orders.length === 0 ? (
         <EmptyState icon="📋" title={t.orders.empty} action={{ label: t.orders.viewDetails ?? 'Browse Products', href: '/products' }} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

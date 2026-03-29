@@ -41,9 +41,9 @@ export default function ContactPage() {
   }
 
   const CONTACTS = [
-    { icon: Mail, label: 'Email', value: 'support@vertex.com', sub: 'We reply within 24 hours' },
-    { icon: Phone, label: 'Phone', value: '+1 (800) 123-4567', sub: 'Mon-Fri, 9am-6pm EST' },
-    { icon: MapPin, label: 'Address', value: '123 Commerce St, Tech City', sub: 'Visit us anytime' },
+    { icon: Mail, label: 'Email', value: 'safaothman1631@gmail.com', sub: 'We reply within 24 hours' },
+    { icon: Phone, label: 'Phone', value: '+964 750 529 9118 / +964 750 870 6750', sub: 'Mon-Fri, 9am-6pm' },
+    { icon: MapPin, label: 'Address', value: 'سوڵتان مزەفەر فەرعی جیهانی کامیرە بینای ئیپسۆن', sub: 'Visit us anytime' },
   ]
 
   return (
