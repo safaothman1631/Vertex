@@ -1,18 +1,20 @@
 ﻿import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase-server'
 import ProductsGrid from '@/components/shop/ProductsGrid'
+import type { Product } from '@/types'
 
 export default async function ProductsPage() {
   const supabase = await createClient()
   const { data: products } = await supabase
     .from('products')
     .select('*')
-    .eq('hidden', false)
     .order('created_at', { ascending: false })
+
+  const visible = (products ?? []).filter((p: Product) => !p.hidden)
 
   return (
     <Suspense fallback={<div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text2)' }}>Loading…</div>}>
-      <ProductsGrid products={products ?? []} />
+      <ProductsGrid products={visible as Product[]} />
     </Suspense>
   )
 }

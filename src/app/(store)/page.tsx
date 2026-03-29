@@ -7,8 +7,8 @@ export default async function Home() {
   const { data: products } = await supabase
     .from('products')
     .select('*')
-    .eq('hidden', false)
     .order('created_at', { ascending: false })
 
-  return <HomeClient products={(products as Product[]) ?? []} />
+  const visible = ((products as Product[]) ?? []).filter(p => !p.hidden)
+  return <HomeClient products={visible} />
 }

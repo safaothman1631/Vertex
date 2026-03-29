@@ -19,14 +19,15 @@ export default async function ProductDetailPage({
   if (!product) notFound()
 
   // Fetch related products (same category, exclude current, limit 4)
-  const { data: related } = await supabase
+  const { data: relatedRaw } = await supabase
     .from('products')
     .select('*')
     .eq('category', product.category)
-    .eq('hidden', false)
     .neq('id', product.id)
-    .limit(4)
+    .limit(8)
 
-  return <ProductDetailClient product={product} relatedProducts={related ?? []} />
+  const related = (relatedRaw ?? []).filter((p: { hidden?: boolean }) => !p.hidden).slice(0, 4)
+
+  return <ProductDetailClient product={product} relatedProducts={related} />
 }
 
