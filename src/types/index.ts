@@ -24,6 +24,7 @@ export interface Product {
   in_stock: boolean
   is_new: boolean
   is_hot: boolean
+  hidden: boolean
   created_at: string
 }
 

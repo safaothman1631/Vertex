@@ -12,19 +12,17 @@ import { useT } from '@/contexts/locale'
 
 const PER_PAGE = 10
 
-const CATS = [
-  { key: 'all', label: 'All', icon: '' },
-  { key: 'Barcode Scanners', label: 'Barcode Scanners', icon: '' },
-  { key: 'POS Terminals', label: 'POS Terminals', icon: '' },
-  { key: 'Printers', label: 'Printers', icon: '' },
-  { key: 'Mobile Computers', label: 'Mobile Computers', icon: '' },
-]
-
 export default function ProductsGrid({ products }: { products: Product[] }) {
   const t = useT()
   const searchParams = useSearchParams()
   const router = useRouter()
   const brandParam = searchParams.get('brand') ?? 'all'
+
+  // Build category list dynamically from products that actually exist
+  const CATS = useMemo(() => {
+    const used = Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort()
+    return [{ key: 'all', label: 'All' }, ...used.map(c => ({ key: c, label: c }))]
+  }, [products])
 
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('default')

@@ -7,6 +7,7 @@ export default async function ProductsPage() {
   const { data: products } = await supabase
     .from('products')
     .select('*')
+    .eq('hidden', false)
     .order('created_at', { ascending: false })
 
   return (

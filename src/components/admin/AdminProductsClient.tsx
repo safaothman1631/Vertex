@@ -1,15 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase-client'
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Eye, EyeOff } from 'lucide-react'
 import type { Product } from '@/types'
 
+const DEFAULT_CATS = [
+  'Barcode Scanners',
+  'POS Terminals',
+  'Printers',
+  'Mobile Computers',
+]
+
+const DEFAULT_BRANDS = [
+  'Honeywell', 'Zebra', 'Ingenico', 'Verifone', 'Epson', 'Star Micronics', 'Datalogic', 'Newland',
+]
+
 const EMPTY_PRODUCT: Partial<Product> = {
-  name: '', brand: '', model: '', category: 'scanners',
+  name: '', brand: '', model: '', category: 'Barcode Scanners',
   price: 0, old_price: null, description: '', specs: [],
   images: [], rating: 4.5, review_count: 0,
-  in_stock: true, is_new: false, is_hot: false,
+  in_stock: true, is_new: false, is_hot: false, hidden: false,
 }
 
 export default function AdminProductsClient({ products: initial }: { products: Product[] }) {
@@ -18,7 +29,25 @@ export default function AdminProductsClient({ products: initial }: { products: P
   const [editing, setEditing] = useState<Partial<Product>>(EMPTY_PRODUCT)
   const [isEdit, setIsEdit] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [newCat, setNewCat] = useState('')
+  const [showNewCat, setShowNewCat] = useState(false)
+  const [extraCats, setExtraCats] = useState<string[]>([])
+  const [newBrand, setNewBrand] = useState('')
+  const [showNewBrand, setShowNewBrand] = useState(false)
+  const [extraBrands, setExtraBrands] = useState<string[]>([])
   const supabase = createClient()
+
+  // All unique categories (existing + defaults + newly added)
+  const allCats = useMemo(() => {
+    const fromProducts = products.map(p => p.category).filter(Boolean)
+    return Array.from(new Set([...DEFAULT_CATS, ...fromProducts, ...extraCats])).sort()
+  }, [products, extraCats])
+
+  // All unique brands
+  const allBrands = useMemo(() => {
+    const fromProducts = products.map(p => p.brand).filter(Boolean)
+    return Array.from(new Set([...DEFAULT_BRANDS, ...fromProducts, ...extraBrands])).sort()
+  }, [products, extraBrands])
 
   function openNew() {
     setEditing(EMPTY_PRODUCT)
@@ -53,6 +82,11 @@ export default function AdminProductsClient({ products: initial }: { products: P
     setProducts((prev) => prev.filter((p) => p.id !== id))
   }
 
+  async function handleToggle(id: string, field: 'hidden' | 'in_stock', current: boolean) {
+    await supabase.from('products').update({ [field]: !current }).eq('id', id)
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: !current } : p))
+  }
+
   return (
     <div>
       {/* Toolbar */}
@@ -67,7 +101,7 @@ export default function AdminProductsClient({ products: initial }: { products: P
         <table className="admin-table">
           <thead>
             <tr>
-              {['Name', 'Brand', 'Category', 'Price', 'Stock', 'Actions'].map((h) => (
+              {['Name', 'Brand', 'Category', 'Price', 'Status', 'Actions'].map((h) => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
@@ -85,13 +119,21 @@ export default function AdminProductsClient({ products: initial }: { products: P
                 <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
                 <td style={{ color: 'var(--primary)', fontWeight: 700 }}>${p.price.toFixed(2)}</td>
                 <td>
-                  {p.in_stock
-                    ? <span className="admin-badge admin-badge-green">In Stock</span>
-                    : <span className="admin-badge admin-badge-red">Out</span>
-                  }
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+                    <button onClick={() => handleToggle(p.id, 'in_stock', p.in_stock)} title={p.in_stock ? 'Mark out of stock' : 'Mark in stock'} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      {p.in_stock
+                        ? <span className="admin-badge admin-badge-green">In Stock</span>
+                        : <span className="admin-badge admin-badge-red">Out of Stock</span>
+                      }
+                    </button>
+                    {p.hidden && <span className="admin-badge admin-badge-purple">Hidden</span>}
+                  </div>
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <button onClick={() => handleToggle(p.id, 'hidden', p.hidden)} title={p.hidden ? 'Show in shop' : 'Hide from shop'} style={{ color: p.hidden ? '#a855f7' : 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      {p.hidden ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
                     <button onClick={() => openEdit(p)} title="Edit" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Pencil size={14} />
                     </button>
@@ -118,6 +160,9 @@ export default function AdminProductsClient({ products: initial }: { products: P
                 <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace', marginTop: 2 }}>{p.brand} · {p.model}</div>
               </div>
               <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+                <button onClick={() => handleToggle(p.id, 'hidden', p.hidden)} title={p.hidden ? 'Show in shop' : 'Hide from shop'} style={{ color: p.hidden ? '#a855f7' : 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                  {p.hidden ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
                 <button onClick={() => openEdit(p)} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Pencil size={15} /></button>
                 <button onClick={() => handleDelete(p.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
               </div>
@@ -125,12 +170,15 @@ export default function AdminProductsClient({ products: initial }: { products: P
             <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '1rem' }}>${p.price.toFixed(2)}</span>
               <span style={{ fontSize: '.75rem', color: 'var(--text2)', textTransform: 'capitalize', background: 'var(--bg3)', borderRadius: 6, padding: '2px 8px' }}>{p.category}</span>
-              {p.in_stock
-                ? <span className="admin-badge admin-badge-green">In Stock</span>
-                : <span className="admin-badge admin-badge-red">Out</span>
-              }
+              <button onClick={() => handleToggle(p.id, 'in_stock', p.in_stock)} title={p.in_stock ? 'Mark out of stock' : 'Mark in stock'} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                {p.in_stock
+                  ? <span className="admin-badge admin-badge-green">In Stock</span>
+                  : <span className="admin-badge admin-badge-red">Out of Stock</span>
+                }
+              </button>
               {p.is_new && <span className="admin-badge admin-badge-blue">New</span>}
               {p.is_hot && <span className="admin-badge admin-badge-yellow">Hot</span>}
+              {p.hidden && <span className="admin-badge admin-badge-purple">Hidden</span>}
             </div>
           </div>
         ))}
@@ -148,9 +196,7 @@ export default function AdminProductsClient({ products: initial }: { products: P
             <div className="admin-form-grid">
               {([
                 { key: 'name', label: 'Product Name', span: 2 },
-                { key: 'brand', label: 'Brand' },
                 { key: 'model', label: 'Model' },
-                { key: 'category', label: 'Category' },
                 { key: 'price', label: 'Price ($)', type: 'number' },
                 { key: 'old_price', label: 'Old Price ($)', type: 'number' },
                 { key: 'description', label: 'Description', span: 2, textarea: true },
@@ -179,6 +225,115 @@ export default function AdminProductsClient({ products: initial }: { products: P
                 )
               )}
 
+              {/* Brand dropdown */}
+              <div>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '5px' }}>Brand</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <select
+                    value={editing.brand ?? ''}
+                    onChange={e => setEditing({ ...editing, brand: e.target.value })}
+                    style={{ flex: 1, padding: '10px 12px', background: 'var(--bg3)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: '.9rem', outline: 'none', cursor: 'pointer' }}
+                  >
+                    {allBrands.map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                  <button type="button" onClick={() => setShowNewBrand(v => !v)} className="admin-btn admin-btn-ghost" title="Add new brand">
+                    <Plus size={15} />
+                  </button>
+                </div>
+                {showNewBrand && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <input
+                      type="text"
+                      placeholder="New brand name…"
+                      value={newBrand}
+                      onChange={e => setNewBrand(e.target.value)}
+                      style={{ flex: 1, padding: '8px 12px', background: 'var(--bg3)', border: '1.5px solid var(--primary)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: '.9rem', outline: 'none' }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && newBrand.trim()) {
+                          const t = newBrand.trim()
+                          setExtraBrands(prev => [...prev, t])
+                          setEditing({ ...editing, brand: t })
+                          setNewBrand('')
+                          setShowNewBrand(false)
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newBrand.trim()) {
+                          const t = newBrand.trim()
+                          setExtraBrands(prev => [...prev, t])
+                          setEditing({ ...editing, brand: t })
+                          setNewBrand('')
+                          setShowNewBrand(false)
+                        }
+                      }}
+                      className="admin-btn admin-btn-primary"
+                    >
+                      Add
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Category dropdown */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '5px' }}>Category</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <select
+                    value={editing.category ?? ''}
+                    onChange={e => setEditing({ ...editing, category: e.target.value })}
+                    style={{ flex: 1, padding: '10px 12px', background: 'var(--bg3)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: '.9rem', outline: 'none', cursor: 'pointer' }}
+                  >
+                    {allCats.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewCat(v => !v)}
+                    className="admin-btn admin-btn-ghost"
+                    title="Add new category"
+                  >
+                    <Plus size={15} />
+                  </button>
+                </div>
+                {showNewCat && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <input
+                      type="text"
+                      placeholder="New category name…"
+                      value={newCat}
+                      onChange={e => setNewCat(e.target.value)}
+                      style={{ flex: 1, padding: '8px 12px', background: 'var(--bg3)', border: '1.5px solid var(--primary)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: '.9rem', outline: 'none' }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && newCat.trim()) {
+                          const trimmed = newCat.trim()
+                          setExtraCats(prev => [...prev, trimmed])
+                          setEditing({ ...editing, category: trimmed })
+                          setNewCat('')
+                          setShowNewCat(false)
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newCat.trim()) {
+                          const trimmed = newCat.trim()
+                          setExtraCats(prev => [...prev, trimmed])
+                          setEditing({ ...editing, category: trimmed })
+                          setNewCat('')
+                          setShowNewCat(false)
+                        }
+                      }}
+                      className="admin-btn admin-btn-primary"
+                    >
+                      Add
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {(['in_stock', 'is_new', 'is_hot'] as const).map((k) => (
                 <label key={k} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '.88rem', cursor: 'pointer', textTransform: 'capitalize' }}>
                   <input
@@ -190,6 +345,20 @@ export default function AdminProductsClient({ products: initial }: { products: P
                   {k.replace('_', ' ')}
                 </label>
               ))}
+              <label style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', border: `1.5px solid ${editing.hidden ? '#a855f7' : 'var(--border)'}`, borderRadius: 'var(--radius-sm)', background: editing.hidden ? 'rgba(168,85,247,.08)' : 'transparent', cursor: 'pointer', transition: 'border-color .2s, background .2s' }}>
+                <input
+                  type="checkbox"
+                  checked={editing.hidden ?? false}
+                  onChange={(e) => setEditing({ ...editing, hidden: e.target.checked })}
+                  style={{ accentColor: '#a855f7', width: '16px', height: '16px', flexShrink: 0 }}
+                />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '.88rem', color: editing.hidden ? '#a855f7' : 'var(--text)' }}>
+                    {editing.hidden ? 'Hidden from shop' : 'Visible in shop'}
+                  </div>
+                  <div style={{ fontSize: '.75rem', color: 'var(--text2)', marginTop: 2 }}>When hidden, this product won&apos;t appear to customers</div>
+                </div>
+              </label>
             </div>
 
             <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>

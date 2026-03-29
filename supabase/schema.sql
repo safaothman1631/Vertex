@@ -48,6 +48,7 @@ create table if not exists public.products (
   in_stock     boolean not null default true,
   is_new       boolean not null default false,
   is_hot       boolean not null default false,
+  hidden       boolean not null default false,
   created_at   timestamptz default now()
 );
 
