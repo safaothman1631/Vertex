@@ -115,6 +115,62 @@ create table if not exists public.contact_messages (
   created_at timestamptz default now()
 );
 
+-- 9. Categories
+create table if not exists public.categories (
+  id          uuid default gen_random_uuid() primary key,
+  name        text not null unique,
+  slug        text not null unique,
+  icon        text not null default '',
+  sort_order  int  not null default 0,
+  created_at  timestamptz default now()
+);
+
+-- 10. Reviews
+create table if not exists public.reviews (
+  id          uuid default gen_random_uuid() primary key,
+  user_id     uuid references public.profiles(id) on delete cascade not null,
+  product_id  uuid references public.products(id) on delete cascade not null,
+  rating      int  not null check (rating >= 1 and rating <= 5),
+  comment     text not null default '',
+  created_at  timestamptz default now(),
+  unique(user_id, product_id)
+);
+
+-- 11. Coupons
+create table if not exists public.coupons (
+  id              uuid default gen_random_uuid() primary key,
+  code            text not null unique,
+  discount_type   text not null default 'percent' check (discount_type in ('percent', 'fixed')),
+  discount_value  numeric(10,2) not null,
+  min_order       numeric(10,2) not null default 0,
+  max_uses        int,
+  used_count      int  not null default 0,
+  active          boolean not null default true,
+  expires_at      timestamptz,
+  created_at      timestamptz default now()
+);
+
+-- 12. Notifications
+create table if not exists public.notifications (
+  id          uuid default gen_random_uuid() primary key,
+  user_id     uuid references public.profiles(id) on delete cascade not null,
+  title       text not null,
+  body        text not null default '',
+  type        text not null default 'info' check (type in ('info', 'order', 'promo', 'system')),
+  is_read     boolean not null default false,
+  created_at  timestamptz default now()
+);
+
+-- 13. Inventory Log
+create table if not exists public.inventory_log (
+  id          uuid default gen_random_uuid() primary key,
+  product_id  uuid references public.products(id) on delete cascade not null,
+  change      int  not null,
+  reason      text not null default '',
+  created_by  uuid references public.profiles(id) on delete set null,
+  created_at  timestamptz default now()
+);
+
 -- ============================================================
 -- Row Level Security (RLS)
 -- ============================================================
@@ -127,6 +183,11 @@ alter table public.wishlist        enable row level security;
 alter table public.orders          enable row level security;
 alter table public.order_items     enable row level security;
 alter table public.contact_messages enable row level security;
+alter table public.categories      enable row level security;
+alter table public.reviews         enable row level security;
+alter table public.coupons         enable row level security;
+alter table public.notifications   enable row level security;
+alter table public.inventory_log   enable row level security;
 
 -- Profiles: users can read/update their own; admins can read all
 create policy "Users can read own profile"
@@ -196,3 +257,47 @@ create policy "Admins can read contact messages"
 create policy "Admins can update contact messages"
   on public.contact_messages for update
   using ((select role from public.profiles where id = auth.uid()) = 'admin');
+
+-- Categories: anyone can read; only admins can write
+create policy "Anyone can read categories"
+  on public.categories for select using (true);
+create policy "Admins can manage categories"
+  on public.categories for all
+  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+
+-- Reviews: anyone can read; users manage own; admins manage all
+create policy "Anyone can read reviews"
+  on public.reviews for select using (true);
+create policy "Users can insert own review"
+  on public.reviews for insert with check (auth.uid() = user_id);
+create policy "Users can update own review"
+  on public.reviews for update using (auth.uid() = user_id);
+create policy "Users can delete own review"
+  on public.reviews for delete using (auth.uid() = user_id);
+create policy "Admins can manage reviews"
+  on public.reviews for all
+  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+
+-- Coupons: anyone can read active; only admins can manage
+create policy "Anyone can read active coupons"
+  on public.coupons for select using (active = true);
+create policy "Admins can manage coupons"
+  on public.coupons for all
+  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+
+-- Notifications: users read/update own; admins manage all
+create policy "Users can read own notifications"
+  on public.notifications for select using (auth.uid() = user_id);
+create policy "Users can update own notifications"
+  on public.notifications for update using (auth.uid() = user_id);
+create policy "Admins can manage notifications"
+  on public.notifications for all
+  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+
+-- Inventory log: admins only
+create policy "Admins can read inventory log"
+  on public.inventory_log for select
+  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+create policy "Admins can insert inventory log"
+  on public.inventory_log for insert
+  with check ((select role from public.profiles where id = auth.uid()) = 'admin');

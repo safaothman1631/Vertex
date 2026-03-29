@@ -80,3 +80,56 @@ export interface ContactMessage {
   is_read: boolean
   created_at: string
 }
+
+export interface Category {
+  id: string
+  name: string
+  slug: string
+  icon: string
+  sort_order: number
+  created_at: string
+}
+
+export interface Review {
+  id: string
+  user_id: string
+  product_id: string
+  rating: number
+  comment: string
+  created_at: string
+  user?: Profile
+  product?: Product
+}
+
+export interface Coupon {
+  id: string
+  code: string
+  discount_type: 'percent' | 'fixed'
+  discount_value: number
+  min_order: number
+  max_uses: number | null
+  used_count: number
+  active: boolean
+  expires_at: string | null
+  created_at: string
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  title: string
+  body: string
+  type: 'info' | 'order' | 'promo' | 'system'
+  is_read: boolean
+  created_at: string
+}
+
+export interface InventoryLog {
+  id: string
+  product_id: string
+  change: number
+  reason: string
+  created_by: string | null
+  created_at: string
+  product?: Product
+}
