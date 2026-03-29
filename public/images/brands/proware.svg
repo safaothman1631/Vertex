@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 100" width="380" height="100">
-  <!-- ProWare logo: tech distributor brand with shield/hexagon mark -->
-  <!-- Hexagonal P mark -->
-  <polygon points="30,20 55,10 80,20 80,55 55,65 30,55" fill="#8b5cf6" opacity="0.9"/>
-  <text x="55" y="50" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-weight="800" font-size="32" fill="#fff">P</text>
-  <!-- ProWare wordmark -->
-  <text x="95" y="55" font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-weight="300" font-size="42" fill="#1a1a2e" letter-spacing="1">
-    <tspan font-weight="700">Pro</tspan><tspan>Ware</tspan>
-  </text>
-  <!-- Tagline -->
-  <text x="96" y="72" font-family="'Segoe UI', Arial, sans-serif" font-weight="400" font-size="10" fill="#888" letter-spacing="4">TECHNOLOGY</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="380" height="100" viewBox="0 0 380 100"><polygon fill="#8b5cf6" points="30 20 55 10 80 20 80 55 55 65 30 55" opacity=".9"/><text x="55" y="50" fill="#fff" font-family="'Segoe UI', Arial, sans-serif" font-size="32" font-weight="800" text-anchor="middle">P</text><text x="95" y="55" fill="#1a1a2e" font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-size="42" font-weight="300" letter-spacing="1"><tspan font-weight="700">Pro</tspan><tspan>Ware</tspan></text><text x="96" y="72" fill="#888" font-family="'Segoe UI', Arial, sans-serif" font-size="10" font-weight="400" letter-spacing="4">TECHNOLOGY</text></svg>

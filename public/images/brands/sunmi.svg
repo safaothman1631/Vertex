@@ -1,14 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" width="400" height="100">
-  <!-- SUNMI official-style logo: clean geometric wordmark with sun icon -->
-  <defs>
-    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@600');</style>
-  </defs>
-  <!-- Orange circle/sun mark (SUNMI brand accent) -->
-  <circle cx="50" cy="50" r="22" fill="#FF6B00"/>
-  <!-- Inner ring detail -->
-  <circle cx="50" cy="50" r="14" fill="none" stroke="#fff" stroke-width="2.5" opacity="0.9"/>
-  <!-- Center dot -->
-  <circle cx="50" cy="50" r="5" fill="#fff"/>
-  <!-- SUNMI wordmark -->
-  <text x="90" y="62" font-family="Inter, 'Segoe UI', Arial, Helvetica, sans-serif" font-weight="600" font-size="48" fill="#1a1a2e" letter-spacing="4">SUNMI</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="100" viewBox="0 0 400 100"><defs><style>@import url(https://fonts.googleapis.com/css2?family=Inter:wght@600);</style></defs><circle cx="50" cy="50" r="22" fill="#FF6B00"/><circle cx="50" cy="50" r="14" fill="none" stroke="#fff" stroke-width="2.5" opacity=".9"/><circle cx="50" cy="50" r="5" fill="#fff"/><text x="90" y="62" fill="#1a1a2e" font-family="Inter, 'Segoe UI', Arial, Helvetica, sans-serif" font-size="48" font-weight="600" letter-spacing="4">SUNMI</text></svg>

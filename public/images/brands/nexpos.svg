@@ -1,14 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 100" width="380" height="100">
-  <!-- NexPOS logo: the store's own brand with terminal icon -->
-  <!-- POS terminal icon -->
-  <rect x="10" y="18" width="40" height="56" rx="6" fill="#6366f1"/>
-  <rect x="15" y="24" width="30" height="22" rx="3" fill="#fff"/>
-  <rect x="18" y="52" width="8" height="4" rx="2" fill="#fff" opacity="0.7"/>
-  <rect x="29" y="52" width="8" height="4" rx="2" fill="#fff" opacity="0.7"/>
-  <rect x="18" y="60" width="8" height="4" rx="2" fill="#fff" opacity="0.7"/>
-  <rect x="29" y="60" width="8" height="4" rx="2" fill="#fff" opacity="0.7"/>
-  <!-- NexPOS wordmark -->
-  <text x="65" y="62" font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-weight="300" font-size="48" fill="#1a1a2e" letter-spacing="1">
-    <tspan font-weight="700">Nex</tspan><tspan fill="#6366f1" font-weight="800">POS</tspan>
-  </text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="380" height="100" viewBox="0 0 380 100"><rect width="40" height="56" x="10" y="18" fill="#6366f1" rx="6"/><rect width="30" height="22" x="15" y="24" fill="#fff" rx="3"/><rect width="8" height="4" x="18" y="52" fill="#fff" opacity=".7" rx="2"/><rect width="8" height="4" x="29" y="52" fill="#fff" opacity=".7" rx="2"/><rect width="8" height="4" x="18" y="60" fill="#fff" opacity=".7" rx="2"/><rect width="8" height="4" x="29" y="60" fill="#fff" opacity=".7" rx="2"/><text x="65" y="62" fill="#1a1a2e" font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-size="48" font-weight="300" letter-spacing="1"><tspan font-weight="700">Nex</tspan><tspan fill="#6366f1" font-weight="800">POS</tspan></text></svg>
