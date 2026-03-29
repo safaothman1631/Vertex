@@ -489,7 +489,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
             </div>
           </FadeIn>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.6fr)', gap: 48, alignItems: 'start' }}>
+          <div className="resp-grid-contact" style={{ display: 'grid', gap: 48, alignItems: 'start' }}>
             {/* Left — contact info */}
             <FadeIn>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -525,7 +525,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
               <div style={{
                 background: 'var(--bg2)', border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-xl)', padding: '36px 40px',
-              }}>
+              }} className="resp-card-padding-lg">
                 {contactSuccess ? (
                   <div style={{ textAlign: 'center', padding: '40px 0' }}>
                     <div style={{ fontSize: '3rem', marginBottom: 16 }}>✅</div>
@@ -541,7 +541,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                       <input tabIndex={-1} autoComplete="off" value={contactHp} onChange={e => setContactHp(e.target.value)} />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div className="resp-grid-2col" style={{ display: 'grid', gap: 16 }}>
                       {(['name', 'email'] as const).map((key) => (
                         <div key={key}>
                           <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{key === 'name' ? t.contact.name : t.contact.email}</label>

@@ -96,7 +96,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
                     title={u.role === 'admin' ? 'Revoke admin' : 'Make admin'}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 5,
-                      padding: '4px 12px', borderRadius: 20,
+                      padding: '6px 14px', borderRadius: 20,
                       border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '.75rem',
                       background: u.role === 'admin' ? 'rgba(168,85,247,.15)' : 'rgba(56,189,248,.15)',
                       color: u.role === 'admin' ? '#a855f7' : '#38bdf8',
@@ -115,14 +115,14 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
                     <button
                       onClick={() => setDetail(u)}
                       title="View details"
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--primary)' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: 'var(--primary)' }}
                     >
                       <Eye size={15} />
                     </button>
                     <button
                       onClick={() => handleDelete(u.id)}
                       title="Delete user"
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#ef4444' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: '#ef4444' }}
                     >
                       <Trash2 size={15} />
                     </button>

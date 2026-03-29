@@ -66,7 +66,7 @@ export default async function AdminDashboard() {
             <Package size={14} /> Add Product
           </Link>
           {(msgCount ?? 0) > 0 && (
-            <Link href="/admin/messages" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', borderRadius: 10, color: '#f59e0b', textDecoration: 'none' }}>
+            <Link href="/admin/messages" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', borderRadius: 10, color: '#f59e0b', textDecoration: 'none' }}>
               <Bell size={16} />
               <span style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: '#fff', fontSize: '.6rem', fontWeight: 900, width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg1)' }}>
                 {msgCount}
@@ -77,7 +77,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* ── Stat Cards ── */}
-      <div className="admin-stats" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 28 }}>
+      <div className="admin-stats" style={{ marginBottom: 28 }}>
         {/* Revenue */}
         <div className="admin-stat-card" style={{ '--stat-color': '#22c55e' } as React.CSSProperties}>
           <div className="admin-stat-top">

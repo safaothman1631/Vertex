@@ -145,14 +145,14 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
                     <button
                       onClick={() => setDetail(o)}
                       title="View details"
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--primary)' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: 'var(--primary)' }}
                     >
                       <Eye size={15} />
                     </button>
                     <button
                       onClick={() => handleDelete(o.id)}
                       title="Delete order"
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#ef4444' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: '#ef4444' }}
                     >
                       <Trash2 size={15} />
                     </button>

@@ -105,7 +105,7 @@ export default function MessagesClient({ initial }: { initial: Msg[] }) {
                           display: 'flex', alignItems: 'center', gap: 5,
                           background: 'rgba(99,102,241,.12)', color: 'var(--primary)',
                           border: '1px solid rgba(99,102,241,.3)',
-                          borderRadius: 8, padding: '5px 12px', fontSize: '.78rem',
+                          borderRadius: 8, padding: '8px 14px', fontSize: '.78rem',
                           fontWeight: 700, cursor: 'pointer',
                         }}
                       >
@@ -123,7 +123,7 @@ export default function MessagesClient({ initial }: { initial: Msg[] }) {
                         display: 'flex', alignItems: 'center',
                         background: 'rgba(239,68,68,.1)', color: '#ef4444',
                         border: '1px solid rgba(239,68,68,.2)',
-                        borderRadius: 8, padding: '5px 10px', fontSize: '.78rem',
+                        borderRadius: 8, padding: '8px 12px', fontSize: '.78rem',
                         fontWeight: 700, cursor: 'pointer',
                       }}
                     >

@@ -57,11 +57,11 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
       onClick={onClose}
     >
       <div
-        style={{ width: '100%', maxWidth: 540, background: 'var(--bg1)', border: '1px solid var(--border)', borderRadius: 24, overflow: 'hidden', maxHeight: '90vh', display: 'flex', flexDirection: 'column', animation: 'scaleIn .22s cubic-bezier(.21,1.02,.73,1)', boxShadow: '0 32px 100px rgba(0,0,0,.6)' }}
+        style={{ width: '100%', maxWidth: 540, background: 'var(--bg1)', border: '1px solid var(--border)', borderRadius: 24, overflow: 'hidden', maxHeight: '90vh', display: 'flex', flexDirection: 'column', animation: 'scaleIn .22s cubic-bezier(.21,1.02,.73,1)', boxShadow: '0 32px 100px rgba(0,0,0,.6)', margin: '0 auto' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ padding: '22px 24px 18px', background: 'linear-gradient(135deg, var(--bg2), var(--bg1))', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        <div style={{ padding: '22px 20px 18px', background: 'linear-gradient(135deg, var(--bg2), var(--bg1))', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
               <span style={{ fontSize: '.72rem', fontWeight: 800, padding: '4px 12px', borderRadius: 99, textTransform: 'capitalize' as const, background: sc + '20', color: sc, border: '1px solid ' + sc + '40', display: 'inline-flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>

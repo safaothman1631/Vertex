@@ -160,13 +160,13 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <button onClick={() => handleToggle(p.id, 'hidden', p.hidden)} title={p.hidden ? 'Show in shop' : 'Hide from shop'} style={{ color: p.hidden ? '#a855f7' : 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => handleToggle(p.id, 'hidden', p.hidden)} title={p.hidden ? 'Show in shop' : 'Hide from shop'} style={{ color: p.hidden ? '#a855f7' : 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
                       {p.hidden ? <EyeOff size={14} /> : <Eye size={14} />}
                     </button>
-                    <button onClick={() => openEdit(p)} title="Edit" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => openEdit(p)} title="Edit" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
                       <Pencil size={14} />
                     </button>
-                    <button onClick={() => handleDelete(p.id)} title="Delete" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => handleDelete(p.id)} title="Delete" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
                       <Trash2 size={14} />
                     </button>
                   </div>

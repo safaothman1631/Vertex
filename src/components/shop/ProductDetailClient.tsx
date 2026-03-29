@@ -55,7 +55,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
   }
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px 80px' }}>
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 60px' }}>
       {/* Back link */}
       <Link
         href="/products"
@@ -71,14 +71,14 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
         {t.productDetail.backToProducts}
       </Link>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'start' }}>
+      <div className="resp-grid-2col" style={{ gap: 48, alignItems: 'start' }}>
 
         {/* ── Image gallery ── */}
         <div>
           <div
             onClick={() => product.images?.length && setLightboxOpen(true)}
             style={{
-              position: 'relative', height: 360, borderRadius: 20, overflow: 'hidden',
+              position: 'relative', height: 360, maxHeight: '50vh', borderRadius: 20, overflow: 'hidden',
               background: '#fff', border: '1px solid var(--border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: product.images?.length ? 'zoom-in' : 'default',

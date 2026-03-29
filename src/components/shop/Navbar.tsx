@@ -184,7 +184,7 @@ export default function Navbar() {
                   <div style={{
                     position: 'absolute', top: 'calc(100% + 10px)', right: 0,
                     background: 'var(--bg2)', border: '1px solid var(--border)',
-                    borderRadius: 14, minWidth: 220, overflow: 'hidden',
+                    borderRadius: 14, minWidth: 220, maxWidth: 'calc(100vw - 32px)', overflow: 'hidden',
                     boxShadow: '0 16px 40px rgba(0,0,0,.4)',
                     animation: 'pageEnter .2s cubic-bezier(.22,1,.36,1) both',
                     zIndex: 200,

@@ -140,7 +140,7 @@ export default function BrandDrawer({ brand, products, onClose }: Props) {
               <button
                 onClick={close}
                 style={{
-                  width: 36, height: 36, borderRadius: '50%',
+                  width: 40, height: 40, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(255,255,255,.18)', backdropFilter: 'blur(6px)',
                   border: 'none', cursor: 'pointer', color: '#fff',

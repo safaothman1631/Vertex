@@ -47,7 +47,7 @@ export default function ContactPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg0)', padding: '64px 0 80px' }}>
+    <div className="resp-page-padding" style={{ minHeight: '100vh', background: 'var(--bg0)' }}>
       <div className="container" style={{ maxWidth: 1100 }}>
 
         {/* Header */}
@@ -59,7 +59,7 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 48, alignItems: 'start' }}>
+        <div className="resp-grid-contact">
 
           {/* Left  contact info */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -90,11 +90,10 @@ export default function ContactPage() {
           </div>
 
           {/* Right  form */}
-          <div style={{
+          <div className="resp-card-padding-lg" style={{
             background: 'var(--bg2)',
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-xl)',
-            padding: '36px 40px',
           }}>
             {success ? (
               <div style={{ textAlign: 'center', padding: '40px 0' }}>
@@ -111,7 +110,7 @@ export default function ContactPage() {
                   <input tabIndex={-1} autoComplete="off" value={hp} onChange={e => setHp(e.target.value)} />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="resp-grid-2col">
                   {(['name', 'email'] as const).map((key) => (
                     <div key={key}>
                       <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{key === 'name' ? t.contact.name : t.contact.email}</label>

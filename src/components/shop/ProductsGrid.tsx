@@ -270,7 +270,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
               {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} {t.productsSection.of} {filtered.length}
             </span>
             <button onClick={() => goToPage(page - 1)} disabled={page === 1}
-              style={{ width: 38, height: 38, borderRadius: 10, border: '1px solid var(--border)', background: page === 1 ? 'transparent' : 'var(--bg2)', color: page === 1 ? 'var(--text3)' : 'var(--text)', cursor: page === 1 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s' }}>
+              style={{ width: 44, height: 44, borderRadius: 10, border: '1px solid var(--border)', background: page === 1 ? 'transparent' : 'var(--bg2)', color: page === 1 ? 'var(--text3)' : 'var(--text)', cursor: page === 1 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s' }}>
               <ChevronLeft size={16} />
             </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -282,7 +282,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
               .map((item, i) => item === 'e'
                 ? <span key={`e${i}`} style={{ color: 'var(--text3)', padding: '0 2px' }}></span>
                 : <button key={item} onClick={() => goToPage(item as number)} style={{
-                    width: 38, height: 38, borderRadius: 10, fontWeight: 700, fontSize: '.85rem',
+                    width: 44, height: 44, borderRadius: 10, fontWeight: 700, fontSize: '.85rem',
                     cursor: 'pointer', border: 'none', transition: 'all .2s',
                     background: page === item ? 'var(--primary)' : 'var(--bg2)',
                     color: page === item ? '#fff' : 'var(--text)',
@@ -290,7 +290,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                   }}>{item}</button>
               )}
             <button onClick={() => goToPage(page + 1)} disabled={page === totalPages}
-              style={{ width: 38, height: 38, borderRadius: 10, border: '1px solid var(--border)', background: page === totalPages ? 'transparent' : 'var(--bg2)', color: page === totalPages ? 'var(--text3)' : 'var(--text)', cursor: page === totalPages ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s' }}>
+              style={{ width: 44, height: 44, borderRadius: 10, border: '1px solid var(--border)', background: page === totalPages ? 'transparent' : 'var(--bg2)', color: page === totalPages ? 'var(--text3)' : 'var(--text)', cursor: page === totalPages ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s' }}>
               <ChevronRight size={16} />
             </button>
           </div>

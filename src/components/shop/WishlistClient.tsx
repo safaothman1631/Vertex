@@ -113,7 +113,7 @@ export default function WishlistClient({
                 onClick={() => removeItem(item.id)}
                 disabled={isRemoving}
                 style={{
-                  width: 38, height: 38, background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)',
+                  width: 44, height: 44, background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)',
                   borderRadius: 10, cursor: 'pointer', color: '#f87171',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0, transition: 'background .2s',

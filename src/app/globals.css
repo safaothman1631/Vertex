@@ -514,6 +514,30 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
 /* ============================================================
    RESPONSIVE
    ============================================================ */
+
+/* ── Responsive utility classes for inline-style pages ── */
+.resp-grid-sidebar{display:grid;grid-template-columns:1fr 380px;gap:32px;align-items:start}
+.resp-grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.resp-grid-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.resp-grid-contact{display:grid;grid-template-columns:1fr 1.6fr;gap:48px;align-items:start}
+.resp-sticky{position:sticky;top:88px}
+.resp-page-padding{padding:48px 0 80px}
+.resp-card-padding{padding:32px}
+.resp-card-padding-lg{padding:36px 40px}
+
+@media(max-width:768px){
+  .resp-grid-sidebar{grid-template-columns:1fr;gap:24px}
+  .resp-grid-contact{grid-template-columns:1fr;gap:24px}
+  .resp-sticky{position:static}
+  .resp-page-padding{padding:24px 0 40px}
+  .resp-card-padding{padding:20px 16px}
+  .resp-card-padding-lg{padding:24px 20px}
+}
+@media(max-width:640px){
+  .resp-grid-2col{grid-template-columns:1fr;gap:16px !important}
+  .resp-grid-3col{grid-template-columns:1fr;gap:12px !important}
+}
+
 @media(max-width:1100px){
   .brands-grid{grid-template-columns:repeat(2,1fr)}
   .footer-links{grid-template-columns:repeat(2,1fr)}
@@ -713,6 +737,9 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
   .admin-dash-grid-main{grid-template-columns:1fr !important}
   .admin-dash-grid-bottom{grid-template-columns:1fr !important}
   div[style*="justifyContent: 'flex-end'"][style*="marginBottom: '16px'"]{padding:0 16px}
+}
+@media(max-width:400px){
+  .admin-stats{grid-template-columns:1fr}
 }
 @media(min-width:641px){
   .admin-topbar{display:none}

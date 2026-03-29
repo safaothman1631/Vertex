@@ -14,7 +14,7 @@ export default function WishlistPageHeader({ count }: { count: number }) {
         <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '.78rem', textTransform: 'uppercase', letterSpacing: '.1em' }}>
           {t.wishlist.title.replace('❤ ', '')}
         </p>
-        <h1 style={{ fontSize: '1.9rem', fontWeight: 900, letterSpacing: '-.02em', lineHeight: 1.1 }}>
+        <h1 style={{ fontSize: 'clamp(1.4rem, 4vw, 1.9rem)', fontWeight: 900, letterSpacing: '-.02em', lineHeight: 1.1 }}>
           {t.wishlist.title}
         </h1>
       </div>

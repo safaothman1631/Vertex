@@ -17,7 +17,7 @@ export default function CartSidebar({ open, onClose }: { open: boolean; onClose:
           <button
             onClick={onClose}
             style={{
-              width: 32, height: 32, borderRadius: '50%',
+              width: 36, height: 36, borderRadius: '50%',
               background: 'var(--bg3)', border: '1px solid var(--border)',
               color: 'var(--text2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', fontSize: '.85rem',

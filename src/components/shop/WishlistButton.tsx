@@ -65,7 +65,7 @@ export default function WishlistButton({ productId, size = 16, style }: Props) {
       style={{
         background: inWishlist ? 'rgba(239,68,68,.12)' : 'rgba(255,255,255,.06)',
         border: inWishlist ? '1px solid rgba(239,68,68,.3)' : '1px solid var(--border)',
-        borderRadius: 9, cursor: 'pointer', padding: 7,
+        borderRadius: 9, cursor: 'pointer', padding: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'all .2s', flexShrink: 0,
         opacity: loading ? 0.6 : 1,

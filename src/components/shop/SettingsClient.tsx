@@ -313,7 +313,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
 
             {editingAddr && (
               <form onSubmit={saveAddress} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20, padding: 20, background: 'var(--bg3)', borderRadius: 12 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="resp-grid-2col" style={{ gap: 12 }}>
                   <div>
                     <label style={labelStyle}>{t.settings.addressLabel}</label>
                     <input value={editingAddr.label ?? ''} onChange={e => setEditingAddr(p => ({ ...p, label: e.target.value }))} style={inputStyle} />
@@ -331,7 +331,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                   <label style={labelStyle}>{t.settings.addressLine}</label>
                   <input value={editingAddr.address ?? ''} onChange={e => setEditingAddr(p => ({ ...p, address: e.target.value }))} style={inputStyle} required />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                <div className="resp-grid-3col" style={{ gap: 12 }}>
                   <div>
                     <label style={labelStyle}>{t.settings.addressCity}</label>
                     <input value={editingAddr.city ?? ''} onChange={e => setEditingAddr(p => ({ ...p, city: e.target.value }))} style={inputStyle} required />

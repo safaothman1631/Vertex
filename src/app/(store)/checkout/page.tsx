@@ -147,7 +147,7 @@ export default function CheckoutPage() {
     ) : null
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg0)', padding: '48px 0 80px' }}>
+    <div className="resp-page-padding" style={{ minHeight: '100vh', background: 'var(--bg0)' }}>
       <div className="container" style={{ maxWidth: 1100 }}>
 
         {/* Header */}
@@ -157,13 +157,13 @@ export default function CheckoutPage() {
         </div>
 
         <form onSubmit={handleCheckout}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'start' }}>
+          <div className="resp-grid-sidebar">
 
             {/* LEFT  Shipping */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-              <div style={{
+              <div className="resp-card-padding" style={{
                 background: 'var(--bg2)', border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-xl)', padding: '32px',
+                borderRadius: 'var(--radius-xl)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(99,102,241,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -172,7 +172,7 @@ export default function CheckoutPage() {
                   <h2 style={{ fontWeight: 800, fontSize: '1.05rem' }}>{t.checkout.shippingInfo}</h2>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="resp-grid-2col">
                   {/* Name */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.fullName}</label>
@@ -228,9 +228,9 @@ export default function CheckoutPage() {
             </div>
 
             {/* RIGHT  Order summary */}
-            <div style={{
+            <div className="resp-sticky resp-card-padding" style={{
               background: 'var(--bg2)', border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-xl)', padding: '28px', position: 'sticky', top: 88,
+              borderRadius: 'var(--radius-xl)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(99,102,241,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
