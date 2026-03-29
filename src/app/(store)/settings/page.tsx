@@ -7,11 +7,20 @@ export default async function SettingsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  const [profileRes, addressesRes, ordersRes, notifCountRes] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', user.id).single(),
+    supabase.from('user_addresses').select('*').eq('user_id', user.id).order('is_default', { ascending: false }).order('created_at', { ascending: false }),
+    supabase.from('orders').select('id, total, status, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+    supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false),
+  ])
 
-  return <SettingsClient user={user} profile={profile} />
+  return (
+    <SettingsClient
+      user={user}
+      profile={profileRes.data}
+      addresses={addressesRes.data ?? []}
+      recentOrders={ordersRes.data ?? []}
+      unreadNotifications={notifCountRes.count ?? 0}
+    />
+  )
 }

@@ -6,14 +6,18 @@ export default async function AdminCategoriesPage() {
 
   const [{ data: categories }, { data: products }] = await Promise.all([
     supabase.from('categories').select('*').order('sort_order'),
-    supabase.from('products').select('category'),
+    supabase.from('products').select('id, name, model, price, images, in_stock, category').order('name'),
   ])
 
-  // Count products per category
   const countMap: Record<string, number> = {}
+  const productsByCategory: Record<string, { id: string; name: string; model: string; price: number; images: string[]; in_stock: boolean }[]> = {}
   for (const p of products ?? []) {
     const c = p.category
-    if (c) countMap[c] = (countMap[c] ?? 0) + 1
+    if (c) {
+      countMap[c] = (countMap[c] ?? 0) + 1
+      if (!productsByCategory[c]) productsByCategory[c] = []
+      productsByCategory[c].push(p)
+    }
   }
 
   return (
@@ -21,7 +25,7 @@ export default async function AdminCategoriesPage() {
       <div className="admin-page-head">
         <h1 className="admin-page-title">Categories</h1>
       </div>
-      <AdminCategoriesClient categories={categories ?? []} productCounts={countMap} />
+      <AdminCategoriesClient categories={categories ?? []} productCounts={countMap} productsByCategory={productsByCategory} />
     </div>
   )
 }

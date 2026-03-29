@@ -5,6 +5,26 @@ export interface Profile {
   email: string
   full_name: string | null
   role: Role
+  phone: string | null
+  avatar_url: string | null
+  preferred_locale: string | null
+  notify_email: boolean
+  notify_order: boolean
+  notify_promo: boolean
+  created_at: string
+}
+
+export interface UserAddress {
+  id: string
+  user_id: string
+  label: string
+  name: string
+  phone: string
+  address: string
+  city: string
+  country: string
+  zip: string
+  is_default: boolean
   created_at: string
 }
 

@@ -5,11 +5,17 @@
 
 -- 1. Profiles (extends auth.users)
 create table if not exists public.profiles (
-  id         uuid references auth.users(id) on delete cascade primary key,
-  email      text not null,
-  full_name  text,
-  role       text not null default 'user' check (role in ('user', 'admin')),
-  created_at timestamptz default now()
+  id                uuid references auth.users(id) on delete cascade primary key,
+  email             text not null,
+  full_name         text,
+  role              text not null default 'user' check (role in ('user', 'admin')),
+  phone             text,
+  avatar_url        text,
+  preferred_locale  text default 'en',
+  notify_email      boolean not null default true,
+  notify_order      boolean not null default true,
+  notify_promo      boolean not null default false,
+  created_at        timestamptz default now()
 );
 
 -- Auto-create profile on signup
@@ -161,7 +167,22 @@ create table if not exists public.notifications (
   created_at  timestamptz default now()
 );
 
--- 13. Inventory Log
+-- 13. User Addresses
+create table if not exists public.user_addresses (
+  id          uuid default gen_random_uuid() primary key,
+  user_id     uuid references public.profiles(id) on delete cascade not null,
+  label       text not null default 'Home',
+  name        text not null default '',
+  phone       text not null default '',
+  address     text not null default '',
+  city        text not null default '',
+  country     text not null default '',
+  zip         text not null default '',
+  is_default  boolean not null default false,
+  created_at  timestamptz default now()
+);
+
+-- 14. Inventory Log
 create table if not exists public.inventory_log (
   id          uuid default gen_random_uuid() primary key,
   product_id  uuid references public.products(id) on delete cascade not null,
@@ -188,6 +209,7 @@ alter table public.reviews         enable row level security;
 alter table public.coupons         enable row level security;
 alter table public.notifications   enable row level security;
 alter table public.inventory_log   enable row level security;
+alter table public.user_addresses  enable row level security;
 
 -- Profiles: users can read/update their own; admins can read all
 create policy "Users can read own profile"
@@ -298,6 +320,10 @@ create policy "Admins can manage notifications"
 create policy "Admins can read inventory log"
   on public.inventory_log for select
   using ((select role from public.profiles where id = auth.uid()) = 'admin');
+
+-- User addresses: users manage own
+create policy "Users manage own addresses"
+  on public.user_addresses for all using (auth.uid() = user_id);
 create policy "Admins can insert inventory log"
   on public.inventory_log for insert
   with check ((select role from public.profiles where id = auth.uid()) = 'admin');

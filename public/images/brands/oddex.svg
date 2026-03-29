@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 100" width="340" height="100">
+  <!-- ODDeX logo: scanner brand with barcode accent and mixed case e -->
+  <!-- Barcode-style accent lines (left) -->
+  <rect x="10" y="25" width="3" height="50" fill="#0ea5e9"/>
+  <rect x="16" y="25" width="2" height="50" fill="#0ea5e9"/>
+  <rect x="21" y="25" width="4" height="50" fill="#0ea5e9"/>
+  <rect x="28" y="25" width="2" height="50" fill="#0ea5e9"/>
+  <rect x="33" y="25" width="3" height="50" fill="#0ea5e9"/>
+  <!-- ODDeX wordmark -->
+  <text x="50" y="67" font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-weight="800" font-size="54" fill="#1a1a2e" letter-spacing="2">
+    <tspan>ODD</tspan><tspan font-weight="400" font-style="italic" fill="#0ea5e9">e</tspan><tspan>X</tspan>
+  </text>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" width="360" height="100">
+  <!-- HPRT logo: bold geometric wordmark with blue accent bar (Hanin/HPRT brand style) -->
+  <!-- Left accent bar -->
+  <rect x="10" y="18" width="6" height="64" rx="3" fill="#1d4ed8"/>
+  <!-- HPRT text in bold geometric typeface -->
+  <text x="32" y="68" font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-weight="800" font-size="62" fill="#1a1a2e" letter-spacing="6">HPRT</text>
+  <!-- Subtle underline accent -->
+  <rect x="32" y="78" width="280" height="3" rx="1.5" fill="#1d4ed8" opacity="0.7"/>
+</svg>

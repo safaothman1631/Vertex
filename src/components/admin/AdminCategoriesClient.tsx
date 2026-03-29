@@ -1,9 +1,21 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
-import { Plus, Pencil, Trash2, X, GripVertical } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, GripVertical, Eye, Package } from 'lucide-react'
 import type { Category } from '@/types'
+
+interface CategoryProduct {
+  id: string
+  name: string
+  model: string
+  price: number
+  images: string[]
+  in_stock: boolean
+}
 
 function toSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -12,17 +24,30 @@ function toSlug(name: string) {
 export default function AdminCategoriesClient({
   categories: initial,
   productCounts,
+  productsByCategory,
 }: {
   categories: Category[]
   productCounts: Record<string, number>
+  productsByCategory: Record<string, CategoryProduct[]>
 }) {
+  const router = useRouter()
   const [categories, setCategories] = useState<Category[]>(initial)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partial<Category>>({ name: '', slug: '', icon: '', sort_order: 0 })
   const [isEdit, setIsEdit] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [viewCategory, setViewCategory] = useState<Category | null>(null)
+  const [categoryProducts, setCategoryProducts] = useState<CategoryProduct[]>([])
   const supabase = createClient()
   const modalRef = useRef<HTMLDivElement>(null)
+
+  // Sync when server re-fetches (after router.refresh)
+  useEffect(() => { setCategories(initial) }, [initial])
+
+  function openCategoryProducts(c: Category) {
+    setViewCategory(c)
+    setCategoryProducts(productsByCategory[c.slug] ?? [])
+  }
 
   useEffect(() => {
     if (showForm) {
@@ -66,10 +91,12 @@ export default function AdminCategoriesClient({
     }
     setShowForm(false)
     setLoading(false)
+    router.refresh()
   }
 
   async function handleDelete(id: string, name: string) {
-    const count = productCounts[name] ?? 0
+    const slug = toSlug(name)
+    const count = productCounts[slug] ?? 0
     if (count > 0) {
       alert(`Cannot delete "${name}" — ${count} product(s) use this category. Reassign them first.`)
       return
@@ -77,6 +104,7 @@ export default function AdminCategoriesClient({
     if (!confirm(`Delete category "${name}"?`)) return
     await supabase.from('categories').delete().eq('id', id)
     setCategories(prev => prev.filter(c => c.id !== id))
+    router.refresh()
   }
 
   return (
@@ -113,9 +141,16 @@ export default function AdminCategoriesClient({
                 <td>
                   <code style={{ fontSize: '.78rem', color: 'var(--text2)', background: 'var(--bg3)', padding: '2px 8px', borderRadius: 4 }}>{c.slug}</code>
                 </td>
-                <td style={{ color: 'var(--text2)' }}>{productCounts[c.name] ?? 0}</td>
+                <td>
+                  <button onClick={() => openCategoryProducts(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: (productCounts[c.slug] ?? 0) > 0 ? 'var(--accent)' : 'var(--text2)', fontWeight: 700, padding: 0, fontSize: '.9rem' }}>
+                    {productCounts[c.slug] ?? 0}
+                  </button>
+                </td>
                 <td>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    <button onClick={() => openCategoryProducts(c)} title="View products" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      <Eye size={14} />
+                    </button>
                     <button onClick={() => openEdit(c)} title="Edit" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Pencil size={14} />
                     </button>
@@ -144,15 +179,78 @@ export default function AdminCategoriesClient({
                 <button onClick={() => handleDelete(c.id, c.name)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-              <span className="admin-badge admin-badge-blue">{productCounts[c.name] ?? 0} products</span>
+            <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button onClick={() => openCategoryProducts(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <span className="admin-badge admin-badge-blue" style={{ cursor: 'pointer' }}>{productCounts[c.slug] ?? 0} products</span>
+              </button>
               <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>Order: {c.sort_order}</span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Modal */}
+      {/* Category Products Modal */}
+      {viewCategory && (
+        <div onClick={() => setViewCategory(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', width: '100%', maxWidth: 680, maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg3)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ fontSize: '1.8rem' }}>{viewCategory.icon || '📦'}</div>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>{viewCategory.name}</div>
+                  <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace' }}>{viewCategory.slug}</div>
+                </div>
+              </div>
+              <button onClick={() => setViewCategory(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)', padding: 4 }}>
+                <X size={20} />
+              </button>
+            </div>
+            {/* Body */}
+            <div style={{ overflowY: 'auto', padding: 16, flex: 1 }}>
+              {categoryProducts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 48, color: 'var(--text2)' }}>
+                  <Package size={40} style={{ opacity: .3, marginBottom: 12 }} />
+                  <p>No products in {viewCategory.name} yet.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {categoryProducts.map(p => (
+                    <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'var(--bg3)', borderRadius: 12, border: '1px solid var(--border)' }}>
+                      <div style={{ width: 48, height: 48, borderRadius: 8, background: '#fff', flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
+                        {p.images?.[0] ? (
+                          <Image src={p.images[0]} alt={p.name} fill style={{ objectFit: 'contain', padding: 4 }} sizes="48px" />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>📦</div>
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: '.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                        <div style={{ fontSize: '.78rem', color: 'var(--text2)' }}>{p.model}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+                        <span style={{ fontWeight: 700, fontSize: '.85rem' }}>${p.price}</span>
+                        {p.in_stock
+                          ? <span className="admin-badge admin-badge-green">In Stock</span>
+                          : <span className="admin-badge admin-badge-red">Out</span>
+                        }
+                      </div>
+                      <Link href={`/products/${p.id}`} target="_blank" style={{ color: 'var(--text2)', flexShrink: 0, textDecoration: 'none' }} title="View in shop">
+                        <Eye size={15} />
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', fontSize: '.8rem', color: 'var(--text2)', textAlign: 'right' }}>
+              {categoryProducts.length} product(s)
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit/New Modal */}
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16 }}>
           <div ref={modalRef} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 480 }}>

@@ -649,6 +649,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
 .admin-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px}
 .admin-card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .admin-card-title{font-size:.95rem;font-weight:800;color:var(--text)}
+.admin-quick-link{transition:background .15s;background:transparent}
+.admin-quick-link:hover{background:var(--bg3)}
 .admin-table{width:100%;font-size:.875rem;border-collapse:collapse}
 .admin-table th{text-align:left;padding:10px 20px;font-size:.75rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);background:var(--bg3)}
 .admin-table td{padding:12px 20px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
@@ -708,6 +710,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
   .admin-stats{grid-template-columns:1fr 1fr;padding:0 16px;margin-bottom:20px}
   .admin-stat-card{padding:16px}
   .admin-stat-val{font-size:1.6rem}
+  .admin-dash-grid-main{grid-template-columns:1fr !important}
+  .admin-dash-grid-bottom{grid-template-columns:1fr !important}
   div[style*="justifyContent: 'flex-end'"][style*="marginBottom: '16px'"]{padding:0 16px}
 }
 @media(min-width:641px){

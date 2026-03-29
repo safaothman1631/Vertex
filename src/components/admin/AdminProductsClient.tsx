@@ -1,29 +1,25 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
-import { Plus, Pencil, Trash2, X, Eye, EyeOff } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Eye, EyeOff, ImageOff } from 'lucide-react'
+import Image from 'next/image'
 import type { Product } from '@/types'
 
-const DEFAULT_CATS = [
-  'Barcode Scanners',
-  'POS Terminals',
-  'Printers',
-  'Mobile Computers',
-]
-
-const DEFAULT_BRANDS = [
-  'Honeywell', 'Zebra', 'Ingenico', 'Verifone', 'Epson', 'Star Micronics', 'Datalogic', 'Newland',
-]
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+}
 
 const EMPTY_PRODUCT: Partial<Product> = {
-  name: '', brand: '', model: '', category: 'Barcode Scanners',
+  name: '', brand: '', model: '', category: '',
   price: 0, old_price: null, description: '', specs: [],
   images: [], rating: 4.5, review_count: 0,
   in_stock: true, is_new: false, is_hot: false, hidden: false,
 }
 
-export default function AdminProductsClient({ products: initial, dbCategories = [] }: { products: Product[]; dbCategories?: string[] }) {
+export default function AdminProductsClient({ products: initial, dbCategories = [], dbBrands = [] }: { products: Product[]; dbCategories?: string[]; dbBrands?: string[] }) {
+  const router = useRouter()
   const [products, setProducts] = useState<Product[]>(initial)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partial<Product>>(EMPTY_PRODUCT)
@@ -31,10 +27,8 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
   const [loading, setLoading] = useState(false)
   const [newCat, setNewCat] = useState('')
   const [showNewCat, setShowNewCat] = useState(false)
-  const [extraCats, setExtraCats] = useState<string[]>([])
   const [newBrand, setNewBrand] = useState('')
   const [showNewBrand, setShowNewBrand] = useState(false)
-  const [extraBrands, setExtraBrands] = useState<string[]>([])
   const supabase = createClient()
   const modalRef = useRef<HTMLDivElement>(null)
 
@@ -50,17 +44,17 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
     return () => { document.body.style.overflow = '' }
   }, [showForm])
 
-  // All unique categories (existing + defaults + newly added)
+  // All unique categories
   const allCats = useMemo(() => {
     const fromProducts = products.map(p => p.category).filter(Boolean)
-    return Array.from(new Set([...DEFAULT_CATS, ...dbCategories, ...fromProducts, ...extraCats])).sort()
-  }, [products, extraCats, dbCategories])
+    return Array.from(new Set([...dbCategories, ...fromProducts])).sort()
+  }, [products, dbCategories])
 
   // All unique brands
   const allBrands = useMemo(() => {
     const fromProducts = products.map(p => p.brand).filter(Boolean)
-    return Array.from(new Set([...DEFAULT_BRANDS, ...fromProducts, ...extraBrands])).sort()
-  }, [products, extraBrands])
+    return Array.from(new Set([...dbBrands, ...fromProducts])).sort()
+  }, [products, dbBrands])
 
   function openNew() {
     setEditing(EMPTY_PRODUCT)
@@ -87,12 +81,14 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
     }
     setShowForm(false)
     setLoading(false)
+    router.refresh()
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this product?')) return
     await supabase.from('products').delete().eq('id', id)
     setProducts((prev) => prev.filter((p) => p.id !== id))
+    router.refresh()
   }
 
   async function handleToggle(id: string, field: 'hidden' | 'in_stock', current: boolean) {
@@ -133,9 +129,20 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
               <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text2)', padding: '32px' }}>No products yet</td></tr>
             ) : products.map((p) => (
               <tr key={p.id}>
-                <td style={{ maxWidth: '220px' }}>
-                  <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text2)', fontFamily: 'monospace' }}>{p.model}</div>
+                <td style={{ maxWidth: '280px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
+                      {p.images?.[0] ? (
+                        <Image src={p.images[0]} alt={p.name} width={38} height={38} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
+                      ) : (
+                        <ImageOff size={16} style={{ color: 'var(--text2)', opacity: 0.4 }} />
+                      )}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text2)', fontFamily: 'monospace' }}>{p.model}</div>
+                    </div>
+                  </div>
                 </td>
                 <td>{p.brand}</td>
                 <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
@@ -177,9 +184,18 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
         ) : products.map((p) => (
           <div key={p.id} className="admin-product-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: '.95rem', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace', marginTop: 2 }}>{p.brand} · {p.model}</div>
+              <div style={{ display: 'flex', gap: 10, flex: 1, minWidth: 0, alignItems: 'center' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
+                  {p.images?.[0] ? (
+                    <Image src={p.images[0]} alt={p.name} width={44} height={44} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
+                  ) : (
+                    <ImageOff size={18} style={{ color: 'var(--text2)', opacity: 0.4 }} />
+                  )}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: '.95rem', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                  <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace', marginTop: 2 }}>{p.brand} · {p.model}</div>
+                </div>
               </div>
               <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
                 <button onClick={() => handleToggle(p.id, 'hidden', p.hidden)} title={p.hidden ? 'Show in shop' : 'Hide from shop'} style={{ color: p.hidden ? '#a855f7' : 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
@@ -270,25 +286,27 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                       value={newBrand}
                       onChange={e => setNewBrand(e.target.value)}
                       style={{ flex: 1, padding: '8px 12px', background: 'var(--bg3)', border: '1.5px solid var(--primary)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: '.9rem', outline: 'none' }}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && newBrand.trim()) {
-                          const t = newBrand.trim()
-                          setExtraBrands(prev => [...prev, t])
-                          setEditing({ ...editing, brand: t })
-                          setNewBrand('')
-                          setShowNewBrand(false)
+                    onKeyDown={async e => {
+                      if (e.key === 'Enter' && newBrand.trim()) {
+                        const t = newBrand.trim()
+                        await supabase.from('brands').insert({ name: t, logo: '', color1: '#6366f1', color2: '#4338ca', category_key: '' })
+                        setEditing({ ...editing, brand: t })
+                        setNewBrand('')
+                        setShowNewBrand(false)
+                        router.refresh()
                         }
                       }}
                     />
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
                         if (newBrand.trim()) {
                           const t = newBrand.trim()
-                          setExtraBrands(prev => [...prev, t])
+                          await supabase.from('brands').insert({ name: t, logo: '', color1: '#6366f1', color2: '#4338ca', category_key: '' })
                           setEditing({ ...editing, brand: t })
                           setNewBrand('')
                           setShowNewBrand(false)
+                          router.refresh()
                         }
                       }}
                       className="admin-btn admin-btn-primary"
@@ -327,25 +345,27 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                       value={newCat}
                       onChange={e => setNewCat(e.target.value)}
                       style={{ flex: 1, padding: '8px 12px', background: 'var(--bg3)', border: '1.5px solid var(--primary)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: '.9rem', outline: 'none' }}
-                      onKeyDown={e => {
+                      onKeyDown={async e => {
                         if (e.key === 'Enter' && newCat.trim()) {
                           const trimmed = newCat.trim()
-                          setExtraCats(prev => [...prev, trimmed])
+                          await supabase.from('categories').insert({ name: trimmed, slug: toSlug(trimmed), icon: '', sort_order: 999 })
                           setEditing({ ...editing, category: trimmed })
                           setNewCat('')
                           setShowNewCat(false)
+                          router.refresh()
                         }
                       }}
                     />
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
                         if (newCat.trim()) {
                           const trimmed = newCat.trim()
-                          setExtraCats(prev => [...prev, trimmed])
+                          await supabase.from('categories').insert({ name: trimmed, slug: toSlug(trimmed), icon: '', sort_order: 999 })
                           setEditing({ ...editing, category: trimmed })
                           setNewCat('')
                           setShowNewCat(false)
+                          router.refresh()
                         }
                       }}
                       className="admin-btn admin-btn-primary"
