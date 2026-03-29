@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
 
 // PATCH /api/admin/users — toggle role for a user
@@ -36,6 +37,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  revalidatePath('/admin/users')
   return NextResponse.json({ success: true })
 }
 
@@ -67,5 +69,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  revalidatePath('/admin/users')
   return NextResponse.json({ success: true })
 }
