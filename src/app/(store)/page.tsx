@@ -15,12 +15,12 @@ export default async function Home() {
     supabase.from('products').select('*').order('created_at', { ascending: false }),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'user'),
     supabase.from('orders').select('*', { count: 'exact', head: true }),
-    supabase.from('products').select('brand').eq('hidden', false),
+    supabase.from('products').select('brand'),
   ])
 
   const visible = ((products as Product[]) ?? []).filter(p => !p.hidden)
   const visibleCount = visible.length
-  const distinctBrands = new Set((brandsData ?? []).map((r: { brand: string }) => r.brand)).size
+  const distinctBrands = new Set((brandsData ?? []).map((r: { brand: string }) => r.brand).filter(Boolean)).size
 
   const statsData = {
     customers: fmtCount(customerCount ?? 0),
