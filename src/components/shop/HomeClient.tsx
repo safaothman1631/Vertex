@@ -31,6 +31,14 @@ const BRAND_CARDS = [
   { name: 'Square',         logo: 'square.svg',    catKey: 'pos-systems',        c1: '#1a1a2e', c2: '#0a0a15' },
 ]
 
+interface BrandCard {
+  name: string
+  logo: string
+  catKey: string
+  c1: string
+  c2: string
+}
+
 interface StatsData {
   customers: string
   products: string
@@ -43,8 +51,9 @@ const DEFAULT_STATS: StatsData = { customers: '—', products: '—', brands: '�
 
 const STATS_KEYS: Array<keyof StatsData> = ['customers', 'products', 'brands', 'support']
 
-export default function HomeClient({ products, statsData = DEFAULT_STATS }: { products: Product[]; statsData?: StatsData }) {
-  const [selectedBrand, setSelectedBrand] = useState<typeof BRAND_CARDS[0] | null>(null)
+export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBrands = [] }: { products: Product[]; statsData?: StatsData; dbBrands?: BrandCard[] }) {
+  const brandCards: BrandCard[] = dbBrands.length > 0 ? dbBrands : BRAND_CARDS
+  const [selectedBrand, setSelectedBrand] = useState<BrandCard | null>(null)
   const [activeCat, setActiveCat] = useState('all')
   const [activeBrand, setActiveBrand] = useState('all')
   const [search, setSearch] = useState('')
@@ -245,7 +254,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS }: { pr
           </div>
           </FadeIn>
           <div className="brands-grid">
-            {BRAND_CARDS.map((b, i) => (
+            {brandCards.map((b, i) => (
               <FadeIn key={b.name} delay={i * 80}>
               <div
                 className="brand-card"

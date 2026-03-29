@@ -11,11 +11,11 @@ function fmtCount(n: number): string {
 export default async function Home() {
   const supabase = await createClient()
 
-  const [{ data: products }, { count: customerCount }, { count: orderCount }, { count: brandCount }] = await Promise.all([
+  const [{ data: products }, { count: customerCount }, { count: orderCount }, { data: brands }] = await Promise.all([
     supabase.from('products').select('*').order('created_at', { ascending: false }),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'user'),
     supabase.from('orders').select('*', { count: 'exact', head: true }),
-    supabase.from('brands').select('*', { count: 'exact', head: true }),
+    supabase.from('brands').select('*').order('name', { ascending: true }),
   ])
 
   const visible = ((products as Product[]) ?? []).filter(p => !p.hidden)
@@ -24,10 +24,18 @@ export default async function Home() {
   const statsData = {
     customers: fmtCount(customerCount ?? 0),
     products: fmtCount(visibleCount),
-    brands: fmtCount(brandCount ?? 0),
+    brands: fmtCount((brands ?? []).length),
     orders: fmtCount(orderCount ?? 0),
     support: '24/7',
   }
 
-  return <HomeClient products={visible} statsData={statsData} />
+  const dbBrands = (brands ?? []).map((b: { name: string; logo: string | null; category_key: string | null; color1: string | null; color2: string | null }) => ({
+    name: b.name,
+    logo: b.logo ?? '',
+    catKey: b.category_key ?? '',
+    c1: b.color1 ?? '#6366f1',
+    c2: b.color2 ?? '#4f46e5',
+  }))
+
+  return <HomeClient products={visible} statsData={statsData} dbBrands={dbBrands} />
 }

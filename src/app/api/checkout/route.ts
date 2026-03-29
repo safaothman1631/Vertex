@@ -21,8 +21,26 @@ function isValidShippingAddress(a: unknown): a is ShippingAddress {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+
+    // Coupon validation mode
+    if (body.validateCoupon) {
+      const code = typeof body.couponCode === 'string' ? body.couponCode.trim().toUpperCase() : ''
+      const subtotal = typeof body.subtotal === 'number' ? body.subtotal : 0
+      if (!code) return NextResponse.json({ error: 'Enter a coupon code' }, { status: 400 })
+
+      const supabase = await createClient()
+      const { data: coupon } = await supabase.from('coupons').select('*').eq('code', code).eq('active', true).single()
+      if (!coupon) return NextResponse.json({ error: 'Invalid coupon code' }, { status: 400 })
+      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return NextResponse.json({ error: 'Coupon has expired' }, { status: 400 })
+      if (coupon.max_uses && coupon.used_count >= coupon.max_uses) return NextResponse.json({ error: 'Coupon fully used' }, { status: 400 })
+      if (coupon.min_order > 0 && subtotal < coupon.min_order) return NextResponse.json({ error: `Minimum order $${coupon.min_order.toFixed(2)}` }, { status: 400 })
+
+      return NextResponse.json({ code: coupon.code, discount_type: coupon.discount_type, discount_value: coupon.discount_value })
+    }
+
     const items: { productId: string; quantity: number }[] = body.items
     const shippingAddress: unknown = body.shippingAddress
+    const couponCode: string | undefined = typeof body.couponCode === 'string' ? body.couponCode.trim().toUpperCase() : undefined
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
@@ -88,12 +106,32 @@ export async function POST(request: Request) {
       return acc + p.price * quantity
     }, 0)
 
+    // Apply coupon discount if provided
+    let discount = 0
+    let appliedCouponId: string | null = null
+    if (couponCode) {
+      const { data: coupon } = await supabase.from('coupons').select('*').eq('code', couponCode).eq('active', true).single()
+      if (coupon) {
+        const notExpired = !coupon.expires_at || new Date(coupon.expires_at) >= new Date()
+        const notMaxed = !coupon.max_uses || coupon.used_count < coupon.max_uses
+        const meetsMin = !coupon.min_order || total >= coupon.min_order
+        if (notExpired && notMaxed && meetsMin) {
+          discount = coupon.discount_type === 'percent'
+            ? total * coupon.discount_value / 100
+            : coupon.discount_value
+          discount = Math.min(discount, total)
+          appliedCouponId = coupon.id
+        }
+      }
+    }
+    const finalTotal = Math.max(0, total - discount)
+
     // Create order in DB first
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
         user_id: user.id,
-        total,
+        total: finalTotal,
         status: 'pending',
         shipping_address: shippingAddress,
       })
@@ -115,11 +153,32 @@ export async function POST(request: Request) {
       }))
     )
 
+    // Increment coupon used_count
+    if (appliedCouponId) {
+      await supabase.rpc('increment_coupon_used', { coupon_id: appliedCouponId }).catch(() => {
+        // Fallback: direct update
+        supabase.from('coupons').update({ used_count: discount > 0 ? 1 : 0 }).eq('id', appliedCouponId)
+      })
+    }
+
     let session: import('stripe').Stripe.Checkout.Session
     try {
+      // Create Stripe coupon if discount applied
+      let discounts: { coupon: string }[] = []
+      if (discount > 0 && couponCode) {
+        const stripeCoupon = await stripe.coupons.create({
+          amount_off: Math.round(discount * 100),
+          currency: 'usd',
+          name: `Coupon ${couponCode}`,
+          max_redemptions: 1,
+        })
+        discounts = [{ coupon: stripeCoupon.id }]
+      }
+
       session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: lineItems,
+        ...(discounts.length > 0 ? { discounts } : {}),
         mode: 'payment',
         customer_email: shippingAddress.email,
         success_url: `${appUrl}/checkout/success?order_id=${order.id}`,

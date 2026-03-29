@@ -1,19 +1,58 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star, CheckCircle, XCircle, ArrowLeft, ZoomIn, Minus, Plus } from 'lucide-react'
+import { Star, CheckCircle, XCircle, ArrowLeft, ZoomIn, Minus, Plus, Send } from 'lucide-react'
 import AddToCartButton from './AddToCartButton'
 import Lightbox from '@/components/ui/Lightbox'
 import { useT } from '@/contexts/locale'
-import type { Product } from '@/types'
+import { createClient } from '@/lib/supabase-client'
+import type { Product, Review } from '@/types'
 
-export default function ProductDetailClient({ product, relatedProducts = [] }: { product: Product; relatedProducts?: Product[] }) {
+export default function ProductDetailClient({ product, relatedProducts = [], reviews: initialReviews = [] }: { product: Product; relatedProducts?: Product[]; reviews?: Review[] }) {
   const t = useT()
   const [activeImg, setActiveImg] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [qty, setQty] = useState(1)
+  const [reviews, setReviews] = useState<Review[]>(initialReviews)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewLoading, setReviewLoading] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
+  const [hoverStar, setHoverStar] = useState(0)
+
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id ?? null)
+    })
+  }, [])
+
+  const alreadyReviewed = userId ? reviews.some(r => r.user_id === userId) : false
+
+  async function submitReview(e: React.FormEvent) {
+    e.preventDefault()
+    if (!userId) return
+    setReviewLoading(true)
+    setReviewError('')
+    const { data, error } = await supabase.from('reviews').insert({
+      user_id: userId,
+      product_id: product.id,
+      rating: reviewRating,
+      comment: reviewComment.trim(),
+    }).select('*, user:profiles(full_name)').single()
+    if (error) {
+      setReviewError('Failed to submit review')
+    } else if (data) {
+      setReviews(prev => [data, ...prev])
+      setReviewComment('')
+      setReviewRating(5)
+    }
+    setReviewLoading(false)
+  }
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px 80px' }}>
@@ -242,6 +281,120 @@ export default function ProductDetailClient({ product, relatedProducts = [] }: {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── Reviews Section ── */}
+      <div style={{ marginTop: 64, paddingTop: 40, borderTop: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <h2 style={{ fontWeight: 900, fontSize: '1.3rem' }}>
+            Customer Reviews ({reviews.length})
+          </h2>
+          {reviews.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {[1,2,3,4,5].map(s => {
+                const avg = reviews.reduce((a,r) => a + r.rating, 0) / reviews.length
+                return <Star key={s} size={15} fill={s <= Math.round(avg) ? '#f59e0b' : 'none'} stroke={s <= Math.round(avg) ? '#f59e0b' : 'var(--border)'} />
+              })}
+              <span style={{ fontSize: '.85rem', color: 'var(--text2)', fontWeight: 600 }}>
+                {(reviews.reduce((a,r) => a + r.rating, 0) / reviews.length).toFixed(1)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Review Form */}
+        {userId && !alreadyReviewed && (
+          <form onSubmit={submitReview} style={{
+            background: 'var(--bg2)', border: '1px solid var(--border)',
+            borderRadius: 16, padding: 24, marginBottom: 24,
+          }}>
+            <h3 style={{ fontWeight: 800, fontSize: '.95rem', marginBottom: 14 }}>Write a Review</h3>
+            <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
+              {[1,2,3,4,5].map(s => (
+                <button key={s} type="button"
+                  onClick={() => setReviewRating(s)}
+                  onMouseEnter={() => setHoverStar(s)}
+                  onMouseLeave={() => setHoverStar(0)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}
+                >
+                  <Star size={22} fill={s <= (hoverStar || reviewRating) ? '#f59e0b' : 'none'} stroke={s <= (hoverStar || reviewRating) ? '#f59e0b' : 'var(--border)'} />
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={reviewComment}
+              onChange={e => setReviewComment(e.target.value)}
+              placeholder="Share your experience with this product..."
+              required
+              rows={3}
+              style={{
+                width: '100%', padding: '10px 14px', borderRadius: 10,
+                background: 'var(--bg3)', border: '1px solid var(--border)',
+                color: 'var(--text)', fontSize: '.9rem', resize: 'vertical',
+                outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+            {reviewError && (
+              <p style={{ color: '#ef4444', fontSize: '.82rem', marginTop: 6 }}>{reviewError}</p>
+            )}
+            <button type="submit" disabled={reviewLoading} style={{
+              marginTop: 12, display: 'flex', alignItems: 'center', gap: 6,
+              padding: '10px 20px', borderRadius: 10, border: 'none',
+              background: 'var(--gradient)', color: '#fff', fontWeight: 700,
+              fontSize: '.88rem', cursor: reviewLoading ? 'not-allowed' : 'pointer',
+              opacity: reviewLoading ? .7 : 1,
+            }}>
+              <Send size={14} />
+              {reviewLoading ? 'Submitting...' : 'Submit Review'}
+            </button>
+          </form>
+        )}
+        {userId && alreadyReviewed && (
+          <p style={{ fontSize: '.85rem', color: 'var(--text2)', marginBottom: 20, fontStyle: 'italic' }}>You have already reviewed this product.</p>
+        )}
+        {!userId && (
+          <p style={{ fontSize: '.85rem', color: 'var(--text2)', marginBottom: 20 }}>
+            <Link href="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Sign in</Link> to write a review.
+          </p>
+        )}
+
+        {/* Reviews List */}
+        {reviews.length === 0 ? (
+          <p style={{ color: 'var(--text2)', fontSize: '.9rem' }}>No reviews yet. Be the first to review!</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {reviews.map(r => (
+              <div key={r.id} style={{
+                background: 'var(--bg2)', border: '1px solid var(--border)',
+                borderRadius: 14, padding: '18px 20px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: '50%', background: 'var(--gradient)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: '#fff', fontSize: '.72rem', fontWeight: 800, flexShrink: 0,
+                    }}>
+                      {((r.user as { full_name?: string | null })?.full_name ?? 'U')[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <span style={{ fontWeight: 700, fontSize: '.88rem' }}>{(r.user as { full_name?: string | null })?.full_name ?? 'User'}</span>
+                      <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>
+                        {[1,2,3,4,5].map(s => (
+                          <Star key={s} size={12} fill={s <= r.rating ? '#f59e0b' : 'none'} stroke={s <= r.rating ? '#f59e0b' : 'var(--border)'} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '.75rem', color: 'var(--text3)' }}>
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <p style={{ fontSize: '.88rem', color: 'var(--text2)', lineHeight: 1.6 }}>{r.comment}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Related Products ── */}

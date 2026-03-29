@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import { useCartStore } from '@/store/cart'
 import { useRouter } from 'next/navigation'
-import { ShoppingBag, CreditCard, Truck, Lock, AlertCircle } from 'lucide-react'
+import { ShoppingBag, CreditCard, Truck, Lock, AlertCircle, Tag, Check } from 'lucide-react'
 import type { ShippingAddress } from '@/types'
 import { useT } from '@/contexts/locale'
 
@@ -21,6 +21,10 @@ export default function CheckoutPage() {
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [touched, setTouched] = useState<Partial<Record<FieldKey, boolean>>>({})
+  const [couponCode, setCouponCode] = useState('')
+  const [couponApplied, setCouponApplied] = useState<{ code: string; discount_type: 'percent' | 'fixed'; discount_value: number } | null>(null)
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponError, setCouponError] = useState('')
   const router = useRouter()
 
   const validate = useCallback((field: FieldKey, value: string): string => {
@@ -60,6 +64,39 @@ export default function CheckoutPage() {
     return valid
   }
 
+  async function applyCoupon() {
+    const code = couponCode.trim().toUpperCase()
+    if (!code) return
+    setCouponLoading(true)
+    setCouponError('')
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ validateCoupon: true, couponCode: code, subtotal: totalPrice() }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setCouponError(data.error || 'Invalid coupon')
+        setCouponApplied(null)
+      } else {
+        setCouponApplied({ code: data.code, discount_type: data.discount_type, discount_value: data.discount_value })
+        setCouponError('')
+      }
+    } catch {
+      setCouponError('Failed to validate coupon')
+    }
+    setCouponLoading(false)
+  }
+
+  const subtotal = totalPrice()
+  const discount = couponApplied
+    ? couponApplied.discount_type === 'percent'
+      ? subtotal * couponApplied.discount_value / 100
+      : couponApplied.discount_value
+    : 0
+  const finalTotal = Math.max(0, subtotal - discount)
+
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault()
     if (!validateAll()) return
@@ -72,6 +109,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           items: items.map(i => ({ productId: i.product.id, quantity: i.quantity })),
           shippingAddress: form,
+          couponCode: couponApplied?.code || undefined,
         }),
       })
       const data = await res.json()
@@ -213,10 +251,75 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginBottom: 16 }}>
+                {/* Coupon Code */}
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6 }}>
+                    <Tag size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+                    Coupon Code
+                  </label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      placeholder="Enter code"
+                      value={couponCode}
+                      onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                      disabled={!!couponApplied}
+                      style={{
+                        flex: 1, padding: '9px 12px', borderRadius: 8,
+                        background: 'var(--bg3)', border: '1px solid var(--border)',
+                        color: 'var(--text)', fontSize: '.85rem', outline: 'none',
+                        fontFamily: 'monospace', letterSpacing: '.05em',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                    {couponApplied ? (
+                      <button type="button" onClick={() => { setCouponApplied(null); setCouponCode(''); setCouponError('') }} style={{
+                        padding: '9px 14px', borderRadius: 8, border: 'none',
+                        background: 'rgba(239,68,68,.1)', color: '#ef4444',
+                        fontSize: '.82rem', fontWeight: 700, cursor: 'pointer',
+                      }}>
+                        Remove
+                      </button>
+                    ) : (
+                      <button type="button" onClick={applyCoupon} disabled={couponLoading || !couponCode.trim()} style={{
+                        padding: '9px 14px', borderRadius: 8, border: 'none',
+                        background: 'var(--gradient)', color: '#fff',
+                        fontSize: '.82rem', fontWeight: 700, cursor: couponLoading ? 'not-allowed' : 'pointer',
+                        opacity: couponLoading || !couponCode.trim() ? .6 : 1,
+                      }}>
+                        {couponLoading ? '...' : 'Apply'}
+                      </button>
+                    )}
+                  </div>
+                  {couponError && (
+                    <p style={{ fontSize: '.75rem', color: '#ef4444', marginTop: 4 }}>{couponError}</p>
+                  )}
+                  {couponApplied && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: '.78rem', color: '#22c55e', fontWeight: 600 }}>
+                      <Check size={13} />
+                      {couponApplied.discount_type === 'percent' ? `${couponApplied.discount_value}% off` : `$${couponApplied.discount_value.toFixed(2)} off`} applied!
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginBottom: 20 }}>
+                {discount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>Subtotal</span>
+                    <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>${subtotal.toFixed(2)}</span>
+                  </div>
+                )}
+                {discount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: '.88rem', color: '#22c55e', fontWeight: 600 }}>Discount</span>
+                    <span style={{ fontSize: '.88rem', color: '#22c55e', fontWeight: 600 }}>-${discount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 800 }}>{t.cartPage.total}</span>
-                  <span style={{ fontWeight: 900, fontSize: '1.3rem', color: 'var(--primary)' }}>${totalPrice().toFixed(2)}</span>
+                  <span style={{ fontWeight: 900, fontSize: '1.3rem', color: 'var(--primary)' }}>${finalTotal.toFixed(2)}</span>
                 </div>
                 <p style={{ color: 'var(--text3)', fontSize: '.75rem', marginTop: 4 }}>{t.checkout.taxNote}</p>
               </div>

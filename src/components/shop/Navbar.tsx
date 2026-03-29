@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase-client'
 import CartSidebar from './CartSidebar'
 import { Heart, ShoppingBag, User, LogOut, Settings, Package, ChevronDown, LayoutDashboard, Globe } from 'lucide-react'
 import { useLocale, useT, type Locale } from '@/contexts/locale'
+import NotificationsPanel from './NotificationsPanel'
 
 const LANG_OPTIONS: { value: Locale; label: string; flag: string }[] = [
   { value: 'en', label: 'English', flag: '🇬🇧' },
@@ -23,7 +24,7 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [user, setUser] = useState<{ email: string; name: string; role: string } | null>(null)
+  const [user, setUser] = useState<{ email: string; name: string; role: string; id: string } | null>(null)
   const [wishlistCount, setWishlistCount] = useState(0)
   const totalItems = useCartStore((s) => s.totalItems())
   const router = useRouter()
@@ -58,6 +59,7 @@ export default function Navbar() {
         email: u.email ?? '',
         name: profile?.full_name ?? u.email ?? '',
         role: profile?.role ?? 'user',
+        id: u.id,
       })
       setWishlistCount(count ?? 0)
     }
@@ -135,6 +137,11 @@ export default function Navbar() {
                   </span>
                 )}
               </Link>
+            )}
+
+            {/* Notifications */}
+            {mounted && user && (
+              <NotificationsPanel userId={user.id} />
             )}
 
             {/* Cart */}

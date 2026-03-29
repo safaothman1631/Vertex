@@ -48,6 +48,18 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
     await supabase.from('orders').update({ status }).eq('id', id)
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o))
     if (detail?.id === id) setDetail(prev => prev ? { ...prev, status } : prev)
+
+    // Send notification to customer
+    const order = orders.find(o => o.id === id)
+    if (order) {
+      await supabase.from('notifications').insert({
+        user_id: order.user_id,
+        title: `Order #${id.slice(0, 8)} ${STATUS_LABELS[status]}`,
+        body: `Your order status has been updated to ${STATUS_LABELS[status].toLowerCase()}.`,
+        type: 'order' as const,
+      })
+    }
+
     setUpdatingId(null)
   }
 

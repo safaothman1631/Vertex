@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, ShoppingBag, Users, MessageSquare, ArrowLeft, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingBag, Users, MessageSquare, FolderTree, Building2, Ticket, ArrowLeft, Menu, X } from 'lucide-react'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -11,6 +11,9 @@ const navItems = [
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/admin/categories', label: 'Categories', icon: FolderTree },
+  { href: '/admin/brands', label: 'Brands', icon: Building2 },
+  { href: '/admin/coupons', label: 'Coupons', icon: Ticket },
 ]
 
 export default function AdminShell({

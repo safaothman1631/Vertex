@@ -23,7 +23,7 @@ const EMPTY_PRODUCT: Partial<Product> = {
   in_stock: true, is_new: false, is_hot: false, hidden: false,
 }
 
-export default function AdminProductsClient({ products: initial }: { products: Product[] }) {
+export default function AdminProductsClient({ products: initial, dbCategories = [] }: { products: Product[]; dbCategories?: string[] }) {
   const [products, setProducts] = useState<Product[]>(initial)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partial<Product>>(EMPTY_PRODUCT)
@@ -53,8 +53,8 @@ export default function AdminProductsClient({ products: initial }: { products: P
   // All unique categories (existing + defaults + newly added)
   const allCats = useMemo(() => {
     const fromProducts = products.map(p => p.category).filter(Boolean)
-    return Array.from(new Set([...DEFAULT_CATS, ...fromProducts, ...extraCats])).sort()
-  }, [products, extraCats])
+    return Array.from(new Set([...DEFAULT_CATS, ...dbCategories, ...fromProducts, ...extraCats])).sort()
+  }, [products, extraCats, dbCategories])
 
   // All unique brands
   const allBrands = useMemo(() => {
@@ -98,6 +98,15 @@ export default function AdminProductsClient({ products: initial }: { products: P
   async function handleToggle(id: string, field: 'hidden' | 'in_stock', current: boolean) {
     await supabase.from('products').update({ [field]: !current }).eq('id', id)
     setProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: !current } : p))
+
+    // Log inventory change when in_stock toggled
+    if (field === 'in_stock') {
+      await supabase.from('inventory_log').insert({
+        product_id: id,
+        change: current ? -1 : 1,
+        reason: current ? 'Marked out of stock' : 'Marked in stock',
+      })
+    }
   }
 
   return (

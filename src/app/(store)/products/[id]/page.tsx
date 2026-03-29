@@ -10,11 +10,10 @@ export default async function ProductDetailPage({
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: product } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', id)
-    .single()
+  const [{ data: product }, { data: reviews }] = await Promise.all([
+    supabase.from('products').select('*').eq('id', id).single(),
+    supabase.from('reviews').select('*, user:profiles(full_name)').eq('product_id', id).order('created_at', { ascending: false }),
+  ])
 
   if (!product) notFound()
 
@@ -28,6 +27,6 @@ export default async function ProductDetailPage({
 
   const related = (relatedRaw ?? []).filter((p: { hidden?: boolean }) => !p.hidden).slice(0, 4)
 
-  return <ProductDetailClient product={product} relatedProducts={related} />
+  return <ProductDetailClient product={product} relatedProducts={related} reviews={reviews ?? []} />
 }
 
