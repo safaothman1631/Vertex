@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 100" width="380" height="100">
-  <!-- BIISON logo: bold wordmark with bison horn accent marks -->
-  <!-- Stylized bison horns -->
-  <path d="M12 55 Q12 30, 30 20 Q35 18, 32 28 Q30 38, 30 50 Z" fill="#e11d48"/>
-  <path d="M60 55 Q60 30, 42 20 Q37 18, 40 28 Q42 38, 42 50 Z" fill="#e11d48"/>
-  <!-- BIISON wordmark -->
-  <text x="75" y="66" font-family="'Arial Black', Impact, Arial, Helvetica, sans-serif" font-weight="900" font-size="56" fill="#1a1a2e" letter-spacing="4">BIISON</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="380" height="100" viewBox="0 0 380 100"><path fill="#e11d48" d="M12 55 Q12 30, 30 20 Q35 18, 32 28 Q30 38, 30 50 Z"/><path fill="#e11d48" d="M60 55 Q60 30, 42 20 Q37 18, 40 28 Q42 38, 42 50 Z"/><text x="75" y="66" fill="#1a1a2e" font-family="'Arial Black', Impact, Arial, Helvetica, sans-serif" font-size="56" font-weight="900" letter-spacing="4">BIISON</text></svg>

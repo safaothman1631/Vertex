@@ -1,10 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 100" width="420" height="100">
-  <!-- RONGTA logo: bold industrial uppercase wordmark with orange accent -->
-  <!-- Orange accent square mark -->
-  <rect x="10" y="22" width="20" height="20" rx="3" fill="#f97316"/>
-  <rect x="10" y="48" width="20" height="20" rx="3" fill="#ea580c"/>
-  <!-- RONGTA wordmark -->
-  <text x="45" y="66" font-family="Impact, 'Arial Black', Arial, Helvetica, sans-serif" font-weight="700" font-size="56" fill="#1a1a2e" letter-spacing="5">RONGTA</text>
-  <!-- Technology tagline indicator -->
-  <text x="46" y="84" font-family="'Segoe UI', Arial, sans-serif" font-weight="400" font-size="12" fill="#666" letter-spacing="10">TECHNOLOGY</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="100" viewBox="0 0 420 100"><rect width="20" height="20" x="10" y="22" fill="#f97316" rx="3"/><rect width="20" height="20" x="10" y="48" fill="#ea580c" rx="3"/><text x="45" y="66" fill="#1a1a2e" font-family="Impact, 'Arial Black', Arial, Helvetica, sans-serif" font-size="56" font-weight="700" letter-spacing="5">RONGTA</text><text x="46" y="84" fill="#666" font-family="'Segoe UI', Arial, sans-serif" font-size="12" font-weight="400" letter-spacing="10">TECHNOLOGY</text></svg>
