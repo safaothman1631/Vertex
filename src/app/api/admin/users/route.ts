@@ -27,7 +27,7 @@ export async function PATCH(request: Request) {
   }
 
   // Use admin client to bypass RLS
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
   const { error } = await adminClient
     .from('profiles')
     .update({ role })
@@ -62,7 +62,7 @@ export async function DELETE(request: Request) {
   if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
   // Use admin client to delete from auth.users (cascades to profiles)
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
   const { error } = await adminClient.auth.admin.deleteUser(userId)
 
   if (error) {

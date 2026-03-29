@@ -9,7 +9,7 @@ export async function DELETE() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const admin = await createAdminClient()
+  const admin = createAdminClient()
 
   // Delete user via admin API (cascades to profiles, addresses, etc. via FK)
   const { error } = await admin.auth.admin.deleteUser(user.id)
