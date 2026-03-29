@@ -31,14 +31,19 @@ const BRAND_CARDS = [
   { name: 'Square',         logo: 'square.svg',    catKey: 'pos-systems',        c1: '#1a1a2e', c2: '#0a0a15' },
 ]
 
-const STATS = [
-  { num: '200K+', labelKey: 'customers' as const },
-  { num: '500+', labelKey: 'products' as const },
-  { num: '50+', labelKey: 'brands' as const },
-  { num: '24/7', labelKey: 'support' as const },
-]
+interface StatsData {
+  customers: string
+  products: string
+  brands: string
+  orders: string
+  support: string
+}
 
-export default function HomeClient({ products }: { products: Product[] }) {
+const DEFAULT_STATS: StatsData = { customers: '—', products: '—', brands: '—', orders: '—', support: '24/7' }
+
+const STATS_KEYS: Array<keyof StatsData> = ['customers', 'products', 'brands', 'support']
+
+export default function HomeClient({ products, statsData = DEFAULT_STATS }: { products: Product[]; statsData?: StatsData }) {
   const [selectedBrand, setSelectedBrand] = useState<typeof BRAND_CARDS[0] | null>(null)
   const [activeCat, setActiveCat] = useState('all')
   const [activeBrand, setActiveBrand] = useState('all')
@@ -163,10 +168,10 @@ export default function HomeClient({ products }: { products: Product[] }) {
                 <Link href="#brands" className="btn btn-ghost">{t.hero.browseBrands}</Link>
               </div>
               <div className="hero-stats">
-                {STATS.slice(0, 3).map((s) => (
-                  <div key={s.labelKey} className="hero-stat">
-                    <strong>{s.num}</strong>
-                    <span>{t.stats[s.labelKey]}</span>
+                {STATS_KEYS.slice(0, 3).map((key) => (
+                  <div key={key} className="hero-stat">
+                    <strong>{statsData[key]}</strong>
+                    <span>{t.stats[key as keyof typeof t.stats]}</span>
                   </div>
                 ))}
               </div>
@@ -611,10 +616,10 @@ export default function HomeClient({ products }: { products: Product[] }) {
         <div className="container">
           <FadeIn>
           <div className="stats-inner">
-            {STATS.map((s) => (
-              <div key={s.labelKey} className="stat-item">
-                <strong>{s.num}</strong>
-                <span>{t.stats[s.labelKey]}</span>
+            {STATS_KEYS.map((key) => (
+              <div key={key} className="stat-item">
+                <strong>{statsData[key]}</strong>
+                <span>{t.stats[key as keyof typeof t.stats]}</span>
               </div>
             ))}
           </div>

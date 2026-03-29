@@ -93,7 +93,18 @@ create table if not exists public.order_items (
   created_at timestamptz default now()
 );
 
--- 7. Contact messages
+-- 7. Brands
+create table if not exists public.brands (
+  id          uuid default gen_random_uuid() primary key,
+  name        text not null unique,
+  logo        text not null default '',
+  color1      text not null default '#6366f1',
+  color2      text not null default '#4338ca',
+  category_key text not null default '',
+  created_at  timestamptz default now()
+);
+
+-- 8. Contact messages
 create table if not exists public.contact_messages (
   id         uuid default gen_random_uuid() primary key,
   name       text not null,
@@ -110,6 +121,7 @@ create table if not exists public.contact_messages (
 
 alter table public.profiles        enable row level security;
 alter table public.products        enable row level security;
+alter table public.brands          enable row level security;
 alter table public.cart_items      enable row level security;
 alter table public.wishlist        enable row level security;
 alter table public.orders          enable row level security;
@@ -123,6 +135,13 @@ create policy "Users can update own profile"
   on public.profiles for update using (auth.uid() = id);
 create policy "Admins can read all profiles"
   on public.profiles for select
+  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+
+-- Brands: anyone can read; only admins can write
+create policy "Anyone can read brands"
+  on public.brands for select using (true);
+create policy "Admins can manage brands"
+  on public.brands for all
   using ((select role from public.profiles where id = auth.uid()) = 'admin');
 
 -- Products: anyone can read; only admins can write
