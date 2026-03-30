@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   const admin = createAdminClient()
 
   // Get target users
-  let query = admin.from('profiles').select('id, email, notify_email, notify_promo')
+  let query = admin.from('profiles').select('id')
   if (target === 'admins') {
     query = query.eq('role', 'admin')
   } else if (target === 'users') {
