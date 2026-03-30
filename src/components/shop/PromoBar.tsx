@@ -1,6 +1,5 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { X, ArrowRight, ChevronLeft, ChevronRight, Flame, Zap, Gift, Percent } from 'lucide-react'
 import type { Promotion } from '@/types'
@@ -9,47 +8,47 @@ interface Props {
   promotions: Promotion[]
 }
 
-const PROMO_ICONS = [Flame, Zap, Gift, Percent]
+const ICONS = [Flame, Zap, Gift, Percent]
+const INTERVAL = 6000
 
 export default function PromoBar({ promotions }: Props) {
   const [visible, setVisible] = useState(true)
   const [activeIdx, setActiveIdx] = useState(0)
-  const [direction, setDirection] = useState<'next' | 'prev'>('next')
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [progressKey, setProgressKey] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const touchStartX = useRef(0)
 
   const bars = promotions.filter(p => p.position === 'bar')
 
-  const goTo = useCallback((idx: number, dir?: 'next' | 'prev') => {
+  const goTo = useCallback((idx: number) => {
     if (isTransitioning || bars.length <= 1) return
     const newIdx = ((idx % bars.length) + bars.length) % bars.length
-    setDirection(dir || (idx > activeIdx ? 'next' : 'prev'))
     setIsTransitioning(true)
     setTimeout(() => {
       setActiveIdx(newIdx)
+      setProgressKey(k => k + 1)
       setTimeout(() => setIsTransitioning(false), 50)
-    }, 300)
-  }, [isTransitioning, bars.length, activeIdx])
+    }, 200)
+  }, [isTransitioning, bars.length])
 
-  const next = useCallback(() => goTo(activeIdx + 1, 'next'), [goTo, activeIdx])
-  const prev = useCallback(() => goTo(activeIdx - 1, 'prev'), [goTo, activeIdx])
+  const next = useCallback(() => goTo(activeIdx + 1), [goTo, activeIdx])
+  const prev = useCallback(() => goTo(activeIdx - 1), [goTo, activeIdx])
 
   useEffect(() => {
     if (bars.length <= 1) return
-    timerRef.current = setInterval(next, 6000)
+    timerRef.current = setInterval(next, INTERVAL)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [bars.length, next])
 
   if (!visible || bars.length === 0) return null
 
   const promo = bars[activeIdx]
-  const Icon = PROMO_ICONS[activeIdx % PROMO_ICONS.length]
-  const hasImage = !!promo.image_url
+  const Icon = ICONS[activeIdx % ICONS.length]
 
   return (
-    <section
-      className="promo-banner"
+    <div
+      className="promo-bar"
       role="banner"
       aria-label="Promotional offer"
       onTouchStart={e => { touchStartX.current = e.touches[0].clientX }}
@@ -58,86 +57,51 @@ export default function PromoBar({ promotions }: Props) {
         if (Math.abs(diff) > 50) diff > 0 ? next() : prev()
       }}
     >
-      {/* Decorative mesh gradient background */}
-      <div className="promo-mesh" aria-hidden="true" />
-      <div className="promo-grain" aria-hidden="true" />
+      {/* Aurora top accent */}
+      <span className="promo-bar-accent" aria-hidden="true" />
 
-      {/* Close */}
-      <button className="promo-close" onClick={() => setVisible(false)} aria-label="Dismiss">
-        <X size={16} strokeWidth={2} />
-      </button>
+      <div className="promo-bar-inner">
+        {/* Left: nav arrows */}
+        {bars.length > 1 && (
+          <button className="promo-bar-arrow" onClick={prev} aria-label="Previous">
+            <ChevronLeft size={14} strokeWidth={2.5} />
+          </button>
+        )}
 
-      <div className="promo-inner container">
-        {/* Text side */}
-        <div className={`promo-text-side${isTransitioning ? ` promo-slide-out-${direction}` : ' promo-slide-in'}`}>
+        {/* Center: content */}
+        <div className={`promo-bar-content${isTransitioning ? ' promo-bar-fade' : ''}`}>
           {promo.badge_text && (
-            <div className="promo-pill">
-              <Icon size={14} strokeWidth={2.2} />
-              <span>{promo.badge_text}</span>
-            </div>
+            <span className="promo-bar-pill">
+              <Icon size={12} strokeWidth={2.5} />
+              {promo.badge_text}
+            </span>
           )}
 
-          <h2 className="promo-heading">{promo.title}</h2>
-
-          {promo.description && (
-            <p className="promo-subtext">{promo.description}</p>
-          )}
+          <span className="promo-bar-text">{promo.title}</span>
 
           {promo.link_url && (
-            <Link href={promo.link_url} className="promo-action">
-              <span>Shop Now</span>
-              <ArrowRight size={16} strokeWidth={2.2} />
+            <Link href={promo.link_url} className="promo-bar-cta">
+              Shop Now <ArrowRight size={13} strokeWidth={2.5} />
             </Link>
           )}
         </div>
 
-        {/* Image / Visual side */}
-        <div className={`promo-visual${isTransitioning ? ' promo-visual-fade' : ''}`}>
-          {hasImage ? (
-            <div className="promo-img-wrap">
-              <Image
-                src={promo.image_url}
-                alt={promo.title}
-                width={400}
-                height={280}
-                className="promo-img"
-                priority
-              />
-            </div>
-          ) : (
-            <div className="promo-icon-display">
-              <div className="promo-icon-glow" />
-              <Icon size={64} strokeWidth={1.2} />
-            </div>
-          )}
-        </div>
+        {/* Right: nav arrow + close */}
+        {bars.length > 1 && (
+          <button className="promo-bar-arrow" onClick={next} aria-label="Next">
+            <ChevronRight size={14} strokeWidth={2.5} />
+          </button>
+        )}
+
+        <button className="promo-bar-close" onClick={() => setVisible(false)} aria-label="Dismiss">
+          <X size={14} strokeWidth={2.5} />
+        </button>
       </div>
 
-      {/* Navigation */}
+      {/* Progress bar (auto-rotate timer) */}
       {bars.length > 1 && (
-        <div className="promo-nav-row">
-          <button className="promo-arrow" onClick={prev} aria-label="Previous">
-            <ChevronLeft size={18} strokeWidth={2} />
-          </button>
-
-          <div className="promo-indicators">
-            {bars.map((_, i) => (
-              <button
-                key={i}
-                className={`promo-ind${i === activeIdx ? ' active' : ''}`}
-                onClick={() => goTo(i)}
-                aria-label={`Promotion ${i + 1}`}
-              >
-                {i === activeIdx && <span className="promo-ind-fill" />}
-              </button>
-            ))}
-          </div>
-
-          <button className="promo-arrow" onClick={next} aria-label="Next">
-            <ChevronRight size={18} strokeWidth={2} />
-          </button>
-        </div>
+        <span key={progressKey} className="promo-bar-progress" />
       )}
-    </section>
+    </div>
   )
 }

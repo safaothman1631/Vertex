@@ -149,156 +149,79 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 /* ============================================================
    HERO
    ============================================================ */
-/* ── PROMO BANNER (full section) ── */
-.promo-banner{
-  position:relative;z-index:40;overflow:hidden;
-  background:linear-gradient(135deg,#0f0723 0%,#1a0a3e 35%,#2d1065 65%,#1e0845 100%);
-  padding:0;user-select:none;
+/* ── PROMO BAR (slim announcement) ── */
+@keyframes promo-timer{from{width:0}to{width:100%}}
+.promo-bar{
+  position:relative;z-index:40;
+  background:var(--bg1);
+  border-bottom:1px solid var(--border);
+  user-select:none;overflow:hidden;
 }
-.promo-mesh{
-  position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 80% 60% at 10% 90%,rgba(99,102,241,.25),transparent),
-    radial-gradient(ellipse 60% 50% at 90% 20%,rgba(168,85,247,.2),transparent),
-    radial-gradient(ellipse 40% 40% at 50% 50%,rgba(236,72,153,.1),transparent);
+.promo-bar-accent{
+  position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 5%,rgba(99,102,241,.45) 30%,rgba(167,139,250,.6) 50%,rgba(99,102,241,.45) 70%,transparent 95%);
+  background-size:200% 100%;animation:auroraBorder 4s linear infinite;
   pointer-events:none;
 }
-.promo-grain{
-  position:absolute;inset:0;opacity:.03;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  pointer-events:none;
+.promo-bar-inner{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  max-width:1280px;margin:0 auto;padding:8px 16px;
+  position:relative;z-index:1;
 }
-.promo-close{
-  position:absolute;top:14px;right:14px;z-index:5;
-  display:flex;align-items:center;justify-content:center;
-  width:32px;height:32px;border-radius:50%;border:none;
-  background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);
-  cursor:pointer;transition:all .25s;backdrop-filter:blur(6px);
+.promo-bar-content{
+  display:flex;align-items:center;gap:10px;
+  transition:opacity .2s,transform .2s;
+  min-width:0;
 }
-.promo-close:hover{background:rgba(255,255,255,.15);color:#fff;transform:rotate(90deg)}
-.promo-inner{
-  display:grid;grid-template-columns:1fr 1fr;gap:40px;
-  align-items:center;padding:48px 24px 36px;
-  position:relative;z-index:2;
+.promo-bar-fade{opacity:0;transform:translateY(-4px)}
+.promo-bar-pill{
+  display:inline-flex;align-items:center;gap:5px;flex-shrink:0;
+  padding:3px 10px;border-radius:100px;
+  background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);
+  font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--primary);white-space:nowrap;
 }
-/* ── Text side ── */
-.promo-text-side{transition:all .3s cubic-bezier(.4,0,.2,1)}
-.promo-slide-in{opacity:1;transform:translateX(0)}
-.promo-slide-out-next{opacity:0;transform:translateX(-30px)}
-.promo-slide-out-prev{opacity:0;transform:translateX(30px)}
-.promo-pill{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:6px 16px;border-radius:100px;
-  background:linear-gradient(135deg,rgba(251,191,36,.18),rgba(245,158,11,.08));
-  border:1px solid rgba(251,191,36,.3);
-  font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
-  color:#fbbf24;margin-bottom:16px;
+.promo-bar-pill svg{width:12px;height:12px;color:var(--primary2);flex-shrink:0}
+.promo-bar-text{
+  font-size:.82rem;font-weight:500;color:var(--text2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.promo-pill svg{color:#f59e0b}
-.promo-heading{
-  font-size:clamp(1.5rem,3.5vw,2.4rem);font-weight:900;
-  line-height:1.15;color:#fff;margin:0 0 12px;
-  letter-spacing:-.02em;
-  text-shadow:0 2px 20px rgba(99,102,241,.3);
+.promo-bar-cta{
+  display:inline-flex;align-items:center;gap:4px;flex-shrink:0;
+  font-size:.78rem;font-weight:700;color:var(--primary2);
+  text-decoration:none;white-space:nowrap;
+  transition:color var(--transition),gap var(--transition);
 }
-.promo-subtext{
-  font-size:clamp(.9rem,1.5vw,1.05rem);
-  color:rgba(203,213,225,.7);line-height:1.6;
-  margin:0 0 24px;max-width:440px;
+.promo-bar-cta:hover{color:#c4b5fd;gap:6px}
+.promo-bar-arrow{
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  width:24px;height:24px;border-radius:6px;border:none;
+  background:transparent;color:var(--text3);
+  cursor:pointer;transition:all var(--transition);
 }
-.promo-action{
-  display:inline-flex;align-items:center;gap:10px;
-  padding:12px 28px;border-radius:12px;
-  background:linear-gradient(135deg,#6366f1,#8b5cf6);
-  color:#fff;font-size:.9rem;font-weight:700;
-  text-decoration:none;letter-spacing:.01em;
-  box-shadow:0 4px 20px rgba(99,102,241,.4),inset 0 1px 0 rgba(255,255,255,.15);
-  transition:all .25s cubic-bezier(.4,0,.2,1);
+.promo-bar-arrow:hover{background:rgba(99,102,241,.1);color:var(--text)}
+.promo-bar-close{
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  width:24px;height:24px;border-radius:6px;border:none;
+  background:transparent;color:var(--text3);
+  cursor:pointer;transition:all var(--transition);margin-left:4px;
 }
-.promo-action:hover{
-  transform:translateY(-2px);
-  box-shadow:0 8px 30px rgba(99,102,241,.5),inset 0 1px 0 rgba(255,255,255,.2);
-  background:linear-gradient(135deg,#7c7cf7,#9d6eff);
+.promo-bar-close:hover{background:rgba(239,68,68,.12);color:var(--danger)}
+.promo-bar-progress{
+  position:absolute;bottom:0;left:0;height:2px;
+  background:var(--gradient);border-radius:0 1px 0 0;
+  animation:promo-timer 6s linear forwards;
+  box-shadow:0 0 6px rgba(99,102,241,.4);
 }
-.promo-action svg{transition:transform .2s}
-.promo-action:hover svg{transform:translateX(3px)}
-/* ── Visual side ── */
-.promo-visual{
-  display:flex;align-items:center;justify-content:center;
-  transition:all .35s cubic-bezier(.4,0,.2,1);
-}
-.promo-visual-fade{opacity:0;transform:scale(.92)}
-.promo-img-wrap{
-  position:relative;border-radius:20px;overflow:hidden;
-  box-shadow:0 20px 60px rgba(0,0,0,.35),0 0 40px rgba(99,102,241,.15);
-  border:1px solid rgba(255,255,255,.08);
-}
-.promo-img{
-  display:block;width:100%;height:auto;max-height:260px;
-  object-fit:cover;
-}
-.promo-icon-display{
-  position:relative;display:flex;align-items:center;justify-content:center;
-  width:180px;height:180px;border-radius:50%;
-  background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(168,85,247,.08));
-  border:1px solid rgba(139,92,246,.2);
-  color:rgba(199,180,255,.6);
-}
-.promo-icon-glow{
-  position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(circle,rgba(99,102,241,.2) 0%,transparent 70%);
-  animation:promo-glow-pulse 3s ease-in-out infinite;
-}
-@keyframes promo-glow-pulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.1);opacity:1}}
-/* ── Nav row ── */
-.promo-nav-row{
-  position:relative;z-index:3;
-  display:flex;align-items:center;justify-content:center;gap:12px;
-  padding:0 24px 20px;
-}
-.promo-arrow{
-  display:flex;align-items:center;justify-content:center;
-  width:36px;height:36px;border-radius:50%;border:none;
-  background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);
-  cursor:pointer;transition:all .2s;backdrop-filter:blur(4px);
-}
-.promo-arrow:hover{background:rgba(255,255,255,.14);color:#fff}
-.promo-indicators{display:flex;align-items:center;gap:8px}
-.promo-ind{
-  position:relative;width:32px;height:4px;border-radius:4px;
-  background:rgba(255,255,255,.12);border:none;padding:0;
-  cursor:pointer;overflow:hidden;transition:background .3s;
-}
-.promo-ind.active{background:rgba(255,255,255,.08)}
-.promo-ind-fill{
-  position:absolute;inset:0;border-radius:4px;
-  background:linear-gradient(90deg,#6366f1,#a855f7);
-  animation:promo-ind-grow .3s ease-out forwards;
-}
-@keyframes promo-ind-grow{from{transform:scaleX(0);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
-/* ── Mobile responsive ── */
-@media(max-width:768px){
-  .promo-inner{grid-template-columns:1fr;gap:24px;padding:36px 18px 24px;text-align:center}
-  .promo-text-side{display:flex;flex-direction:column;align-items:center}
-  .promo-subtext{max-width:100%}
-  .promo-visual{order:-1}
-  .promo-icon-display{width:120px;height:120px}
-  .promo-icon-display svg{width:44px;height:44px}
-  .promo-img{max-height:180px}
-  .promo-close{top:10px;right:10px;width:28px;height:28px}
-  .promo-action{padding:10px 22px;font-size:.85rem}
-  .promo-nav-row{padding:0 18px 16px}
-}
-@media(max-width:480px){
-  .promo-inner{padding:28px 14px 18px;gap:16px}
-  .promo-heading{font-size:1.3rem}
-  .promo-subtext{font-size:.85rem}
-  .promo-icon-display{width:90px;height:90px}
-  .promo-icon-display svg{width:36px;height:36px}
-  .promo-pill{font-size:.68rem;padding:5px 12px}
+/* ── Promo bar responsive ── */
+@media(max-width:640px){
+  .promo-bar-inner{padding:7px 10px;gap:6px}
+  .promo-bar-pill{display:none}
+  .promo-bar-text{font-size:.76rem}
+  .promo-bar-cta{font-size:.72rem}
 }
 /* legacy */
-.promo-bar-modern,.promo-bar,.pb-wrap{display:none}
+.promo-bar-modern,.promo-banner,.pb-wrap{display:none}
 .hero{min-height:100vh;display:flex;flex-direction:column;padding-top:90px;position:relative;overflow:hidden}
 .hero-glow{position:absolute;top:-200px;right:-200px;width:800px;height:800px;background:radial-gradient(circle,rgba(99,102,241,.18) 0%,transparent 70%);pointer-events:none}
 .hero-inner{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;padding:60px 24px}
