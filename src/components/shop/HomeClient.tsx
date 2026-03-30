@@ -7,6 +7,7 @@ import WishlistButton from '@/components/shop/WishlistButton'
 import FadeIn from '@/components/ui/FadeIn'
 import { useToast } from '@/components/ui/Toast'
 import { ChevronLeft, ChevronRight, ShoppingCart, Mail, Phone, MapPin } from 'lucide-react'
+import PromoBar from '@/components/shop/PromoBar'
 import { useT } from '@/contexts/locale'
 import { useCartStore } from '@/store/cart'
 import { createClient } from '@/lib/supabase-client'
@@ -201,19 +202,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
   return (
     <main>
       {/* ── PROMO BAR ── */}
-      {promotions.filter(p => p.position === 'bar').length > 0 && (
-        <div className="promo-bar">
-          <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '8px 16px' }}>
-            {promotions.filter(p => p.position === 'bar').map(promo => (
-              <a key={promo.id} href={promo.link_url || '#'} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff', textDecoration: 'none', fontSize: '.85rem', fontWeight: 600 }}>
-                {promo.badge_text && <span style={{ background: 'rgba(255,255,255,.2)', padding: '2px 8px', borderRadius: 6, fontSize: '.72rem', fontWeight: 800 }}>{promo.badge_text}</span>}
-                {promo.title}
-                {promo.description && <span style={{ opacity: .8, fontWeight: 400 }}>— {promo.description}</span>}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
+      <PromoBar promotions={promotions} />
 
       {/* ── HERO ── */}
       <section id="hero" className="hero">
