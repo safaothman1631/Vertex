@@ -28,8 +28,12 @@ export default function MessagesClient({ initial }: { initial: Msg[] }) {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this message?')) return
+    if (!confirm('Move this message to trash?')) return
     setDeleting(id)
+    const msg = messages.find(m => m.id === id)
+    if (msg) {
+      await supabase.from('trash').insert({ table_name: 'contact_messages', record_id: id, record_data: msg })
+    }
     await supabase.from('contact_messages').delete().eq('id', id)
     setMessages(prev => prev.filter(m => m.id !== id))
     setDeleting(null)
@@ -118,7 +122,7 @@ export default function MessagesClient({ initial }: { initial: Msg[] }) {
                     <button
                       onClick={() => handleDelete(msg.id)}
                       disabled={deleting === msg.id}
-                      title="Delete message"
+                      title="Move to trash"
                       style={{
                         display: 'flex', alignItems: 'center',
                         background: 'rgba(239,68,68,.1)', color: '#ef4444',

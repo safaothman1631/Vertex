@@ -85,7 +85,11 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this product?')) return
+    if (!confirm('Move this product to trash?')) return
+    const product = products.find(p => p.id === id)
+    if (product) {
+      await supabase.from('trash').insert({ table_name: 'products', record_id: id, record_data: product })
+    }
     await supabase.from('products').delete().eq('id', id)
     setProducts((prev) => prev.filter((p) => p.id !== id))
     router.refresh()
@@ -166,7 +170,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                     <button onClick={() => openEdit(p)} title="Edit" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
                       <Pencil size={14} />
                     </button>
-                    <button onClick={() => handleDelete(p.id)} title="Delete" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
+                    <button onClick={() => handleDelete(p.id)} title="Move to trash" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
                       <Trash2 size={14} />
                     </button>
                   </div>

@@ -192,6 +192,25 @@ create table if not exists public.inventory_log (
   created_at  timestamptz default now()
 );
 
+-- 15. Trash (soft-delete bin — auto-purged after 30 days)
+create table if not exists public.trash (
+  id          uuid default gen_random_uuid() primary key,
+  table_name  text not null,
+  record_id   uuid not null,
+  record_data jsonb not null,
+  deleted_by  uuid references public.profiles(id) on delete set null,
+  deleted_at  timestamptz default now(),
+  expires_at  timestamptz default (now() + interval '30 days')
+);
+
+-- Auto-purge function (call via pg_cron or manually)
+create or replace function public.purge_expired_trash()
+returns void language plpgsql security definer as $$
+begin
+  delete from public.trash where expires_at < now();
+end;
+$$;
+
 -- ============================================================
 -- Row Level Security (RLS)
 -- ============================================================
@@ -210,6 +229,7 @@ alter table public.coupons         enable row level security;
 alter table public.notifications   enable row level security;
 alter table public.inventory_log   enable row level security;
 alter table public.user_addresses  enable row level security;
+alter table public.trash           enable row level security;
 
 -- Profiles: users can read/update their own; admins can read all
 create policy "Users can read own profile"
@@ -327,3 +347,19 @@ create policy "Users manage own addresses"
 create policy "Admins can insert inventory log"
   on public.inventory_log for insert
   with check ((select role from public.profiles where id = auth.uid()) = 'admin');
+
+-- Trash: only admins can manage
+create policy "Admins can manage trash"
+  on public.trash for all
+  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+
+-- Admin delete policies (missing in original schema)
+create policy "Admins can delete orders"
+  on public.orders for delete
+  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+create policy "Admins can delete order items"
+  on public.order_items for delete
+  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+create policy "Admins can delete contact messages"
+  on public.contact_messages for delete
+  using ((select role from public.profiles where id = auth.uid()) = 'admin');

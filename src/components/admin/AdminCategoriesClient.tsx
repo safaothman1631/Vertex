@@ -101,7 +101,11 @@ export default function AdminCategoriesClient({
       alert(`Cannot delete "${name}" — ${count} product(s) use this category. Reassign them first.`)
       return
     }
-    if (!confirm(`Delete category "${name}"?`)) return
+    if (!confirm(`Move category "${name}" to trash?`)) return
+    const category = categories.find(c => c.id === id)
+    if (category) {
+      await supabase.from('trash').insert({ table_name: 'categories', record_id: id, record_data: category })
+    }
     await supabase.from('categories').delete().eq('id', id)
     setCategories(prev => prev.filter(c => c.id !== id))
     router.refresh()

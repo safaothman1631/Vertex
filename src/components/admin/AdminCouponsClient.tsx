@@ -66,7 +66,11 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this coupon?')) return
+    if (!confirm('Move this coupon to trash?')) return
+    const coupon = coupons.find(c => c.id === id)
+    if (coupon) {
+      await supabase.from('trash').insert({ table_name: 'coupons', record_id: id, record_data: coupon })
+    }
     await supabase.from('coupons').delete().eq('id', id)
     setCoupons(prev => prev.filter(c => c.id !== id))
   }

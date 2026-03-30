@@ -153,3 +153,13 @@ export interface InventoryLog {
   created_at: string
   product?: Product
 }
+
+export interface TrashItem {
+  id: string
+  table_name: string
+  record_id: string
+  record_data: Record<string, unknown>
+  deleted_by: string | null
+  deleted_at: string
+  expires_at: string
+}

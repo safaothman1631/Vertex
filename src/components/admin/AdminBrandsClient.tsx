@@ -104,7 +104,11 @@ export default function AdminBrandsClient({
       alert(`Cannot delete "${name}" — ${count} product(s) use this brand.`)
       return
     }
-    if (!confirm(`Delete brand "${name}"?`)) return
+    if (!confirm(`Move brand "${name}" to trash?`)) return
+    const brand = brands.find(b => b.id === id)
+    if (brand) {
+      await supabase.from('trash').insert({ table_name: 'brands', record_id: id, record_data: brand })
+    }
     await supabase.from('brands').delete().eq('id', id)
     setBrands(prev => prev.filter(b => b.id !== id))
     router.refresh()

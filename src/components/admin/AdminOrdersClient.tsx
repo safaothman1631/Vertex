@@ -64,7 +64,11 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this order permanently?')) return
+    if (!confirm('Move this order to trash?')) return
+    const order = orders.find(o => o.id === id)
+    if (order) {
+      await supabase.from('trash').insert({ table_name: 'orders', record_id: id, record_data: order })
+    }
     await supabase.from('order_items').delete().eq('order_id', id)
     await supabase.from('orders').delete().eq('id', id)
     setOrders(prev => prev.filter(o => o.id !== id))
@@ -151,7 +155,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
                     </button>
                     <button
                       onClick={() => handleDelete(o.id)}
-                      title="Delete order"
+                      title="Move to trash"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: '#ef4444' }}
                     >
                       <Trash2 size={15} />
