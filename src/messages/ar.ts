@@ -70,6 +70,12 @@ const ar = {
     allProducts: 'جميع المنتجات',
     page: 'صفحة',
     of: 'من',
+    filters: 'الفلاتر',
+    priceRange: 'نطاق السعر',
+    minRating: 'أقل تقييم',
+    availability: 'التوفر',
+    inStockOnly: 'المتوفر فقط',
+    clearFilters: 'مسح الفلاتر',
   },
 
   // ── PRODUCT CARD
@@ -475,6 +481,29 @@ const ar = {
     yes: 'نعم',
     no: 'لا',
   },
-} as const
+  recentlyViewed: {
+    title: 'شوهدت مؤخراً',
+  },
+
+  productShare: {
+    share: 'مشاركة',
+    copyLink: 'نسخ الرابط',
+    copied: 'تم النسخ!',
+  },
+
+  invoice: {
+    download: 'تحميل الفاتورة',
+    invoice: 'فاتورة',
+    orderDate: 'تاريخ الطلب',
+    billTo: 'الفاتورة إلى',
+    item: 'المنتج',
+    qty: 'الكمية',
+    price: 'السعر',
+    total: 'المجموع',
+    subtotal: 'المجموع الفرعي',
+    tax: 'الضريبة',
+    grandTotal: 'المجموع الكلي',
+    thankYou: 'شكراً لشرائك!',
+  },} as const
 
 export default ar

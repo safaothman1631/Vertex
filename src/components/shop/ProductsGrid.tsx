@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { ShoppingCart, Star, Search, ChevronLeft, ChevronRight, X, ArrowUpDown } from 'lucide-react'
+import { ShoppingCart, Star, Search, ChevronLeft, ChevronRight, X, ArrowUpDown, SlidersHorizontal, Check } from 'lucide-react'
 import { useCartStore } from '@/store/cart'
 import WishlistButton from './WishlistButton'
 import type { Product } from '@/types'
@@ -25,6 +25,13 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
     return [{ key: 'all', label: 'All' }, ...used.map(c => ({ key: c, label: c }))]
   }, [products])
 
+  // Price range derived from products
+  const priceRange = useMemo(() => {
+    if (products.length === 0) return { min: 0, max: 1000 }
+    const prices = products.map(p => p.price)
+    return { min: Math.floor(Math.min(...prices)), max: Math.ceil(Math.max(...prices)) }
+  }, [products])
+
   const [search, setSearch] = useState(qParam)
   const [sort, setSort] = useState('default')
   const [activeCat, setActiveCat] = useState('all')
@@ -34,13 +41,29 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
   const topRef = useRef<HTMLDivElement>(null)
   const addItem = useCartStore((s) => s.addItem)
 
+  // Advanced filters
+  const [showFilters, setShowFilters] = useState(false)
+  const [priceMin, setPriceMin] = useState('')
+  const [priceMax, setPriceMax] = useState('')
+  const [minRating, setMinRating] = useState(0)
+  const [inStockOnly, setInStockOnly] = useState(false)
+
+  const hasActiveFilters = priceMin !== '' || priceMax !== '' || minRating > 0 || inStockOnly
+
+  function clearAdvancedFilters() {
+    setPriceMin('')
+    setPriceMax('')
+    setMinRating(0)
+    setInStockOnly(false)
+  }
+
   // Sync brand from URL whenever it changes
   useEffect(() => {
     setActiveBrand(brandParam)
     setPage(1)
   }, [brandParam])
 
-  useEffect(() => { setPage(1) }, [search, sort, activeCat, activeBrand])
+  useEffect(() => { setPage(1) }, [search, sort, activeCat, activeBrand, priceMin, priceMax, minRating, inStockOnly])
 
   function clearBrand() {
     const params = new URLSearchParams(searchParams.toString())
@@ -54,14 +77,18 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
       const catOk = activeCat === 'all' || p.category === activeCat
       const brandOk = activeBrand === 'all' || p.brand.toLowerCase() === activeBrand.toLowerCase()
       const searchOk = !q || p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || (p.model ?? '').toLowerCase().includes(q)
-      return catOk && brandOk && searchOk
+      const priceMinOk = priceMin === '' || p.price >= Number(priceMin)
+      const priceMaxOk = priceMax === '' || p.price <= Number(priceMax)
+      const ratingOk = minRating === 0 || p.rating >= minRating
+      const stockOk = !inStockOnly || p.in_stock
+      return catOk && brandOk && searchOk && priceMinOk && priceMaxOk && ratingOk && stockOk
     })
     if (sort === 'price-asc') list = [...list].sort((a, b) => a.price - b.price)
     else if (sort === 'price-desc') list = [...list].sort((a, b) => b.price - a.price)
     else if (sort === 'rating') list = [...list].sort((a, b) => b.rating - a.rating)
     else if (sort === 'newest') list = [...list].sort((a, b) => (b.is_new ? 1 : 0) - (a.is_new ? 1 : 0))
     return list
-  }, [products, search, sort, activeCat, activeBrand])
+  }, [products, search, sort, activeCat, activeBrand, priceMin, priceMax, minRating, inStockOnly])
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
@@ -150,7 +177,131 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                 <option value="newest">{t.productsSection.sortNewest}</option>
               </select>
             </div>
+
+            {/* filter toggle */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              style={{
+                flexShrink: 0, padding: '9px 14px', borderRadius: 12, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 6, fontSize: '.82rem', fontWeight: 700,
+                background: hasActiveFilters ? 'rgba(99,102,241,.15)' : 'var(--bg2)',
+                border: hasActiveFilters ? '1px solid rgba(99,102,241,.4)' : '1px solid var(--border)',
+                color: hasActiveFilters ? 'var(--primary)' : 'var(--text)',
+                transition: 'all .2s',
+              }}
+            >
+              <SlidersHorizontal size={13} />
+              {t.productsSection.filters ?? 'Filters'}
+              {hasActiveFilters && (
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--primary)' }} />
+              )}
+            </button>
           </div>
+
+          {/* ── ADVANCED FILTERS PANEL ── */}
+          {showFilters && (
+            <div style={{
+              display: 'flex', flexWrap: 'wrap', gap: 16, padding: '16px 20px',
+              background: 'var(--bg2)', border: '1px solid var(--border)',
+              borderRadius: 14, marginBottom: 12, alignItems: 'flex-end',
+            }}>
+              {/* Price range */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: '.72rem', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                  {t.productsSection.priceRange ?? 'Price Range'}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <input
+                    type="number"
+                    placeholder={`$${priceRange.min}`}
+                    value={priceMin}
+                    onChange={e => setPriceMin(e.target.value)}
+                    min={0}
+                    style={{
+                      width: 90, padding: '7px 10px', background: 'var(--bg1)', border: '1px solid var(--border)',
+                      borderRadius: 8, color: 'var(--text)', fontSize: '.82rem', outline: 'none',
+                    }}
+                  />
+                  <span style={{ color: 'var(--text3)', fontSize: '.8rem' }}>–</span>
+                  <input
+                    type="number"
+                    placeholder={`$${priceRange.max}`}
+                    value={priceMax}
+                    onChange={e => setPriceMax(e.target.value)}
+                    min={0}
+                    style={{
+                      width: 90, padding: '7px 10px', background: 'var(--bg1)', border: '1px solid var(--border)',
+                      borderRadius: 8, color: 'var(--text)', fontSize: '.82rem', outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Min rating */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: '.72rem', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                  {t.productsSection.minRating ?? 'Min Rating'}
+                </span>
+                <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+                  {[1, 2, 3, 4, 5].map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setMinRating(minRating === s ? 0 : s)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 1, display: 'flex' }}
+                      aria-label={`${s} stars`}
+                    >
+                      <Star size={16} fill={s <= minRating ? '#f59e0b' : 'none'} stroke={s <= minRating ? '#f59e0b' : 'var(--text3)'} />
+                    </button>
+                  ))}
+                  {minRating > 0 && (
+                    <span style={{ fontSize: '.75rem', color: 'var(--text2)', marginLeft: 4 }}>{minRating}+</span>
+                  )}
+                </div>
+              </div>
+
+              {/* In stock only */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: '.72rem', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                  {t.productsSection.availability ?? 'Availability'}
+                </span>
+                <button
+                  onClick={() => setInStockOnly(!inStockOnly)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', borderRadius: 8,
+                    cursor: 'pointer', fontSize: '.82rem', fontWeight: 600, transition: 'all .2s',
+                    background: inStockOnly ? 'rgba(16,185,129,.12)' : 'var(--bg1)',
+                    border: inStockOnly ? '1px solid rgba(16,185,129,.4)' : '1px solid var(--border)',
+                    color: inStockOnly ? '#10b981' : 'var(--text2)',
+                  }}
+                >
+                  <div style={{
+                    width: 16, height: 16, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: inStockOnly ? '#10b981' : 'transparent',
+                    border: inStockOnly ? 'none' : '1.5px solid var(--text3)',
+                    transition: 'all .2s',
+                  }}>
+                    {inStockOnly && <Check size={11} color="#fff" strokeWidth={3} />}
+                  </div>
+                  {t.productsSection.inStockOnly ?? 'In Stock Only'}
+                </button>
+              </div>
+
+              {/* Clear filters */}
+              {hasActiveFilters && (
+                <button
+                  onClick={clearAdvancedFilters}
+                  style={{
+                    padding: '7px 14px', borderRadius: 8, cursor: 'pointer',
+                    fontSize: '.8rem', fontWeight: 700, background: 'rgba(239,68,68,.1)',
+                    border: '1px solid rgba(239,68,68,.3)', color: '#ef4444',
+                    display: 'flex', alignItems: 'center', gap: 5, alignSelf: 'flex-end',
+                  }}
+                >
+                  <X size={12} /> {t.productsSection.clearFilters ?? 'Clear Filters'}
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Row 3: category pills + optional brand chip — single scrollable row */}
           <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>

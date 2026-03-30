@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star, CheckCircle, XCircle, ZoomIn, Minus, Plus, Send } from 'lucide-react'
+import { Star, CheckCircle, XCircle, ZoomIn, Minus, Plus, Send, Share2, Link2, Check } from 'lucide-react'
 import AddToCartButton from './AddToCartButton'
 import Lightbox from '@/components/ui/Lightbox'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import RecentlyViewed from './RecentlyViewed'
 import { useT } from '@/contexts/locale'
 import { createClient } from '@/lib/supabase-client'
+import { useRecentlyViewedStore } from '@/store/recently-viewed'
 import type { Product, Review } from '@/types'
 
 export default function ProductDetailClient({ product, relatedProducts = [], reviews: initialReviews = [] }: { product: Product; relatedProducts?: Product[]; reviews?: Review[] }) {
@@ -23,8 +25,14 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
   const [reviewError, setReviewError] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
   const [hoverStar, setHoverStar] = useState(0)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   const supabase = createClient()
+  const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
+
+  useEffect(() => {
+    addRecentlyViewed(product)
+  }, [product.id])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -249,6 +257,61 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
           {/* Add to cart */}
           <AddToCartButton product={product} quantity={qty} />
 
+          {/* Share */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16, marginBottom: 12 }}>
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/products/${product.id}`
+                navigator.clipboard.writeText(url).then(() => { setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000) })
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+                fontSize: '.8rem', fontWeight: 700, cursor: 'pointer', transition: 'all .2s',
+                background: linkCopied ? 'rgba(16,185,129,.12)' : 'var(--bg2)',
+                border: linkCopied ? '1px solid rgba(16,185,129,.4)' : '1px solid var(--border)',
+                color: linkCopied ? '#10b981' : 'var(--text2)',
+              }}
+            >
+              {linkCopied ? <><Check size={13} /> {t.productShare?.copied ?? 'Copied!'}</> : <><Link2 size={13} /> {t.productShare?.copyLink ?? 'Copy Link'}</>}
+            </button>
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(product.name)}&url=${encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+                fontSize: '.8rem', fontWeight: 700, textDecoration: 'none',
+                background: 'rgba(29,161,242,.08)', border: '1px solid rgba(29,161,242,.25)', color: '#1da1f2',
+              }}
+            >
+              𝕏
+            </a>
+            <a
+              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+                fontSize: '.8rem', fontWeight: 700, textDecoration: 'none',
+                background: 'rgba(24,119,242,.08)', border: '1px solid rgba(24,119,242,.25)', color: '#1877f2',
+              }}
+            >
+              Facebook
+            </a>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`${product.name} - ${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+                fontSize: '.8rem', fontWeight: 700, textDecoration: 'none',
+                background: 'rgba(37,211,102,.08)', border: '1px solid rgba(37,211,102,.25)', color: '#25d366',
+              }}
+            >
+              WhatsApp
+            </a>
+          </div>
+
           {/* Specs */}
           {(product.specs?.length ?? 0) > 0 && (
             <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--border)' }}>
@@ -430,6 +493,8 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
           </div>
         </div>
       )}
+      {/* ── Recently Viewed ── */}
+      <RecentlyViewed excludeId={product.id} />
     </div>
   )
 }

@@ -30,6 +30,8 @@ export default async function AdminDashboard() {
     { data: recentMessages },
     { count: brandCount },
     { count: categoryCount },
+    { data: ordersWithItems },
+    { count: reviewCount },
   ] = await Promise.all([
     supabase.from('products').select('*', { count: 'exact', head: true }),
     supabase.from('orders').select('*', { count: 'exact', head: true }),
@@ -37,11 +39,13 @@ export default async function AdminDashboard() {
     supabase.from('contact_messages').select('*', { count: 'exact', head: true }).eq('is_read', false),
     supabase.from('products').select('*', { count: 'exact', head: true }).eq('in_stock', false),
     supabase.from('orders').select('id, total, status, created_at, user:profiles(full_name)').order('created_at', { ascending: false }).limit(6),
-    supabase.from('orders').select('total, status'),
+    supabase.from('orders').select('total, status, created_at'),
     supabase.from('products').select('id, name, brand, model').eq('in_stock', false).limit(6),
     supabase.from('contact_messages').select('id, name, subject, created_at').eq('is_read', false).order('created_at', { ascending: false }).limit(4),
     supabase.from('brands').select('*', { count: 'exact', head: true }),
     supabase.from('categories').select('*', { count: 'exact', head: true }),
+    supabase.from('orders').select('total, status, created_at, items:order_items(quantity, price, product:products(name, brand))').order('created_at', { ascending: false }),
+    supabase.from('reviews').select('*', { count: 'exact', head: true }),
   ])
 
   const totalRevenue = (allOrders ?? []).reduce((s, o) => s + (o.total ?? 0), 0)
@@ -50,6 +54,45 @@ export default async function AdminDashboard() {
     statusCounts[o.status] = (statusCounts[o.status] ?? 0) + 1
   }
   const totalOrdersForBar = orderCount ?? 1
+
+  // ── Analytics: Revenue by day (last 7 days)
+  const now = new Date()
+  const last7 = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now)
+    d.setDate(d.getDate() - (6 - i))
+    return d.toISOString().slice(0, 10)
+  })
+  const revenueByDay: Record<string, number> = {}
+  const ordersByDay: Record<string, number> = {}
+  for (const day of last7) { revenueByDay[day] = 0; ordersByDay[day] = 0 }
+  for (const o of allOrders ?? []) {
+    const day = (o.created_at as string).slice(0, 10)
+    if (revenueByDay[day] !== undefined) {
+      revenueByDay[day] += o.total ?? 0
+      ordersByDay[day] += 1
+    }
+  }
+  const maxRevDay = Math.max(...Object.values(revenueByDay), 1)
+
+  // ── Average order value
+  const completedOrders = (allOrders ?? []).filter(o => o.status !== 'cancelled')
+  const avgOrderValue = completedOrders.length > 0 ? completedOrders.reduce((s, o) => s + (o.total ?? 0), 0) / completedOrders.length : 0
+
+  // ── Top products by quantity sold
+  const productSales: Record<string, { name: string; brand: string; qty: number; revenue: number }> = {}
+  for (const order of ordersWithItems ?? []) {
+    if ((order as { status: string }).status === 'cancelled') continue
+    for (const item of (order as { items: unknown[] }).items ?? []) {
+      const it = item as { quantity: number; price: number; product: { name: string; brand: string } | { name: string; brand: string }[] | null }
+      const prod = Array.isArray(it.product) ? it.product[0] : it.product
+      if (!prod) continue
+      const key = prod.name
+      if (!productSales[key]) productSales[key] = { name: prod.name, brand: prod.brand, qty: 0, revenue: 0 }
+      productSales[key].qty += it.quantity
+      productSales[key].revenue += it.quantity * it.price
+    }
+  }
+  const topProducts = Object.values(productSales).sort((a, b) => b.qty - a.qty).slice(0, 5)
 
   return (
     <div>
@@ -326,8 +369,74 @@ export default async function AdminDashboard() {
         </div>
 
       </div>
+
+      {/* ── Analytics Row ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 24, marginBottom: 24 }}>
+
+        {/* Revenue Chart (last 7 days) */}
+        <div className="admin-card" style={{ marginBottom: 0 }}>
+          <div className="admin-card-head">
+            <span className="admin-card-title">Revenue (Last 7 Days)</span>
+            <span style={{ fontSize: '.78rem', color: 'var(--text2)' }}>Avg: ${avgOrderValue.toFixed(0)}/order</span>
+          </div>
+          <div style={{ padding: '16px 20px 20px', display: 'flex', alignItems: 'flex-end', gap: 8, height: 180 }}>
+            {last7.map(day => {
+              const rev = revenueByDay[day]
+              const orders = ordersByDay[day]
+              const pct = maxRevDay > 0 ? Math.max((rev / maxRevDay) * 100, 2) : 2
+              const dateLabel = new Date(day + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' })
+              return (
+                <div key={day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: '.65rem', fontWeight: 700, color: rev > 0 ? '#22c55e' : 'var(--text3)' }}>
+                    {rev > 0 ? `$${rev >= 1000 ? (rev / 1000).toFixed(1) + 'k' : rev.toFixed(0)}` : '—'}
+                  </span>
+                  <div style={{
+                    width: '100%', maxWidth: 36, borderRadius: 6,
+                    background: rev > 0 ? 'linear-gradient(to top, rgba(34,197,94,.7), rgba(34,197,94,.3))' : 'var(--bg3)',
+                    height: `${pct}%`, minHeight: 4,
+                    transition: 'height .4s ease',
+                  }} title={`${day}: $${rev.toFixed(2)} (${orders} orders)`} />
+                  <span style={{ fontSize: '.65rem', color: 'var(--text3)', fontWeight: 600 }}>{dateLabel}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Top selling products */}
+        <div className="admin-card" style={{ marginBottom: 0 }}>
+          <div className="admin-card-head">
+            <span className="admin-card-title">Top Products</span>
+            <span style={{ fontSize: '.78rem', color: 'var(--text2)' }}>{reviewCount ?? 0} reviews</span>
+          </div>
+          {topProducts.length === 0 ? (
+            <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text2)' }}>
+              <Package size={32} style={{ opacity: .3, marginBottom: 8 }} />
+              <p style={{ fontSize: '.85rem', fontWeight: 600 }}>No sales data yet</p>
+            </div>
+          ) : (
+            <div>
+              {topProducts.map((p, i) => (
+                <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', borderBottom: '1px solid var(--border)' }}>
+                  <span style={{
+                    width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '.72rem', fontWeight: 900, flexShrink: 0,
+                    background: i === 0 ? 'rgba(245,158,11,.15)' : 'var(--bg3)',
+                    color: i === 0 ? '#f59e0b' : 'var(--text3)',
+                  }}>#{i + 1}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '.82rem', fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                    <div style={{ fontSize: '.72rem', color: 'var(--text2)' }}>{p.brand} · {p.qty} sold</div>
+                  </div>
+                  <span style={{ fontSize: '.82rem', fontWeight: 800, color: '#22c55e', flexShrink: 0 }}>${p.revenue.toFixed(0)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
     </div>
   )
 }
-
 

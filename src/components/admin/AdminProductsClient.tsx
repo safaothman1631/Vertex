@@ -30,6 +30,8 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
   const [showNewCat, setShowNewCat] = useState(false)
   const [newBrand, setNewBrand] = useState('')
   const [showNewBrand, setShowNewBrand] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkLoading, setBulkLoading] = useState(false)
   const supabase = createClient()
   const modalRef = useRef<HTMLDivElement>(null)
 
@@ -110,10 +112,67 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
     }
   }
 
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === products.length) setSelectedIds(new Set())
+    else setSelectedIds(new Set(products.map(p => p.id)))
+  }
+
+  async function bulkDelete() {
+    if (!confirm(`Move ${selectedIds.size} product(s) to trash?`)) return
+    setBulkLoading(true)
+    const ids = Array.from(selectedIds)
+    const toTrash = products.filter(p => ids.includes(p.id))
+    for (const p of toTrash) {
+      await supabase.from('trash').insert({ table_name: 'products', record_id: p.id, record_data: p })
+    }
+    await supabase.from('products').delete().in('id', ids)
+    setProducts(prev => prev.filter(p => !ids.includes(p.id)))
+    setSelectedIds(new Set())
+    setBulkLoading(false)
+    router.refresh()
+  }
+
+  async function bulkToggle(field: 'hidden' | 'in_stock', value: boolean) {
+    setBulkLoading(true)
+    const ids = Array.from(selectedIds)
+    await supabase.from('products').update({ [field]: value }).in('id', ids)
+    setProducts(prev => prev.map(p => ids.includes(p.id) ? { ...p, [field]: value } : p))
+    setSelectedIds(new Set())
+    setBulkLoading(false)
+    router.refresh()
+  }
+
   return (
     <div>
       {/* Toolbar */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: 12, flexWrap: 'wrap' }}>
+        {/* Bulk Actions */}
+        {selectedIds.size > 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '.82rem', fontWeight: 700, color: 'var(--primary)' }}>{selectedIds.size} selected</span>
+            <button onClick={bulkDelete} disabled={bulkLoading} className="admin-btn" style={{ fontSize: '.78rem', padding: '6px 14px', background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', color: '#ef4444' }}>
+              <Trash2 size={13} /> Delete
+            </button>
+            <button onClick={() => bulkToggle('hidden', true)} disabled={bulkLoading} className="admin-btn" style={{ fontSize: '.78rem', padding: '6px 14px', background: 'rgba(168,85,247,.1)', border: '1px solid rgba(168,85,247,.3)', color: '#a855f7' }}>
+              <EyeOff size={13} /> Hide
+            </button>
+            <button onClick={() => bulkToggle('hidden', false)} disabled={bulkLoading} className="admin-btn" style={{ fontSize: '.78rem', padding: '6px 14px', background: 'rgba(34,197,94,.1)', border: '1px solid rgba(34,197,94,.3)', color: '#22c55e' }}>
+              <Eye size={13} /> Show
+            </button>
+            <button onClick={() => bulkToggle('in_stock', false)} disabled={bulkLoading} className="admin-btn" style={{ fontSize: '.78rem', padding: '6px 14px', background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.3)', color: '#f59e0b' }}>
+              Out of Stock
+            </button>
+            <button onClick={() => setSelectedIds(new Set())} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 4 }}><X size={16} /></button>
+          </div>
+        ) : <div />}
         <button onClick={openNew} className="admin-btn admin-btn-primary">
           <Plus size={15} /> Add Product
         </button>
@@ -124,6 +183,9 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
         <table className="admin-table">
           <thead>
             <tr>
+              <th style={{ width: 36 }}>
+                <input type="checkbox" checked={products.length > 0 && selectedIds.size === products.length} onChange={toggleSelectAll} style={{ cursor: 'pointer', accentColor: 'var(--primary)' }} />
+              </th>
               {['Name', 'Brand', 'Category', 'Price', 'Status', 'Actions'].map((h) => (
                 <th key={h}>{h}</th>
               ))}
@@ -131,9 +193,12 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
           </thead>
           <tbody>
             {products.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text2)', padding: '32px' }}>No products yet</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text2)', padding: '32px' }}>No products yet</td></tr>
             ) : products.map((p) => (
-              <tr key={p.id}>
+              <tr key={p.id} style={{ background: selectedIds.has(p.id) ? 'rgba(99,102,241,.06)' : undefined }}>
+                <td>
+                  <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => toggleSelect(p.id)} style={{ cursor: 'pointer', accentColor: 'var(--primary)' }} />
+                </td>
                 <td style={{ maxWidth: '280px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ width: 38, height: 38, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>

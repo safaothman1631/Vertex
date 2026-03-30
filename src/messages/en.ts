@@ -70,6 +70,12 @@ const en = {
     allProducts: 'All Products',
     page: 'Page',
     of: 'of',
+    filters: 'Filters',
+    priceRange: 'Price Range',
+    minRating: 'Min Rating',
+    availability: 'Availability',
+    inStockOnly: 'In Stock Only',
+    clearFilters: 'Clear Filters',
   },
 
   // ── PRODUCT CARD
@@ -483,6 +489,34 @@ const en = {
     clear: 'Clear',
     yes: 'Yes',
     no: 'No',
+  },
+
+  // ── RECENTLY VIEWED
+  recentlyViewed: {
+    title: 'Recently Viewed',
+  },
+
+  // ── PRODUCT SHARE
+  productShare: {
+    share: 'Share',
+    copyLink: 'Copy Link',
+    copied: 'Copied!',
+  },
+
+  // ── INVOICE
+  invoice: {
+    download: 'Download Invoice',
+    invoice: 'Invoice',
+    orderDate: 'Order Date',
+    billTo: 'Bill To',
+    item: 'Item',
+    qty: 'Qty',
+    price: 'Price',
+    total: 'Total',
+    subtotal: 'Subtotal',
+    tax: 'Tax',
+    grandTotal: 'Grand Total',
+    thankYou: 'Thank you for your purchase!',
   },
 } as const
 

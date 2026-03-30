@@ -70,6 +70,12 @@ const ckb = {
     allProducts: 'هەموو بەرهەمەکان',
     page: 'لاپەڕە',
     of: 'لە',
+    filters: 'فلتەرەکان',
+    priceRange: 'مەودای نرخ',
+    minRating: 'کەمترین هەڵسەنگاندن',
+    availability: 'بەردەستبوون',
+    inStockOnly: 'تەنها بەردەست',
+    clearFilters: 'پاککردنەوەی فلتەر',
   },
 
   // ── PRODUCT CARD
@@ -477,6 +483,31 @@ const ckb = {
     clear: 'پاکردنەوە',
     yes: 'بەڵێ',
     no: 'نەخێر',
+  },
+
+  recentlyViewed: {
+    title: 'دوایین بینراوەکان',
+  },
+
+  productShare: {
+    share: 'هاوبەشکردن',
+    copyLink: 'کۆپیکردنی لینک',
+    copied: 'کۆپیکرا!',
+  },
+
+  invoice: {
+    download: 'دابەزینی وەسڵ',
+    invoice: 'وەسڵ',
+    orderDate: 'بەرواری داواکاری',
+    billTo: 'ناونیشان',
+    item: 'بەرهەم',
+    qty: 'بڕی',
+    price: 'نرخ',
+    total: 'کۆی',
+    subtotal: 'کۆی لاوەکی',
+    tax: 'باج',
+    grandTotal: 'کۆی گشتی',
+    thankYou: 'سوپاس بۆ کڕینتان!',
   },
 } as const
 

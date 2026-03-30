@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useT } from '@/contexts/locale'
 import type { Order } from '@/types'
 import type { LucideIcon } from 'lucide-react'
-import { Package, X, MapPin, ShoppingBag, ChevronRight, Clock, Truck, CheckCircle2, XCircle, RefreshCw } from 'lucide-react'
+import { Package, X, MapPin, ShoppingBag, ChevronRight, Clock, Truck, CheckCircle2, XCircle, RefreshCw, FileText } from 'lucide-react'
 import EmptyState from '@/components/ui/EmptyState'
 import OrdersPageHeader from '@/components/shop/OrdersPageHeader'
 import { createClient } from '@/lib/supabase-client'
@@ -198,6 +198,42 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
               </button>
             </div>
           )}
+          <button
+            onClick={() => {
+              const w = window.open('', '_blank')
+              if (!w) return
+              const addr = order.shipping_address
+              const itemsHtml = (order.items ?? []).map(item =>
+                `<tr><td style="padding:10px 12px;border-bottom:1px solid #eee">${item.product?.name ?? 'Product'}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center">${item.quantity}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right">$${item.price.toFixed(2)}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:700">$${(item.price * item.quantity).toFixed(2)}</td></tr>`
+              ).join('')
+              const subtotal = (order.items ?? []).reduce((s, i) => s + i.price * i.quantity, 0)
+              const tax = order.total - subtotal
+              w.document.write(`<!DOCTYPE html><html><head><title>Invoice #${order.id.slice(0,8)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:700px;margin:40px auto;padding:20px;color:#1a1a1a}table{width:100%;border-collapse:collapse}th{background:#f5f5f5;padding:10px 12px;text-align:left;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:#666;border-bottom:2px solid #ddd}@media print{button{display:none!important}}</style></head><body>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px">
+                  <div><h1 style="margin:0;font-size:1.8rem">INVOICE</h1><p style="color:#666;margin:4px 0">Vertex POS Store</p></div>
+                  <div style="text-align:right"><p style="font-size:.85rem;color:#666;margin:2px 0"><strong>Invoice #</strong> ${order.id.slice(0,8).toUpperCase()}</p><p style="font-size:.85rem;color:#666;margin:2px 0"><strong>Date:</strong> ${new Date(order.created_at).toLocaleDateString()}</p><p style="font-size:.85rem;color:#666;margin:2px 0"><strong>Status:</strong> ${order.status}</p></div>
+                </div>
+                ${addr ? `<div style="margin-bottom:30px;padding:16px;background:#f9f9f9;border-radius:8px"><p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#999;margin:0 0 6px;font-weight:700">Bill To</p><p style="margin:0;font-weight:700">${addr.name ?? ''}</p><p style="margin:2px 0;color:#666">${addr.address ?? ''}</p><p style="margin:2px 0;color:#666">${addr.city ?? ''}${addr.country ? ', ' + addr.country : ''}${addr.zip ? ' ' + addr.zip : ''}</p>${addr.email ? `<p style="margin:4px 0;color:#6366f1">${addr.email}</p>` : ''}</div>` : ''}
+                <table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemsHtml}</tbody></table>
+                <div style="margin-top:20px;text-align:right;padding-top:12px">
+                  <p style="margin:4px 0;font-size:.9rem"><span style="color:#666">Subtotal:</span> <strong>$${subtotal.toFixed(2)}</strong></p>
+                  ${tax > 0.01 ? `<p style="margin:4px 0;font-size:.9rem"><span style="color:#666">Tax:</span> <strong>$${tax.toFixed(2)}</strong></p>` : ''}
+                  <p style="margin:12px 0 0;font-size:1.3rem;font-weight:900;color:#6366f1">Total: $${order.total.toFixed(2)}</p>
+                </div>
+                <div style="margin-top:48px;text-align:center;color:#999;font-size:.8rem;border-top:1px solid #eee;padding-top:20px"><p>Thank you for your purchase!</p></div>
+                <button onclick="window.print()" style="position:fixed;bottom:20px;right:20px;padding:12px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:.9rem;box-shadow:0 4px 12px rgba(99,102,241,.3)">🖨 Print / Save PDF</button>
+              </body></html>`)
+              w.document.close()
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+              fontSize: '.8rem', fontWeight: 700, cursor: 'pointer',
+              background: 'rgba(99,102,241,.08)', border: '1px solid rgba(99,102,241,.3)',
+              color: 'var(--primary)', fontFamily: 'inherit',
+            }}
+          >
+            <FileText size={13} /> {(t.invoice as Record<string, string> | undefined)?.download ?? 'Download Invoice'}
+          </button>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>{t.orders.total}</span>
             <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)' }}>${order.total.toFixed(2)}</span>

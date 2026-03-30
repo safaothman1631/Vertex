@@ -70,6 +70,12 @@ const tr = {
     allProducts: 'Tüm Ürünler',
     page: 'Sayfa',
     of: '/',
+    filters: 'Filtreler',
+    priceRange: 'Fiyat Aralığı',
+    minRating: 'Min Puan',
+    availability: 'Stok Durumu',
+    inStockOnly: 'Sadece Stokta',
+    clearFilters: 'Filtreleri Temizle',
   },
 
   // ── PRODUCT CARD
@@ -476,6 +482,31 @@ const tr = {
     clear: 'Temizle',
     yes: 'Evet',
     no: 'Hayır',
+  },
+
+  recentlyViewed: {
+    title: 'Son Görüntülenen',
+  },
+
+  productShare: {
+    share: 'Paylaş',
+    copyLink: 'Bağlantıyı Kopyala',
+    copied: 'Kopyalandı!',
+  },
+
+  invoice: {
+    download: 'Fatura İndir',
+    invoice: 'Fatura',
+    orderDate: 'Sipariş Tarihi',
+    billTo: 'Fatura Adresi',
+    item: 'Ürün',
+    qty: 'Adet',
+    price: 'Fiyat',
+    total: 'Toplam',
+    subtotal: 'Ara Toplam',
+    tax: 'Vergi',
+    grandTotal: 'Genel Toplam',
+    thankYou: 'Alışverişiniz için teşekkürler!',
   },
 } as const
 
