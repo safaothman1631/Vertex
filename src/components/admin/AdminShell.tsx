@@ -4,21 +4,24 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Package, ShoppingBag, Users, MessageSquare, FolderTree, Building2, Ticket, Trash2, Megaphone, Bell, Activity, HardDrive, ArrowLeft, Menu, X } from 'lucide-react'
+import { useT } from '@/contexts/locale'
 
-const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/products', label: 'Products', icon: Package },
-  { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/admin/categories', label: 'Categories', icon: FolderTree },
-  { href: '/admin/brands', label: 'Brands', icon: Building2 },
-  { href: '/admin/coupons', label: 'Coupons', icon: Ticket },
-  { href: '/admin/promotions', label: 'Promotions', icon: Megaphone },
-  { href: '/admin/notifications', label: 'Notifications', icon: Bell },
-  { href: '/admin/system', label: 'System', icon: Activity },
-  { href: '/admin/backup', label: 'Backup', icon: HardDrive },
-  { href: '/admin/trash', label: 'Trash', icon: Trash2 },
+type NavKey = 'dashboard' | 'products' | 'orders' | 'users' | 'messages' | 'categories' | 'brands' | 'coupons' | 'promotions' | 'notifications' | 'system' | 'backup' | 'trash'
+
+const navDefs: { href: string; key: NavKey; icon: typeof LayoutDashboard }[] = [
+  { href: '/admin', key: 'dashboard', icon: LayoutDashboard },
+  { href: '/admin/products', key: 'products', icon: Package },
+  { href: '/admin/orders', key: 'orders', icon: ShoppingBag },
+  { href: '/admin/users', key: 'users', icon: Users },
+  { href: '/admin/messages', key: 'messages', icon: MessageSquare },
+  { href: '/admin/categories', key: 'categories', icon: FolderTree },
+  { href: '/admin/brands', key: 'brands', icon: Building2 },
+  { href: '/admin/coupons', key: 'coupons', icon: Ticket },
+  { href: '/admin/promotions', key: 'promotions', icon: Megaphone },
+  { href: '/admin/notifications', key: 'notifications', icon: Bell },
+  { href: '/admin/system', key: 'system', icon: Activity },
+  { href: '/admin/backup', key: 'backup', icon: HardDrive },
+  { href: '/admin/trash', key: 'trash', icon: Trash2 },
 ]
 
 export default function AdminShell({
@@ -30,6 +33,7 @@ export default function AdminShell({
 }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const t = useT()
 
   // Close sidebar on route change
   useEffect(() => { setOpen(false) }, [pathname])
@@ -50,7 +54,7 @@ export default function AdminShell({
         <div className="admin-sidebar-brand">
           <div>
             <div className="admin-sidebar-title">Ver<span style={{ color: 'var(--primary)' }}>tex</span></div>
-            <div className="admin-sidebar-sub">Admin Panel</div>
+            <div className="admin-sidebar-sub">{t.admin.adminPanel}</div>
           </div>
         </div>
 
@@ -58,19 +62,19 @@ export default function AdminShell({
           <div className="admin-user-avatar">{(fullName ?? 'A')[0].toUpperCase()}</div>
           <div>
             <div className="admin-user-name">{fullName}</div>
-            <div className="admin-user-role">Administrator</div>
+            <div className="admin-user-role">{t.admin.administrator}</div>
           </div>
         </div>
 
         <nav className="admin-nav">
-          {navItems.map(({ href, label, icon: Icon }) => (
+          {navDefs.map(({ href, key, icon: Icon }) => (
             <Link
               key={href}
               href={href}
               className={`admin-nav-item${pathname === href ? ' active' : ''}`}
             >
               <Icon size={17} />
-              {label}
+              {t.admin[key]}
             </Link>
           ))}
         </nav>
@@ -78,7 +82,7 @@ export default function AdminShell({
         <div className="admin-sidebar-footer">
           <Link href="/" className="admin-nav-item admin-nav-back">
             <ArrowLeft size={16} />
-            Back to Store
+            {t.admin.backToStore}
           </Link>
         </div>
       </aside>

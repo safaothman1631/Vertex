@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { useCartStore } from '@/store/cart'
 import type { ProductData } from '@/data/products'
 import QuickView from './QuickView'
@@ -60,7 +61,7 @@ export default function ProductCard({ product: p }: Props) {
           {/* Slide 0 — photo or art */}
           <div className={`prod-slide${slide === 0 ? ' active' : ''}`}>
             {p.img ? (
-              <img src={p.img} alt={p.name} className="prod-photo" />
+              <Image src={p.img} alt={p.name} className="prod-photo" width={400} height={400} />
             ) : (
               <div className="prod-art" style={artStyle}>
                 <span className="prod-art-type">{p.artType}</span>

@@ -413,6 +413,10 @@ const tr = {
     orders: 'Siparişler',
     products: 'Ürünler',
     messages: 'Mesajlar',
+    categories: 'Kategoriler',
+    brands: 'Markalar',
+    coupons: 'Kuponlar',
+    trash: 'Çöp Kutusu',
     totalRevenue: 'Toplam Gelir',
     totalOrders: 'Toplam Siparişler',
     totalUsers: 'Toplam Kullanıcılar',
@@ -425,6 +429,9 @@ const tr = {
     restoreBackup: 'Yedekten Geri Yükle',
     broadcastNotification: 'Bildirim Gönder',
     systemLogs: 'Sistem Kayıtları',
+    adminPanel: 'Yönetim Paneli',
+    administrator: 'Yönetici',
+    backToStore: 'Mağazaya Dön',
   },
 
   // ── STATS STRIP

@@ -414,6 +414,10 @@ const ckb = {
     orders: 'داواکارییەکان',
     products: 'بەرهەمەکان',
     messages: 'پەیامەکان',
+    categories: 'پۆلەکان',
+    brands: 'براندەکان',
+    coupons: 'کۆپۆنەکان',
+    trash: 'زیبڵدان',
     totalRevenue: 'کۆی داهات',
     totalOrders: 'کۆی داواکارییەکان',
     totalUsers: 'کۆی بەکارهێنەران',
@@ -426,6 +430,9 @@ const ckb = {
     restoreBackup: 'گەڕاندنەوەی پاشکەوت',
     broadcastNotification: 'ناردنی ئاگاداری',
     systemLogs: 'تۆمارەکانی سیستەم',
+    adminPanel: 'پانێلی بەڕێوەبەر',
+    administrator: 'بەڕێوەبەر',
+    backToStore: 'گەڕانەوە بۆ فرۆشگا',
   },
 
   // ── STATS STRIP

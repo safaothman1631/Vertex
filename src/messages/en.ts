@@ -420,6 +420,10 @@ const en = {
     orders: 'Orders',
     products: 'Products',
     messages: 'Messages',
+    categories: 'Categories',
+    brands: 'Brands',
+    coupons: 'Coupons',
+    trash: 'Trash',
     totalRevenue: 'Total Revenue',
     totalOrders: 'Total Orders',
     totalUsers: 'Total Users',
@@ -432,6 +436,9 @@ const en = {
     restoreBackup: 'Restore from Backup',
     broadcastNotification: 'Broadcast Notification',
     systemLogs: 'System Logs',
+    adminPanel: 'Admin Panel',
+    administrator: 'Administrator',
+    backToStore: 'Back to Store',
   },
 
   // ── STATS STRIP

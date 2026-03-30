@@ -411,6 +411,10 @@ const ar = {
     orders: 'الطلبات',
     products: 'المنتجات',
     messages: 'الرسائل',
+    categories: 'الفئات',
+    brands: 'العلامات التجارية',
+    coupons: 'القسائم',
+    trash: 'سلة المحذوفات',
     totalRevenue: 'إجمالي الإيرادات',
     totalOrders: 'إجمالي الطلبات',
     totalUsers: 'إجمالي المستخدمين',
@@ -423,6 +427,9 @@ const ar = {
     restoreBackup: 'استعادة من نسخة احتياطية',
     broadcastNotification: 'إرسال إشعار جماعي',
     systemLogs: 'سجلات النظام',
+    adminPanel: 'لوحة الإدارة',
+    administrator: 'مسؤول',
+    backToStore: 'العودة إلى المتجر',
   },
 
   // ── STATS STRIP
