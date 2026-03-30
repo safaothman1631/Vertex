@@ -382,7 +382,7 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 /* ============================================================
    QUICK VIEW MODAL
    ============================================================ */
-.qv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.qv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
 .qv-modal{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-xl);width:100%;max-width:860px;max-height:90vh;overflow-y:auto;position:relative;box-shadow:var(--shadow-lg)}
 .qv-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:.9rem;display:flex;align-items:center;justify-content:center;z-index:1;cursor:pointer;transition:var(--transition)}
 .qv-close:hover{background:var(--bg4);color:var(--text)}
