@@ -92,7 +92,7 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 .logo-accent{background:linear-gradient(135deg,#818cf8,var(--primary),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 8px rgba(99,102,241,.5));position:relative}
 .logo-accent::after{content:'';position:absolute;inset:-4px -3px;background:radial-gradient(ellipse,rgba(99,102,241,.2) 0%,transparent 70%);border-radius:6px;opacity:0;transition:opacity .3s}
 .logo:hover .logo-accent::after{opacity:1}
-.nav-links{display:flex;align-items:center;gap:2px;flex:1}
+.nav-links{display:flex;align-items:center;gap:10px;flex:1}
 .nav-links a,.nav-scroll-btn{position:relative;color:var(--text3);font-weight:500;font-size:.85rem;padding:7px 15px;border-radius:8px;background:none;border:none;cursor:pointer;font-family:inherit;white-space:nowrap;transition:color .25s,background .25s,transform .18s;letter-spacing:.01em}
 .nav-links a::after,.nav-scroll-btn::after{content:'';position:absolute;bottom:3px;left:50%;width:0;height:2px;background:linear-gradient(90deg,var(--primary),#a78bfa);border-radius:2px;transform:translateX(-50%);transition:width .3s cubic-bezier(.22,1,.36,1)}
 .nav-links a:hover,.nav-scroll-btn:hover{color:var(--text);background:rgba(255,255,255,.06)}
