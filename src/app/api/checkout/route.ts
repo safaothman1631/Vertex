@@ -157,8 +157,11 @@ export async function POST(request: Request) {
     if (appliedCouponId) {
       const { error: rpcErr } = await supabase.rpc('increment_coupon_used', { coupon_id: appliedCouponId })
       if (rpcErr) {
-        // Fallback: direct update
-        await supabase.from('coupons').update({ used_count: discount > 0 ? 1 : 0 }).eq('id', appliedCouponId)
+        // Fallback: raw increment via select + update
+        const { data: couponRow } = await supabase.from('coupons').select('used_count').eq('id', appliedCouponId).single()
+        if (couponRow) {
+          await supabase.from('coupons').update({ used_count: (couponRow.used_count ?? 0) + 1 }).eq('id', appliedCouponId)
+        }
       }
     }
 

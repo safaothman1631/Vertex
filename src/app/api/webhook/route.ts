@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/supabase-server'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const orderId = session.metadata?.order_id
 
     if (orderId) {
-      const supabase = await createClient()
+      const supabase = createAdminClient()
       // Idempotency: only update if still pending
       await supabase
         .from('orders')

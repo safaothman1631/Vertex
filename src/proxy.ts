@@ -43,7 +43,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Protect user-only routes
-  const protectedRoutes = ['/checkout', '/orders', '/wishlist']
+  const protectedRoutes = ['/checkout', '/orders', '/wishlist', '/settings']
   if (!user && protectedRoutes.some((r) => pathname.startsWith(r))) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
