@@ -15,7 +15,7 @@ export default function Footer() {
             <p>{t.footer.desc}</p>
           </div>
 
-          <div className="footer-links">
+          <nav className="footer-links" aria-label="Footer navigation">
             <div className="f-col">
               <h4>{t.footer.shopTitle}</h4>
               <Link href="/products">{t.footer.allProducts}</Link>
@@ -44,7 +44,7 @@ export default function Footer() {
               <Link href="/contact">{t.footer.contactUs}</Link>
               <Link href="/admin">{t.footer.adminPanel}</Link>
             </div>
-          </div>
+          </nav>
         </div>
 
         <div className="footer-btm">

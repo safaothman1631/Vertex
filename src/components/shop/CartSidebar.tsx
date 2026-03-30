@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useCartStore } from '@/store/cart'
 import Link from 'next/link'
 import { useT } from '@/contexts/locale'
@@ -8,14 +9,26 @@ export default function CartSidebar({ open, onClose }: { open: boolean; onClose:
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore()
   const t = useT()
 
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handler)
+      document.body.style.overflow = ''
+    }
+  }, [open, onClose])
+
   return (
     <>
-      <div className={`cart-overlay${open ? ' open' : ''}`} onClick={onClose} />
-      <div className={`cart-sidebar${open ? ' open' : ''}`}>
+      <div className={`cart-overlay${open ? ' open' : ''}`} onClick={onClose} role="presentation" />
+      <div className={`cart-sidebar${open ? ' open' : ''}`} role="dialog" aria-modal="true" aria-label={t.cartSidebar.title}>
         <div className="cart-header">
           <h3>🛒 {t.cartSidebar.title} ({items.length})</h3>
           <button
             onClick={onClose}
+            aria-label="Close cart"
             style={{
               width: 36, height: 36, borderRadius: '50%',
               background: 'var(--bg3)', border: '1px solid var(--border)',
@@ -42,13 +55,14 @@ export default function CartSidebar({ open, onClose }: { open: boolean; onClose:
                   <div className="cart-item-price">${(product.price * quantity).toFixed(2)}</div>
                 </div>
                 <div className="cart-item-qty">
-                  <button className="qty-btn" onClick={() => updateQuantity(product.id, quantity - 1)}>−</button>
+                  <button className="qty-btn" onClick={() => updateQuantity(product.id, quantity - 1)} aria-label="Decrease quantity">−</button>
                   <span className="qty-num">{quantity}</span>
-                  <button className="qty-btn" onClick={() => updateQuantity(product.id, quantity + 1)}>+</button>
+                  <button className="qty-btn" onClick={() => updateQuantity(product.id, quantity + 1)} aria-label="Increase quantity">+</button>
                 </div>
                 <button
                   onClick={() => removeItem(product.id)}
-                  style={{ color: 'var(--text3)', fontSize: '.85rem', cursor: 'pointer', marginLeft: 8 }}
+                  aria-label={`Remove ${product.name}`}
+                  style={{ color: 'var(--text3)', fontSize: '.85rem', cursor: 'pointer', marginLeft: 8, background: 'none', border: 'none' }}
                 >
                   🗑
                 </button>

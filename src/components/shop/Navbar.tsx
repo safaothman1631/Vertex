@@ -64,7 +64,14 @@ export default function Navbar() {
         setLangOpen(false)
       }
     }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setProfileOpen(false)
+        setLangOpen(false)
+      }
+    }
     document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
 
     async function loadProfile(u: { id: string; email?: string | null }) {
       try {
@@ -96,6 +103,7 @@ export default function Navbar() {
     return () => {
       window.removeEventListener('scroll', onScroll)
       document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
       subscription.unsubscribe()
     }
   }, [])
@@ -204,6 +212,8 @@ export default function Navbar() {
                   className="nav-avatar-trigger"
                   onClick={() => setProfileOpen(p => !p)}
                   aria-label="Profile menu"
+                  aria-expanded={profileOpen}
+                  aria-haspopup="true"
                 >
                   <div className="nav-avatar">
                     {user.avatar_url ? (
@@ -299,6 +309,9 @@ export default function Navbar() {
               <button
                 className="nav-action-btn nav-lang-btn"
                 onClick={() => setLangOpen(p => !p)}
+                aria-label="Language"
+                aria-expanded={langOpen}
+                aria-haspopup="true"
               >
                 <Globe size={18} />
                 <span className="nav-lang-label" style={{ fontSize: '.8rem', fontWeight: 500 }}>{LANG_OPTIONS.find(o => o.value === locale)?.label}</span>

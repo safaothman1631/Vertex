@@ -14,15 +14,20 @@ export default function ProductCard({ product: p }: Props) {
   const [slide, setSlide] = useState(0)
   const [qvOpen, setQvOpen] = useState(false)
   const [added, setAdded] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const t = useT()
 
   useEffect(() => {
+    if (hovered) {
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+      return
+    }
     timerRef.current = setInterval(() => {
       setSlide((s) => (s + 1) % 3)
     }, 3000)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [])
+  }, [hovered])
 
   function handleAddToCart() {
     addItem({
@@ -41,7 +46,10 @@ export default function ProductCard({ product: p }: Props) {
 
   return (
     <>
-      <div className="prod-card" data-cat={p.cat} data-brand={p.brandKey} data-price={p.priceNum}>
+      <div className="prod-card" data-cat={p.cat} data-brand={p.brandKey} data-price={p.priceNum}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
         <div className="prod-badges">
           {p.isHot && <span className="badge-hot">{t.productCard.hot}</span>}
           {p.isNew && <span className="badge-new">{t.productCard.new}</span>}
@@ -85,10 +93,11 @@ export default function ProductCard({ product: p }: Props) {
           {/* Dot indicators */}
           <div className="slide-dots">
             {[0, 1, 2].map((i) => (
-              <span
+              <button
                 key={i}
                 className={`slide-dot${slide === i ? ' active' : ''}`}
                 onClick={() => setSlide(i)}
+                aria-label={`Slide ${i + 1}`}
               />
             ))}
           </div>

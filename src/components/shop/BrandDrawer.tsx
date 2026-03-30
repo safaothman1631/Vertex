@@ -75,6 +75,7 @@ export default function BrandDrawer({ brand, products, onClose }: Props) {
       {/* ── BACKDROP ── */}
       <div
         onClick={close}
+        role="presentation"
         style={{
           position: 'fixed', inset: 0, zIndex: 9000,
           background: 'rgba(0,0,0,0.72)',
@@ -89,6 +90,9 @@ export default function BrandDrawer({ brand, products, onClose }: Props) {
       {/* ── PANEL ── */}
       <div
         ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={brand?.name ?? 'Brand details'}
         style={{
           position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 9001,
           maxHeight: '90vh',

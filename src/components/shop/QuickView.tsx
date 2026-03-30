@@ -29,9 +29,9 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
   if (!mounted) return null
 
   return createPortal(
-    <div className="qv-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="qv-modal">
-        <button className="qv-close" onClick={onClose}>✕</button>
+    <div className="qv-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }} role="presentation">
+      <div className="qv-modal" role="dialog" aria-modal="true" aria-label={p.name}>
+        <button className="qv-close" onClick={onClose} aria-label="Close">✕</button>
 
         <div className="qv-inner">
           {/* Left — image */}

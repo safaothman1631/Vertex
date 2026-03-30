@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star, CheckCircle, XCircle, ArrowLeft, ZoomIn, Minus, Plus, Send } from 'lucide-react'
+import { Star, CheckCircle, XCircle, ZoomIn, Minus, Plus, Send } from 'lucide-react'
 import AddToCartButton from './AddToCartButton'
 import Lightbox from '@/components/ui/Lightbox'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { useT } from '@/contexts/locale'
 import { createClient } from '@/lib/supabase-client'
 import type { Product, Review } from '@/types'
@@ -56,20 +57,12 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
 
   return (
     <div className="resp-page-padding container" style={{ maxWidth: 1100 }}>
-      {/* Back link */}
-      <Link
-        href="/products"
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 32,
-          color: 'var(--text2)', fontSize: '.88rem', fontWeight: 600,
-          textDecoration: 'none', transition: 'color .2s',
-        }}
-        onMouseEnter={e => (e.currentTarget.style.color = 'var(--primary)')}
-        onMouseLeave={e => (e.currentTarget.style.color = 'var(--text2)')}
-      >
-        <ArrowLeft size={15} />
-        {t.productDetail.backToProducts}
-      </Link>
+      {/* Breadcrumbs */}
+      <Breadcrumbs items={[
+        { label: t.nav.home, href: '/' },
+        { label: t.nav.shop, href: '/products' },
+        { label: `${product.brand} ${product.name}` },
+      ]} />
 
       <div className="resp-grid-2col" style={{ gap: 'clamp(24px, 4vw, 48px)', alignItems: 'start' }}>
 
