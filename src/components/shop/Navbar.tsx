@@ -6,7 +6,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
 import { createClient } from '@/lib/supabase-client'
 import CartSidebar from './CartSidebar'
-import { Heart, ShoppingBag, User, LogOut, Settings, Package, ChevronDown, LayoutDashboard, Globe } from 'lucide-react'
+import SearchModal from './SearchModal'
+import { Heart, ShoppingBag, Search, User, LogOut, Settings, Package, ChevronDown, LayoutDashboard, Globe } from 'lucide-react'
 import { useLocale, useT, type Locale } from '@/contexts/locale'
 import NotificationsPanel from './NotificationsPanel'
 
@@ -23,6 +24,7 @@ export default function Navbar() {
   const [activeSection, setActiveSection] = useState('hero')
   const [menuOpen, setMenuOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -156,6 +158,11 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="nav-actions">
+            {/* Search */}
+            <button className="nav-action-btn" onClick={() => setSearchOpen(true)} title={t.common?.search ?? 'Search'}>
+              <Search size={18} />
+            </button>
+
             {/* Admin */}
             {mounted && user?.role === 'admin' && (
               <Link href="/admin" className="nav-admin-link">
@@ -331,6 +338,7 @@ export default function Navbar() {
       </header>
 
       <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   )
 }

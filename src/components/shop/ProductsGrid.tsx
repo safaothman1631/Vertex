@@ -17,6 +17,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const brandParam = searchParams.get('brand') ?? 'all'
+  const qParam = searchParams.get('q') ?? ''
 
   // Build category list dynamically from products that actually exist
   const CATS = useMemo(() => {
@@ -24,7 +25,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
     return [{ key: 'all', label: 'All' }, ...used.map(c => ({ key: c, label: c }))]
   }, [products])
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(qParam)
   const [sort, setSort] = useState('default')
   const [activeCat, setActiveCat] = useState('all')
   const [activeBrand, setActiveBrand] = useState(brandParam)

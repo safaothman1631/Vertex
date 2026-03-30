@@ -226,6 +226,12 @@ const ar = {
     pageHeadLine2: 'طلباتك',
     totalOrders: 'إجمالي الطلبات',
     totalSpent: 'إجمالي الإنفاق',
+    cancelOrder: 'إلغاء الطلب',
+    confirmCancel: 'هل أنت متأكد؟',
+    yes: 'نعم',
+    no: 'لا',
+    all: 'الكل',
+    noOrdersFilter: 'لا توجد طلبات بهذه الحالة',
     status: {
       pending: 'قيد الانتظار',
       processing: 'جارٍ المعالجة',
@@ -427,6 +433,15 @@ const ar = {
     reviews: 'تقييمات',
     quantity: 'الكمية',
     relatedProducts: 'منتجات ذات صلة',
+    customerReviews: 'تقييمات العملاء',
+    writeReview: 'اكتب تقييمًا',
+    shareExperience: 'شارك تجربتك مع هذا المنتج...',
+    submitReview: 'إرسال التقييم',
+    submitting: 'جارٍ الإرسال...',
+    noReviews: 'لا توجد تقييمات بعد. كن أول من يقيّم!',
+    alreadyReviewed: 'لقد قيّمت هذا المنتج بالفعل.',
+    signInToReview: 'لكتابة تقييم.',
+    signIn: 'تسجيل الدخول',
   },
 
   // ── TESTIMONIALS
@@ -436,6 +451,15 @@ const ar = {
     titleHighlight: 'عملاؤنا',
     sub: 'آراء حقيقية من الشركات التي تثق بمعدات نقاط البيع لدينا',
     verifiedBuyer: 'مشترٍ موثوق',
+  },
+
+  // ── SEARCH
+  search: {
+    placeholder: 'ابحث عن منتجات، علامات تجارية، موديلات...',
+    searching: 'جارٍ البحث...',
+    viewAll: 'عرض جميع النتائج',
+    noResults: 'لم يتم العثور على منتجات',
+    tryDifferent: 'جرّب كلمة بحث مختلفة',
   },
 
   // ── COMMON

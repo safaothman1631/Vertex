@@ -229,6 +229,12 @@ const ckb = {
     pageHeadLine2: 'داواکارییەکانت',
     totalOrders: 'کۆی داواکارییەکان',
     totalSpent: 'کۆی خەرجکراو',
+    cancelOrder: 'هەڵوەشاندنەوەی داواکاری',
+    confirmCancel: 'دڵنیایت؟',
+    yes: 'بەڵێ',
+    no: 'نەخێر',
+    all: 'هەمووی',
+    noOrdersFilter: 'هیچ داواکارییەک بەم بارەوە نییە',
     status: {
       pending: 'چاوەڕوان',
       processing: 'پرۆسەکردن',
@@ -430,6 +436,15 @@ const ckb = {
     reviews: 'پێداچوونەوە',
     quantity: 'بڕی',
     relatedProducts: 'بەرهەمە پەیوەندییەکان',
+    customerReviews: 'پێداچوونەوەی کڕیاران',
+    writeReview: 'پێداچوونەوە بنووسە',
+    shareExperience: 'ئەزموونی خۆت لەگەڵ ئەم بەرهەمە هاوبەش بکە...',
+    submitReview: 'ناردنی پێداچوونەوە',
+    submitting: 'دەنێردرێت...',
+    noReviews: 'هیچ پێداچوونەوەیەک نییە. یەکەمین بە!',
+    alreadyReviewed: 'تۆ پێشتر پێداچوونەوەت کردووە بۆ ئەم بەرهەمە.',
+    signInToReview: 'بۆ نووسینی پێداچوونەوە.',
+    signIn: 'چوونەژوورەوە',
   },
 
   // ── TESTIMONIALS
@@ -439,6 +454,15 @@ const ckb = {
     titleHighlight: 'چی دەبێژن',
     sub: 'ڕووی ڕاستەقینەی کڕیارەکانمان دەربارەی تەکنەلۆجیای POS ەکانمان',
     verifiedBuyer: 'کڕیاری دڵنیاکراو',
+  },
+
+  // ── SEARCH
+  search: {
+    placeholder: 'گەڕان بۆ بەرهەم، براند، مۆدێل...',
+    searching: 'گەڕان...',
+    viewAll: 'بینینی هەموو ئەنجامەکان',
+    noResults: 'هیچ بەرهەمێک نەدۆزرایەوە',
+    tryDifferent: 'وشەیەکی تری بەکاربهێنە',
   },
 
   // ── COMMON

@@ -229,6 +229,12 @@ const en = {
     pageHeadLine2: 'Order History',
     totalOrders: 'Total Orders',
     totalSpent: 'Total Spent',
+    cancelOrder: 'Cancel Order',
+    confirmCancel: 'Are you sure?',
+    yes: 'Yes',
+    no: 'No',
+    all: 'All',
+    noOrdersFilter: 'No orders with this status',
     status: {
       pending: 'Pending',
       processing: 'Processing',
@@ -436,6 +442,15 @@ const en = {
     reviews: 'Reviews',
     quantity: 'Quantity',
     relatedProducts: 'Related Products',
+    customerReviews: 'Customer Reviews',
+    writeReview: 'Write a Review',
+    shareExperience: 'Share your experience with this product...',
+    submitReview: 'Submit Review',
+    submitting: 'Submitting...',
+    noReviews: 'No reviews yet. Be the first to review!',
+    alreadyReviewed: 'You have already reviewed this product.',
+    signInToReview: 'to write a review.',
+    signIn: 'Sign in',
   },
 
   // ── TESTIMONIALS
@@ -445,6 +460,15 @@ const en = {
     titleHighlight: 'Customers Say',
     sub: 'Real feedback from businesses that trust our POS hardware',
     verifiedBuyer: 'Verified Buyer',
+  },
+
+  // ── SEARCH
+  search: {
+    placeholder: 'Search products, brands, models...',
+    searching: 'Searching...',
+    viewAll: 'View all results',
+    noResults: 'No products found',
+    tryDifferent: 'Try a different search term',
   },
 
   // ── COMMON

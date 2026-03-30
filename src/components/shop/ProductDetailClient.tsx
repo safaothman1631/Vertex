@@ -287,7 +287,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
       <div style={{ marginTop: 64, paddingTop: 40, borderTop: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <h2 style={{ fontWeight: 900, fontSize: '1.3rem' }}>
-            Customer Reviews ({reviews.length})
+            {t.productDetail.customerReviews} ({reviews.length})
           </h2>
           {reviews.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -308,7 +308,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
             background: 'var(--bg2)', border: '1px solid var(--border)',
             borderRadius: 16, padding: 24, marginBottom: 24,
           }}>
-            <h3 style={{ fontWeight: 800, fontSize: '.95rem', marginBottom: 14 }}>Write a Review</h3>
+            <h3 style={{ fontWeight: 800, fontSize: '.95rem', marginBottom: 14 }}>{t.productDetail.writeReview}</h3>
             <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
               {[1,2,3,4,5].map(s => (
                 <button key={s} type="button"
@@ -324,7 +324,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
             <textarea
               value={reviewComment}
               onChange={e => setReviewComment(e.target.value)}
-              placeholder="Share your experience with this product..."
+              placeholder={t.productDetail.shareExperience}
               required
               rows={3}
               style={{
@@ -345,22 +345,22 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
               opacity: reviewLoading ? .7 : 1,
             }}>
               <Send size={14} />
-              {reviewLoading ? 'Submitting...' : 'Submit Review'}
+              {reviewLoading ? t.productDetail.submitting : t.productDetail.submitReview}
             </button>
           </form>
         )}
         {userId && alreadyReviewed && (
-          <p style={{ fontSize: '.85rem', color: 'var(--text2)', marginBottom: 20, fontStyle: 'italic' }}>You have already reviewed this product.</p>
+          <p style={{ fontSize: '.85rem', color: 'var(--text2)', marginBottom: 20, fontStyle: 'italic' }}>{t.productDetail.alreadyReviewed}</p>
         )}
         {!userId && (
           <p style={{ fontSize: '.85rem', color: 'var(--text2)', marginBottom: 20 }}>
-            <Link href="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Sign in</Link> to write a review.
+            <Link href="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>{t.productDetail.signIn}</Link> {t.productDetail.signInToReview}
           </p>
         )}
 
         {/* Reviews List */}
         {reviews.length === 0 ? (
-          <p style={{ color: 'var(--text2)', fontSize: '.9rem' }}>No reviews yet. Be the first to review!</p>
+          <p style={{ color: 'var(--text2)', fontSize: '.9rem' }}>{t.productDetail.noReviews}</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {reviews.map(r => (

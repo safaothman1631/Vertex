@@ -228,6 +228,12 @@ const tr = {
     pageHeadLine2: 'Geçmişiniz',
     totalOrders: 'Toplam Sipariş',
     totalSpent: 'Toplam Harcama',
+    cancelOrder: 'Siparişi İptal Et',
+    confirmCancel: 'Emin misiniz?',
+    yes: 'Evet',
+    no: 'Hayır',
+    all: 'Tümü',
+    noOrdersFilter: 'Bu durumda sipariş yok',
     status: {
       pending: 'Beklemede',
       processing: 'İşleniyor',
@@ -429,6 +435,15 @@ const tr = {
     reviews: 'yorum',
     quantity: 'Adet',
     relatedProducts: 'İlgili Ürünler',
+    customerReviews: 'Müşteri Yorumları',
+    writeReview: 'Yorum Yaz',
+    shareExperience: 'Bu ürünle ilgili deneyiminizi paylaşın...',
+    submitReview: 'Yorumu Gönder',
+    submitting: 'Gönderiliyor...',
+    noReviews: 'Henüz yorum yok. İlk yorumu siz yazın!',
+    alreadyReviewed: 'Bu ürünü zaten değerlendirdiniz.',
+    signInToReview: 'yorum yazmak için.',
+    signIn: 'Giriş yapın',
   },
 
   // ── TESTIMONIALS
@@ -438,6 +453,15 @@ const tr = {
     titleHighlight: 'Ne Diyor',
     sub: 'POS donanımımıza güvenen işletmelerden gerçek geri bildirimler',
     verifiedBuyer: 'Doğrulanmış Alıcı',
+  },
+
+  // ── SEARCH
+  search: {
+    placeholder: 'Ürün, marka, model ara...',
+    searching: 'Aranıyor...',
+    viewAll: 'Tüm sonuçları gör',
+    noResults: 'Ürün bulunamadı',
+    tryDifferent: 'Farklı bir arama terimi deneyin',
   },
 
   // ── COMMON

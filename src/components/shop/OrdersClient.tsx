@@ -35,8 +35,10 @@ const STATUS_ICONS: Record<string, LucideIcon> = {
 }
 
 /* Detail Modal */
-function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => void }) {
+function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose: () => void; onCancel: (id: string) => void }) {
   const t = useT()
+  const [cancelling, setCancelling] = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(false)
 
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -157,9 +159,49 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
         </div>
 
         {/* Footer */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderTop: '1px solid var(--border)', background: 'var(--bg2)', flexShrink: 0 }}>
-          <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>{t.orders.total}</span>
-          <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)' }}>${order.total.toFixed(2)}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderTop: '1px solid var(--border)', background: 'var(--bg2)', flexShrink: 0, gap: 12 }}>
+          {order.status === 'pending' && !confirmCancel && (
+            <button onClick={() => setConfirmCancel(true)} style={{
+              padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(239,68,68,.3)',
+              background: 'rgba(239,68,68,.08)', color: '#ef4444', fontWeight: 700,
+              fontSize: '.82rem', cursor: 'pointer', transition: 'all .15s', fontFamily: 'inherit',
+            }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,.15)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,.08)')}
+            >
+              <XCircle size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />
+              {(t.orders as Record<string, unknown>).cancelOrder as string ?? 'Cancel Order'}
+            </button>
+          )}
+          {confirmCancel && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: '.8rem', color: '#ef4444', fontWeight: 600 }}>{(t.orders as Record<string, unknown>).confirmCancel as string ?? 'Are you sure?'}</span>
+              <button onClick={async () => {
+                setCancelling(true)
+                await onCancel(order.id)
+                setCancelling(false)
+                setConfirmCancel(false)
+              }} disabled={cancelling} style={{
+                padding: '6px 14px', borderRadius: 8, border: 'none',
+                background: '#ef4444', color: '#fff', fontWeight: 700,
+                fontSize: '.78rem', cursor: cancelling ? 'not-allowed' : 'pointer',
+                opacity: cancelling ? 0.6 : 1, fontFamily: 'inherit',
+              }}>
+                {cancelling ? '...' : ((t.orders as Record<string, unknown>).yes as string ?? 'Yes')}
+              </button>
+              <button onClick={() => setConfirmCancel(false)} style={{
+                padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border)',
+                background: 'var(--bg3)', color: 'var(--text2)', fontWeight: 700,
+                fontSize: '.78rem', cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                {(t.orders as Record<string, unknown>).no as string ?? 'No'}
+              </button>
+            </div>
+          )}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>{t.orders.total}</span>
+            <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)' }}>${order.total.toFixed(2)}</span>
+          </div>
         </div>
       </div>
     </div>,
@@ -243,6 +285,7 @@ export default function OrdersClient({ orders: initialOrders, userId }: { orders
   const t = useT()
   const [orders, setOrders] = useState<Order[]>(initialOrders ?? [])
   const [selected, setSelected] = useState<Order | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string>('all')
 
   useEffect(() => {
     const supabase = createClient()
@@ -261,21 +304,68 @@ export default function OrdersClient({ orders: initialOrders, userId }: { orders
     return () => { supabase.removeChannel(channel) }
   }, [userId])
 
+  async function handleCancel(orderId: string) {
+    const res = await fetch('/api/orders/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId }),
+    })
+    if (res.ok) {
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o))
+      setSelected(prev => prev && prev.id === orderId ? { ...prev, status: 'cancelled' } : prev)
+    }
+  }
+
   const totalSpent = orders.reduce((sum, o) => sum + o.total, 0)
+  const filtered = statusFilter === 'all' ? orders : orders.filter(o => o.status === statusFilter)
+  const statusCounts: Record<string, number> = { all: orders.length }
+  orders.forEach(o => { statusCounts[o.status] = (statusCounts[o.status] ?? 0) + 1 })
+  const STATUS_FILTERS = ['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled']
 
   return (
     <div style={{ minHeight: '60vh' }}>
       <OrdersPageHeader totalOrders={orders.length} totalSpent={totalSpent} />
+
+      {/* Status filter pills */}
+      {orders.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 20, paddingBottom: 2, scrollbarWidth: 'none' }}>
+          {STATUS_FILTERS.filter(s => s === 'all' || (statusCounts[s] ?? 0) > 0).map(s => {
+            const active = statusFilter === s
+            const color = s === 'all' ? 'var(--primary)' : STATUS_COLORS[s] ?? 'var(--primary)'
+            return (
+              <button key={s} onClick={() => setStatusFilter(s)} style={{
+                flexShrink: 0, padding: '6px 14px', borderRadius: 40,
+                fontWeight: 700, fontSize: '.78rem', cursor: 'pointer', transition: 'all .18s',
+                background: active ? color + '20' : 'var(--bg2)',
+                color: active ? color : 'var(--text3)',
+                border: active ? `1px solid ${color}40` : '1px solid var(--border)',
+                fontFamily: 'inherit',
+              }}>
+                {s === 'all'
+                  ? ((t.orders as Record<string, unknown>).all as string ?? 'All')
+                  : (t.orders.status[s as keyof typeof t.orders.status] ?? s)}
+                <span style={{ marginLeft: 5, opacity: 0.7 }}>({statusCounts[s] ?? 0})</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       {orders.length === 0 ? (
         <EmptyState icon="📋" title={t.orders.empty} action={{ label: t.orders.viewDetails ?? 'Browse Products', href: '/products' }} />
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text3)' }}>
+          <p style={{ fontSize: '1.5rem', marginBottom: 8 }}>📋</p>
+          <p style={{ fontWeight: 600 }}>{(t.orders as Record<string, unknown>).noOrdersFilter as string ?? 'No orders with this status'}</p>
+        </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {orders.map((order) => (
+          {filtered.map((order) => (
             <OrderCard key={order.id} order={order} onClick={() => setSelected(order)} />
           ))}
         </div>
       )}
-      {selected && <OrderDetailModal order={selected} onClose={() => setSelected(null)} />}
+      {selected && <OrderDetailModal order={selected} onClose={() => setSelected(null)} onCancel={handleCancel} />}
     </div>
   )
 }
