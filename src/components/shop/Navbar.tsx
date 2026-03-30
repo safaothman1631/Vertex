@@ -120,8 +120,8 @@ export default function Navbar() {
   return (
     <>
       <header className={`navbar${scrolled ? ' scrolled' : ''}`}>
-        {/* Scroll progress bar */}
-        {scrolled && <div className="nav-progress" style={{ width: `${scrollProgress}%` }} />}
+        {/* Scroll progress bar - always mounted, fades in when scrolling */}
+        <div className="nav-progress" style={{ width: `${scrollProgress}%`, opacity: scrollProgress > 1 ? 1 : 0 }} />
         <div className="container nav-inner">
           {/* Hamburger (mobile - left side) */}
           <button
