@@ -151,74 +151,105 @@ html{scrollbar-width:none;-ms-overflow-style:none}
    ============================================================ */
 /* ── PROMO BAR (slim announcement) ── */
 @keyframes promo-timer{from{width:0}to{width:100%}}
+@keyframes promo-shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
 .promo-bar{
   position:relative;z-index:40;
-  background:var(--bg1);
-  border-bottom:1px solid var(--border);
+  background:linear-gradient(135deg,rgba(13,14,26,.95),rgba(19,20,38,.9) 50%,rgba(13,14,26,.95));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(99,102,241,.12);
   user-select:none;overflow:hidden;
+  transition:background .3s;
 }
+.promo-bar:hover{background:linear-gradient(135deg,rgba(13,14,26,.98),rgba(24,25,48,.95) 50%,rgba(13,14,26,.98))}
 .promo-bar-accent{
   position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent 5%,rgba(99,102,241,.45) 30%,rgba(167,139,250,.6) 50%,rgba(99,102,241,.45) 70%,transparent 95%);
+  background:linear-gradient(90deg,transparent 5%,rgba(99,102,241,.5) 30%,rgba(167,139,250,.7) 50%,rgba(99,102,241,.5) 70%,transparent 95%);
   background-size:200% 100%;animation:auroraBorder 4s linear infinite;
   pointer-events:none;
 }
+.promo-bar-glow{
+  position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 10%,rgba(99,102,241,.25) 40%,rgba(167,139,250,.35) 50%,rgba(99,102,241,.25) 60%,transparent 90%);
+  pointer-events:none;
+}
 .promo-bar-inner{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  max-width:1280px;margin:0 auto;padding:8px 16px;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  max-width:1280px;margin:0 auto;padding:9px 20px;
   position:relative;z-index:1;
 }
 .promo-bar-content{
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:center;gap:12px;
   transition:opacity .2s,transform .2s;
   min-width:0;
 }
 .promo-bar-fade{opacity:0;transform:translateY(-4px)}
 .promo-bar-pill{
   display:inline-flex;align-items:center;gap:5px;flex-shrink:0;
-  padding:3px 10px;border-radius:100px;
-  background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);
-  font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--primary);white-space:nowrap;
+  padding:3px 12px;border-radius:100px;
+  background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.1));
+  border:1px solid rgba(99,102,241,.3);
+  font-size:.68rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--primary2);white-space:nowrap;
+  box-shadow:0 0 12px rgba(99,102,241,.15),inset 0 1px 0 rgba(255,255,255,.05);
 }
-.promo-bar-pill svg{width:12px;height:12px;color:var(--primary2);flex-shrink:0}
+.promo-bar-pill svg{width:11px;height:11px;color:#a78bfa;flex-shrink:0}
+.promo-bar-sep{
+  width:1px;height:14px;flex-shrink:0;
+  background:linear-gradient(180deg,transparent,rgba(99,102,241,.3),transparent);
+}
 .promo-bar-text{
-  font-size:.82rem;font-weight:500;color:var(--text2);
+  font-size:.83rem;font-weight:600;color:var(--text);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:linear-gradient(90deg,var(--text) 40%,var(--primary2) 50%,var(--text) 60%);
+  background-size:200% 100%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:promo-shimmer 4s ease-in-out infinite;
 }
 .promo-bar-cta{
-  display:inline-flex;align-items:center;gap:4px;flex-shrink:0;
-  font-size:.78rem;font-weight:700;color:var(--primary2);
+  display:inline-flex;align-items:center;gap:6px;flex-shrink:0;
+  padding:4px 14px;border-radius:8px;
+  font-size:.74rem;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,rgba(99,102,241,.8),rgba(139,92,246,.7));
   text-decoration:none;white-space:nowrap;
-  transition:color var(--transition),gap var(--transition);
+  border:1px solid rgba(99,102,241,.35);
+  transition:all var(--transition);
+  box-shadow:0 2px 8px rgba(99,102,241,.2);
 }
-.promo-bar-cta:hover{color:#c4b5fd;gap:6px}
+.promo-bar-cta:hover{
+  background:linear-gradient(135deg,rgba(99,102,241,.95),rgba(139,92,246,.85));
+  box-shadow:0 4px 16px rgba(99,102,241,.35);
+  transform:translateY(-1px);
+}
+.promo-bar-cta svg{transition:transform .2s}
+.promo-bar-cta:hover svg{transform:translateX(2px)}
 .promo-bar-arrow{
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  width:24px;height:24px;border-radius:6px;border:none;
-  background:transparent;color:var(--text3);
+  width:22px;height:22px;border-radius:6px;border:none;
+  background:rgba(255,255,255,.04);color:var(--text3);
   cursor:pointer;transition:all var(--transition);
 }
-.promo-bar-arrow:hover{background:rgba(99,102,241,.1);color:var(--text)}
+.promo-bar-arrow:hover{background:rgba(99,102,241,.15);color:var(--primary2)}
 .promo-bar-close{
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  width:24px;height:24px;border-radius:6px;border:none;
-  background:transparent;color:var(--text3);
-  cursor:pointer;transition:all var(--transition);margin-left:4px;
+  width:22px;height:22px;border-radius:6px;border:none;
+  background:rgba(255,255,255,.04);color:var(--text3);
+  cursor:pointer;transition:all var(--transition);margin-left:2px;
 }
 .promo-bar-close:hover{background:rgba(239,68,68,.12);color:var(--danger)}
 .promo-bar-progress{
   position:absolute;bottom:0;left:0;height:2px;
-  background:var(--gradient);border-radius:0 1px 0 0;
-  animation:promo-timer 6s linear forwards;
-  box-shadow:0 0 6px rgba(99,102,241,.4);
+  background:linear-gradient(90deg,#6366f1,#818cf8,#a78bfa,#818cf8,#6366f1);
+  background-size:300% 100%;animation:promo-timer 6s linear forwards,auroraBorder 3s linear infinite;
+  border-radius:0 2px 0 0;
+  box-shadow:0 0 8px rgba(99,102,241,.5),0 0 20px rgba(99,102,241,.2);
 }
 /* ── Promo bar responsive ── */
 @media(max-width:640px){
-  .promo-bar-inner{padding:7px 10px;gap:6px}
+  .promo-bar-inner{padding:7px 12px;gap:8px}
   .promo-bar-pill{display:none}
+  .promo-bar-sep{display:none}
   .promo-bar-text{font-size:.76rem}
-  .promo-bar-cta{font-size:.72rem}
+  .promo-bar-cta{font-size:.7rem;padding:3px 10px}
 }
 /* legacy */
 .promo-bar-modern,.promo-banner,.pb-wrap{display:none}

@@ -57,8 +57,9 @@ export default function PromoBar({ promotions }: Props) {
         if (Math.abs(diff) > 50) diff > 0 ? next() : prev()
       }}
     >
-      {/* Aurora top accent */}
+      {/* Aurora top + bottom accents */}
       <span className="promo-bar-accent" aria-hidden="true" />
+      <span className="promo-bar-glow" aria-hidden="true" />
 
       <div className="promo-bar-inner">
         {/* Left: nav arrows */}
@@ -77,6 +78,7 @@ export default function PromoBar({ promotions }: Props) {
             </span>
           )}
 
+          <span className="promo-bar-sep" aria-hidden="true" />
           <span className="promo-bar-text">{promo.title}</span>
 
           {promo.link_url && (
