@@ -15,8 +15,10 @@ export default async function OrdersPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', padding: '40px 20px' }}>
-      <OrdersClient orders={orders as Order[] | null} userId={user.id} />
+    <div className="resp-page-padding">
+      <div className="container" style={{ maxWidth: 860 }}>
+        <OrdersClient orders={orders as Order[] | null} userId={user.id} />
+      </div>
     </div>
   )
 }

@@ -85,7 +85,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   }
   const card: React.CSSProperties = {
     background: 'var(--bg2)', border: '1px solid var(--border)',
-    borderRadius: 'var(--radius-xl)', padding: '28px 32px',
+    borderRadius: 'var(--radius-xl)',
   }
   const sectionHeader = (icon: React.ReactNode, title: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
@@ -207,7 +207,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const initials = (name || user.email || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg0)', padding: '48px 0 80px' }}>
+    <div className="resp-page-padding" style={{ minHeight: '100vh', background: 'var(--bg0)' }}>
       <div className="container" style={{ maxWidth: 720 }}>
         {/* ── Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 36 }}>
@@ -229,7 +229,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
           {/* ═══════════ 1. PROFILE ═══════════ */}
-          <div style={card}>
+          <div className="resp-card-padding-lg" style={card}>
             {sectionHeader(<User size={16} style={{ color: 'var(--primary)' }} />, t.settings.fullName.split(' ')[0] + ' — ' + t.settings.email)}
             <form onSubmit={saveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
@@ -266,7 +266,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 2. PASSWORD ═══════════ */}
-          <div style={card}>
+          <div className="resp-card-padding-lg" style={card}>
             {sectionHeader(<Lock size={16} style={{ color: 'var(--primary)' }} />, t.settings.changePassword)}
             <form onSubmit={savePassword} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {([
@@ -298,7 +298,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 3. ADDRESSES ═══════════ */}
-          <div style={card}>
+          <div className="resp-card-padding-lg" style={card}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <MapPin size={16} style={{ color: 'var(--primary)' }} />
@@ -401,7 +401,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 4. LANGUAGE ═══════════ */}
-          <div style={card}>
+          <div className="resp-card-padding-lg" style={card}>
             {sectionHeader(<Globe size={16} style={{ color: 'var(--primary)' }} />, t.settings.language)}
             <p style={{ color: 'var(--text3)', fontSize: '.8rem', marginBottom: 14, marginTop: -10 }}>{t.settings.languageDesc}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
@@ -423,7 +423,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 5. NOTIFICATIONS ═══════════ */}
-          <div style={card}>
+          <div className="resp-card-padding-lg" style={card}>
             {sectionHeader(
               <div style={{ position: 'relative' }}>
                 <Bell size={16} style={{ color: 'var(--primary)' }} />
@@ -466,7 +466,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 6. RECENT ORDERS ═══════════ */}
-          <div style={card}>
+          <div className="resp-card-padding-lg" style={card}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ShoppingBag size={16} style={{ color: 'var(--primary)' }} />
@@ -519,7 +519,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 7. DANGER ZONE ═══════════ */}
-          <div style={{ ...card, border: '1px solid rgba(239,68,68,.25)' }}>
+          <div className="resp-card-padding-lg" style={{ ...card, border: '1px solid rgba(239,68,68,.25)' }}>
             {sectionHeader(<Trash2 size={16} style={{ color: '#ef4444' }} />, t.settings.dangerZone)}
             <p style={{ color: 'var(--text3)', fontSize: '.82rem', marginBottom: 16, marginTop: -10 }}>
               {t.settings.deleteAccountDesc}

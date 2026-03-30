@@ -18,7 +18,7 @@ export default async function WishlistPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg0)', padding: '48px 0 80px' }}>
+    <div className="resp-page-padding" style={{ minHeight: '100vh', background: 'var(--bg0)' }}>
       <div className="container" style={{ maxWidth: 1100 }}>
 
         {/* Header */}

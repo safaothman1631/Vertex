@@ -606,11 +606,14 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
   .resp-grid-contact{grid-template-columns:1fr;gap:24px}
 }
 @media(max-width:640px){
+  .container{padding:0 16px}
   .section{padding:60px 0}
   .brands-grid{grid-template-columns:1fr 1fr}
   .products-grid{grid-template-columns:1fr 1fr}
   .hero-inner{padding:40px 24px}
   .footer-links{grid-template-columns:1fr 1fr}
+  .resp-page-padding{padding:20px 0 40px}
+  .resp-card-padding-lg{padding:20px 16px}
 }
 @media(max-width:400px){
   .products-grid{grid-template-columns:1fr}

@@ -85,7 +85,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
   }, [products])
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg0)', padding: '32px 0 80px' }}>
+    <div className="resp-page-padding" style={{ minHeight: '100vh', background: 'var(--bg0)' }}>
       <div className="container" ref={topRef}>
 
         {/* ── COMPACT TOOLBAR ── */}

@@ -55,7 +55,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
   }
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 60px' }}>
+    <div className="resp-page-padding container" style={{ maxWidth: 1100 }}>
       {/* Back link */}
       <Link
         href="/products"
@@ -71,7 +71,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
         {t.productDetail.backToProducts}
       </Link>
 
-      <div className="resp-grid-2col" style={{ gap: 48, alignItems: 'start' }}>
+      <div className="resp-grid-2col" style={{ gap: 'clamp(24px, 4vw, 48px)', alignItems: 'start' }}>
 
         {/* ── Image gallery ── */}
         <div>
