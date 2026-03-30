@@ -176,7 +176,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
   return (
     <main>
       {/* ── HERO ── */}
-      <section className="hero">
+      <section id="hero" className="hero">
         <div className="hero-glow" />
         <div className="container">
           <div className="hero-inner">
@@ -265,51 +265,6 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
           ))}
         </div>
       </div>
-
-      {/* ── BRANDS SECTION ── */}
-      <section id="brands" className="section">
-        <div className="container">
-          <FadeIn>
-          <div className="section-header">
-            <h2 className="section-title">{t.brands.sectionTitle} <span className="gradient-text">{t.brands.sectionTitleHighlight}</span></h2>
-            <p className="section-sub">{t.brands.sectionSub}</p>
-          </div>
-          </FadeIn>
-          <div className="brands-grid">
-            {brandCards.map((b, i) => (
-              <FadeIn key={b.name} delay={i * 80}>
-              <div
-                className="brand-card"
-                onClick={() => setSelectedBrand(b)}
-                onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), setSelectedBrand(b))}
-                role="button"
-                tabIndex={0}
-                aria-label={`${b.name} - ${t.brandCats[b.catKey as keyof typeof t.brandCats]}`}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="brand-banner" style={{ background: `linear-gradient(135deg, ${b.c1}, ${b.c2})` }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/images/brands/${b.logo}`} alt={b.name} className="brand-logo-img" />
-                  <div className="brand-banner-shine" />
-                </div>
-                <div className="brand-card-body">
-                  <div className="brand-card-name">{b.name}</div>
-                  <div className="brand-card-cat">{t.brandCats[b.catKey as keyof typeof t.brandCats]}</div>
-                  <div className="brand-card-footer">
-                    <span className="brand-count">
-                      {liveCounts[b.name] != null
-                        ? `${liveCounts[b.name]} ${liveCounts[b.name] === 1 ? t.brands.product : t.brands.products}`
-                        : t.brands.loading}
-                    </span>
-                    <span className="brand-arrow">→</span>
-                  </div>
-                </div>
-              </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── ALL PRODUCTS ── */}
       <section id="products" className="section" style={{ background: 'var(--bg1)' }}>
@@ -490,6 +445,51 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
               </button>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ── BRANDS SECTION ── */}
+      <section id="brands" className="section">
+        <div className="container">
+          <FadeIn>
+          <div className="section-header">
+            <h2 className="section-title">{t.brands.sectionTitle} <span className="gradient-text">{t.brands.sectionTitleHighlight}</span></h2>
+            <p className="section-sub">{t.brands.sectionSub}</p>
+          </div>
+          </FadeIn>
+          <div className="brands-grid">
+            {brandCards.map((b, i) => (
+              <FadeIn key={b.name} delay={i * 80}>
+              <div
+                className="brand-card"
+                onClick={() => setSelectedBrand(b)}
+                onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), setSelectedBrand(b))}
+                role="button"
+                tabIndex={0}
+                aria-label={`${b.name} - ${t.brandCats[b.catKey as keyof typeof t.brandCats]}`}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="brand-banner" style={{ background: `linear-gradient(135deg, ${b.c1}, ${b.c2})` }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/images/brands/${b.logo}`} alt={b.name} className="brand-logo-img" />
+                  <div className="brand-banner-shine" />
+                </div>
+                <div className="brand-card-body">
+                  <div className="brand-card-name">{b.name}</div>
+                  <div className="brand-card-cat">{t.brandCats[b.catKey as keyof typeof t.brandCats]}</div>
+                  <div className="brand-card-footer">
+                    <span className="brand-count">
+                      {liveCounts[b.name] != null
+                        ? `${liveCounts[b.name]} ${liveCounts[b.name] === 1 ? t.brands.product : t.brands.products}`
+                        : t.brands.loading}
+                    </span>
+                    <span className="brand-arrow">→</span>
+                  </div>
+                </div>
+              </div>
+              </FadeIn>
+            ))}
+          </div>
         </div>
       </section>
 
