@@ -158,7 +158,7 @@ export default function BrandDrawer({ brand, products, onClose }: Props) {
 
         {/* ── PRODUCTS ── */}
         <div
-          style={{ overflowY: 'auto', padding: '28px 28px 40px', flex: 1 }}
+          style={{ overflowY: 'auto', padding: '20px 16px 32px', flex: 1 }}
           // prevent touches from accidentally closing via backdrop
           onClick={e => e.stopPropagation()}
         >
@@ -168,7 +168,7 @@ export default function BrandDrawer({ brand, products, onClose }: Props) {
               <p style={{ fontWeight: 700 }}>{t.brandDrawer.noProducts}</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 18 }}>
+            <div className="prods-grid">
               {products.map((p, i) => (
                 <BrandProductCard
                   key={p.id}

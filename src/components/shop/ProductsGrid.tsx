@@ -198,7 +198,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
             <p style={{ color: 'var(--text3)', fontSize: '.85rem', marginTop: 6 }}>{t.productsSection.noProductsSub}</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+          <div className="prods-grid">
             {paginated.map(p => {
               const img = (p as { img?: string }).img ?? p.images?.[0]
               const isAdded = addedId === p.id

@@ -489,7 +489,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
             </div>
           </FadeIn>
 
-          <div className="resp-grid-contact" style={{ display: 'grid', gap: 48, alignItems: 'start' }}>
+          <div className="resp-grid-contact" style={{ display: 'grid', alignItems: 'start' }}>
             {/* Left — contact info */}
             <FadeIn>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
