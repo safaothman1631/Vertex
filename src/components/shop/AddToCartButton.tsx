@@ -4,16 +4,18 @@ import { ShoppingCart, Heart } from 'lucide-react'
 import { useCartStore } from '@/store/cart'
 import { createClient } from '@/lib/supabase-client'
 import { useToast } from '@/components/ui/Toast'
+import { useRouter } from 'next/navigation'
 import type { Product } from '@/types'
 
 export default function AddToCartButton({ product, quantity = 1 }: { product: Product; quantity?: number }) {
   const addItem = useCartStore((s) => s.addItem)
   const supabase = createClient()
   const toast = useToast()
+  const router = useRouter()
 
   async function handleWishlist() {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { window.location.href = '/login'; return }
+    if (!user) { router.push('/login'); return }
     await supabase.from('wishlist').upsert({ user_id: user.id, product_id: product.id })
     toast('Added to wishlist!', 'success')
   }

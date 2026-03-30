@@ -24,7 +24,8 @@ export default function RegisterPage() {
     setLoading(true)
     setError('')
     const fullName = firstName + ' ' + lastName
-    const redirectTo = `${window.location.origin}/auth/confirm?next=/login`
+    const origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL ?? '')
+    const redirectTo = `${origin}/auth/confirm?next=/login`
     const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {

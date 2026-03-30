@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useCartStore } from '@/store/cart'
 import { useRouter } from 'next/navigation'
 import { ShoppingBag, CreditCard, Truck, Lock, AlertCircle, Tag, Check } from 'lucide-react'
@@ -26,6 +26,11 @@ export default function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
   const router = useRouter()
+
+  // Redirect client-side only when cart is empty (avoids SSR router.replace issue)
+  useEffect(() => {
+    if (items.length === 0) router.replace('/')
+  }, [items.length, router])
 
   const validate = useCallback((field: FieldKey, value: string): string => {
     const v = value.trim()
@@ -116,7 +121,7 @@ export default function CheckoutPage() {
       if (!res.ok) throw new Error(data.error || 'Checkout failed')
       if (data.url) {
         clearCart()
-        window.location.href = data.url
+        router.push(data.url)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -124,10 +129,7 @@ export default function CheckoutPage() {
     setLoading(false)
   }
 
-  if (items.length === 0) {
-    router.replace('/')
-    return null
-  }
+  if (items.length === 0) return null
 
   const inputStyle = (field: FieldKey): React.CSSProperties => ({
     width: '100%', padding: '11px 14px', borderRadius: 10,

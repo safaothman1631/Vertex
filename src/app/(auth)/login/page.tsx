@@ -32,7 +32,8 @@ function LoginForm() {
   async function handleResend() {
     if (!email) return
     setResendLoading(true)
-    const redirectTo = `${window.location.origin}/auth/confirm?next=/login`
+    const origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL ?? '')
+    const redirectTo = `${origin}/auth/confirm?next=/login`
     await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: redirectTo } })
     setResendSent(true)
     setResendLoading(false)
