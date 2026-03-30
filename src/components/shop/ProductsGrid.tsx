@@ -316,7 +316,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                   border: active ? 'none' : '1px solid var(--border)',
                   boxShadow: active ? '0 3px 10px rgba(99,102,241,.35)' : 'none',
                 }}>
-                  {t.cats[c.key as keyof typeof t.cats] ?? c.label}
+                  {t.cats[c.key as keyof typeof t.cats] ?? c.label} ({counts[c.key] ?? 0})
                 </button>
               )
             })}

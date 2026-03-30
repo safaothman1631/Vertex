@@ -119,6 +119,13 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
     return [{ key: 'all', label: 'All' }, ...used.map(c => ({ key: c, label: c }))]
   }, [products])
 
+  // Category product counts
+  const catCounts = useMemo(() => {
+    const map: Record<string, number> = {}
+    products.forEach(p => { if (p.category) map[p.category] = (map[p.category] || 0) + 1 })
+    return map
+  }, [products])
+
   // Derive brand filter list from real DB products
   const BRANDS = useMemo(() => {
     const used = Array.from(new Set(products.map(p => p.brand).filter(Boolean))).sort()
@@ -333,7 +340,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                   key={c.key}
                   className={`tb-pill${activeCat === c.key ? ' active' : ''}`}
                   onClick={() => setActiveCat(c.key)}
-                >{t.cats[c.key as keyof typeof t.cats] ?? c.label}</button>
+                >{t.cats[c.key as keyof typeof t.cats] ?? c.label}{c.key === 'all' ? ` (${products.length})` : catCounts[c.key] ? ` (${catCounts[c.key]})` : ''}</button>
               ))}
             </div>
 
@@ -344,7 +351,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                   key={b.key}
                   className={`tb-pill${activeBrand === b.key ? ' brand-active' : ''}`}
                   onClick={() => setActiveBrand(b.key)}
-                >{b.key === 'all' ? t.brandFilters.all : b.label}</button>
+                >{b.key === 'all' ? `${t.brandFilters.all} (${products.length})` : `${b.label} (${liveCounts[b.label] || 0})`}</button>
               ))}
             </div>
 
