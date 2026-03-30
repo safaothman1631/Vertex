@@ -471,7 +471,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
               >
                 <div className="brand-banner" style={{ background: `linear-gradient(135deg, ${b.c1}, ${b.c2})` }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/images/brands/${b.logo}`} alt={b.name} className="brand-logo-img" />
+                  <img src={b.logo?.startsWith('http') ? b.logo : `/images/brands/${b.logo}`} alt={b.name} className="brand-logo-img" />
                   <div className="brand-banner-shine" />
                 </div>
                 <div className="brand-card-body">

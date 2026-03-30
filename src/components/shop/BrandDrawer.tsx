@@ -122,7 +122,7 @@ export default function BrandDrawer({ brand, products, onClose }: Props) {
             <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`/images/brands/${brand?.logo}`}
+                src={brand?.logo?.startsWith('http') ? brand.logo : `/images/brands/${brand?.logo}`}
                 alt={brand?.name}
                 style={{ height: 40, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
               />

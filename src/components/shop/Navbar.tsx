@@ -26,7 +26,7 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [user, setUser] = useState<{ email: string; name: string; role: string; id: string } | null>(null)
+  const [user, setUser] = useState<{ email: string; name: string; role: string; id: string; avatar_url?: string | null } | null>(null)
   const [wishlistCount, setWishlistCount] = useState(0)
   const totalItems = useCartStore((s) => s.totalItems())
   const router = useRouter()
@@ -67,7 +67,7 @@ export default function Navbar() {
     async function loadProfile(u: { id: string; email?: string | null }) {
       try {
         const [{ data: profile }, { count }] = await Promise.all([
-          supabase.from('profiles').select('full_name, role').eq('id', u.id).single(),
+          supabase.from('profiles').select('full_name, role, avatar_url').eq('id', u.id).single(),
           supabase.from('wishlist').select('*', { count: 'exact', head: true }).eq('user_id', u.id),
         ])
         setUser({
@@ -75,6 +75,7 @@ export default function Navbar() {
           name: profile?.full_name ?? u.email ?? '',
           role: profile?.role ?? 'user',
           id: u.id,
+          avatar_url: profile?.avatar_url,
         })
         setWishlistCount(count ?? 0)
       } catch {}
@@ -198,7 +199,10 @@ export default function Navbar() {
                   aria-label="Profile menu"
                 >
                   <div className="nav-avatar">
-                    {initials}
+                    {user.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={user.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                    ) : initials}
                   </div>
                   <span className="nav-profile-name" style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--text)', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {user.name.split(' ')[0]}
@@ -219,8 +223,11 @@ export default function Navbar() {
                     {/* Header */}
                     <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg3)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--gradient)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.82rem', fontWeight: 800, flexShrink: 0 }}>
-                          {initials}
+                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: user.avatar_url ? 'transparent' : 'var(--gradient)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.82rem', fontWeight: 800, flexShrink: 0, overflow: 'hidden' }}>
+                          {user.avatar_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={user.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : initials}
                         </div>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ fontWeight: 700, fontSize: '.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</p>

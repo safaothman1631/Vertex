@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { Plus, Pencil, Trash2, X, GripVertical, Eye, Package } from 'lucide-react'
+import ImageUploader from './ImageUploader'
 import type { Category } from '@/types'
 
 interface CategoryProduct {
@@ -291,6 +292,16 @@ export default function AdminCategoriesClient({
                   value={editing.sort_order ?? 0}
                   onChange={e => setEditing({ ...editing, sort_order: parseInt(e.target.value) || 0 })}
                   style={{ width: '100%', padding: '10px 12px', background: 'var(--bg3)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: '.9rem', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              {/* Category Icon Upload */}
+              <div style={{ gridColumn: '1/-1' }}>
+                <ImageUploader
+                  value={editing.icon ? [editing.icon] : []}
+                  onChange={(urls) => setEditing({ ...editing, icon: urls[0] ?? '' })}
+                  folder="categories"
+                  multiple={false}
+                  label="Icon"
                 />
               </div>
             </div>

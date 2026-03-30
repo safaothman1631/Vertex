@@ -7,6 +7,7 @@ import Link from 'next/link'
 import {
   User, Mail, Lock, Save, CheckCircle, MapPin, Globe, Bell,
   ShoppingBag, Trash2, Phone, Plus, Pencil, X, Star, ChevronRight,
+  Camera, Loader2,
 } from 'lucide-react'
 import { useT, useLocale, type Locale } from '@/contexts/locale'
 import type { UserAddress } from '@/types'
@@ -51,6 +52,8 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   // ── Profile state
   const [name, setName] = useState(profile?.full_name ?? '')
   const [phone, setPhone] = useState(profile?.phone ?? '')
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? '')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -105,7 +108,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    await supabase.from('profiles').update({ full_name: name, phone }).eq('id', user.id)
+    await supabase.from('profiles').update({ full_name: name, phone, avatar_url: avatarUrl || null }).eq('id', user.id)
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
@@ -206,17 +209,51 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   // ── Initials avatar
   const initials = (name || user.email || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAvatar(true)
+    const formData = new FormData()
+    formData.append('folder', 'avatars')
+    formData.append('files', file)
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (data.urls?.[0]) {
+        setAvatarUrl(data.urls[0])
+        await supabase.from('profiles').update({ avatar_url: data.urls[0] }).eq('id', user.id)
+      }
+      if (data.errors?.length) alert(data.errors.join('\n'))
+    } catch { alert('Upload failed') }
+    finally { setUploadingAvatar(false) }
+  }
+
   return (
     <div className="resp-page-padding" style={{ minHeight: '100vh', background: 'var(--bg0)' }}>
       <div className="container" style={{ maxWidth: 720 }}>
         {/* ── Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 36 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 16, background: 'var(--gradient)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontWeight: 900, fontSize: '1.1rem', letterSpacing: '.03em',
-          }}>
-            {initials}
+          <div style={{ position: 'relative' }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: 16, background: avatarUrl ? 'transparent' : 'var(--gradient)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', fontWeight: 900, fontSize: '1.1rem', letterSpacing: '.03em',
+              overflow: 'hidden', border: avatarUrl ? '2px solid var(--border)' : 'none',
+            }}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : initials}
+            </div>
+            <label style={{
+              position: 'absolute', bottom: -4, right: -4,
+              width: 24, height: 24, borderRadius: '50%',
+              background: 'var(--primary)', border: '2px solid var(--bg2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
+            }}>
+              {uploadingAvatar ? <Loader2 size={11} color="#fff" className="spin" /> : <Camera size={11} color="#fff" />}
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleAvatarUpload} style={{ display: 'none' }} />
+            </label>
           </div>
           <div>
             <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '.75rem', textTransform: 'uppercase', letterSpacing: '.1em' }}>

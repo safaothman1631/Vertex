@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { Plus, Pencil, Trash2, X, Eye, Package } from 'lucide-react'
+import ImageUploader from './ImageUploader'
 
 interface BrandProduct {
   id: string
@@ -146,7 +147,14 @@ export default function AdminBrandsClient({
                 </td>
                 <td style={{ fontWeight: 700 }}>{b.name}</td>
                 <td>
-                  <code style={{ fontSize: '.78rem', color: 'var(--text2)', background: 'var(--bg3)', padding: '2px 8px', borderRadius: 4 }}>{b.logo || '—'}</code>
+                  {b.logo ? (
+                    <div style={{ width: 32, height: 32, borderRadius: 6, overflow: 'hidden', background: '#fff', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={b.logo.startsWith('http') ? b.logo : `/images/brands/${b.logo}`} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                    </div>
+                  ) : (
+                    <span style={{ color: 'var(--text2)', fontSize: '.8rem' }}>—</span>
+                  )}
                 </td>
                 <td style={{ color: 'var(--text2)', fontSize: '.85rem' }}>{b.category_key || '—'}</td>
                 <td>
@@ -186,7 +194,7 @@ export default function AdminBrandsClient({
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${b.color1}, ${b.color2})`, flexShrink: 0 }} />
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '.95rem' }}>{b.name}</div>
-                  <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace', marginTop: 2 }}>{b.logo || 'no logo'}</div>
+                  <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace', marginTop: 2 }}>{b.logo ? '✓ Logo' : 'no logo'}</div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -230,13 +238,12 @@ export default function AdminBrandsClient({
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Logo File</label>
-                <input
-                  type="text"
-                  value={editing.logo ?? ''}
-                  onChange={e => setEditing({ ...editing, logo: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg3)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: '.9rem', outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }}
-                  placeholder="honeywell.svg"
+                <ImageUploader
+                  value={editing.logo ? [editing.logo] : []}
+                  onChange={(urls) => setEditing({ ...editing, logo: urls[0] ?? '' })}
+                  folder="brands"
+                  multiple={false}
+                  label="Logo"
                 />
               </div>
               <div>

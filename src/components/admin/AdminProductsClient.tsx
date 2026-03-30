@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { Plus, Pencil, Trash2, X, Eye, EyeOff, ImageOff } from 'lucide-react'
 import Image from 'next/image'
+import ImageUploader from './ImageUploader'
 import type { Product } from '@/types'
 
 function toSlug(name: string) {
@@ -243,7 +244,6 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                 { key: 'old_price', label: 'Old Price ($)', type: 'number' },
                 { key: 'description', label: 'Description', span: 2, textarea: true },
                 { key: 'specs', label: 'Specs (one per line)', span: 2, textarea: true, isArray: true },
-                { key: 'images', label: 'Image URLs (one per line)', span: 2, textarea: true, isArray: true },
               ] as { key: keyof Product; label: string; span?: number; type?: string; textarea?: boolean; isArray?: boolean }[]).map(
                 ({ key, label, span, type, textarea, isArray }) => (
                   <div key={key} style={{ gridColumn: span === 2 ? '1 / -1' : undefined }}>
@@ -266,6 +266,18 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                   </div>
                 )
               )}
+
+              {/* Product Images Upload */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <ImageUploader
+                  value={editing.images ?? []}
+                  onChange={(urls) => setEditing({ ...editing, images: urls })}
+                  folder="products"
+                  multiple
+                  maxFiles={10}
+                  label="Product Images"
+                />
+              </div>
 
               {/* Brand dropdown */}
               <div>
