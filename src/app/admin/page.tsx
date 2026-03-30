@@ -162,6 +162,7 @@ export default async function AdminDashboard() {
               View all <ArrowRight size={13} />
             </Link>
           </div>
+          <div className="admin-table-scroll">
           <table className="admin-table">
             <thead>
               <tr>{['Order', 'Customer', 'Total', 'Status', 'Date'].map(h => <th key={h}>{h}</th>)}</tr>
@@ -183,6 +184,7 @@ export default async function AdminDashboard() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Right column */}

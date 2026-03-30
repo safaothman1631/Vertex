@@ -737,8 +737,10 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
   .admin-stats{grid-template-columns:1fr 1fr;padding:0 16px;margin-bottom:20px}
   .admin-stat-card{padding:16px}
   .admin-stat-val{font-size:1.6rem}
-  .admin-dash-grid-main{grid-template-columns:1fr !important}
-  .admin-dash-grid-bottom{grid-template-columns:1fr !important}
+  .admin-dash-grid-main{grid-template-columns:1fr !important;padding:0 16px}
+  .admin-dash-grid-bottom{grid-template-columns:1fr !important;padding:0 16px}
+  .admin-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .admin-table th,.admin-table td{padding:10px 12px}
   div[style*="justifyContent: 'flex-end'"][style*="marginBottom: '16px'"]{padding:0 16px}
 }
 @media(max-width:400px){
