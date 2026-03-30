@@ -60,6 +60,17 @@ interface StatsData {
 
 const DEFAULT_STATS: StatsData = { customers: '—', products: '—', brands: '—', orders: '—', support: '24/7' }
 
+const DEMO_REVIEWS: HomeReview[] = [
+  { id: 'd1', rating: 5, comment: 'Excellent POS terminal, fast and reliable. Our checkout speed improved dramatically after switching to this system.', created_at: '2025-03-10T10:00:00Z', reviewer_name: 'Ahmed Al-Rashidi', avatar_url: null, product_name: 'Verifone P400', product_brand: 'Verifone' },
+  { id: 'd2', rating: 5, comment: 'The barcode scanner works flawlessly with all our product labels. Great build quality and very responsive support team.', created_at: '2025-03-08T14:30:00Z', reviewer_name: 'Sara Mahmoud', avatar_url: null, product_name: 'Honeywell Voyager 1250g', product_brand: 'Honeywell' },
+  { id: 'd3', rating: 4, comment: 'Solid receipt printer, quiet and quick. Delivery was prompt and packaging was secure. Highly recommend for retail use.', created_at: '2025-03-05T09:15:00Z', reviewer_name: 'Omar Khalil', avatar_url: null, product_name: 'Epson TM-T88VI', product_brand: 'Epson' },
+  { id: 'd4', rating: 5, comment: 'Best label printer I have used. Crystal clear prints and the rolls last a long time. Setup was extremely easy too.', created_at: '2025-03-02T11:45:00Z', reviewer_name: 'Lina Hassan', avatar_url: null, product_name: 'Zebra ZD421', product_brand: 'Zebra' },
+  { id: 'd5', rating: 5, comment: 'This payment terminal is very secure and customers trust it. Integration with our existing system took less than an hour.', created_at: '2025-02-28T16:00:00Z', reviewer_name: 'Karwan Saleh', avatar_url: null, product_name: 'Ingenico Move 5000', product_brand: 'Ingenico' },
+  { id: 'd6', rating: 4, comment: 'The cash drawer is sturdy and opens reliably every time. Exactly what a busy retail store needs. Very good value.', created_at: '2025-02-25T08:30:00Z', reviewer_name: 'Nadia Ibrahim', avatar_url: null, product_name: 'Star Micronics CD3-1616', product_brand: 'Star Micronics' },
+  { id: 'd7', rating: 5, comment: 'PAX smart terminal exceeded our expectations. Contactless payments work perfectly and the screen is crisp and bright.', created_at: '2025-02-20T13:00:00Z', reviewer_name: 'Firas Aziz', avatar_url: null, product_name: 'PAX A920 Pro', product_brand: 'PAX Technology' },
+  { id: 'd8', rating: 5, comment: 'Very happy with my purchase. The product arrived quickly, well packaged, and works exactly as described on the website.', created_at: '2025-02-15T10:20:00Z', reviewer_name: 'Rania Yousef', avatar_url: null, product_name: 'Square Terminal', product_brand: 'Square' },
+]
+
 const STATS_KEYS: Array<keyof StatsData> = ['customers', 'products', 'brands', 'support']
 
 export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBrands = [], reviews = [] }: { products: Product[]; statsData?: StatsData; dbBrands?: BrandCard[]; reviews?: HomeReview[] }) {
@@ -490,10 +501,11 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
       />
 
       {/* ── REVIEWS / TESTIMONIALS SECTION ── */}
-      {reviews.length >= 3 && (() => {
-        const mid = Math.ceil(reviews.length / 2)
-        const row1 = [...reviews.slice(0, mid), ...reviews.slice(0, mid), ...reviews.slice(0, mid)]
-        const half2 = reviews.length > mid ? reviews.slice(mid) : reviews.slice(0, mid)
+      {(() => {
+        const displayReviews = reviews.length >= 3 ? reviews : DEMO_REVIEWS
+        const mid = Math.ceil(displayReviews.length / 2)
+        const row1 = [...displayReviews.slice(0, mid), ...displayReviews.slice(0, mid), ...displayReviews.slice(0, mid)]
+        const half2 = displayReviews.length > mid ? displayReviews.slice(mid) : displayReviews.slice(0, mid)
         const row2 = [...half2, ...half2, ...half2]
         return (
           <section className="reviews-section">
