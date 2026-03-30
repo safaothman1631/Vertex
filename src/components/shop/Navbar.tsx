@@ -131,12 +131,10 @@ export default function Navbar() {
           <div className="nav-actions">
             {/* Wishlist */}
             {mounted && user && (
-              <Link href="/wishlist" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: 9, color: 'var(--text2)', textDecoration: 'none' }} title={t.nav.myWishlist}>
-                <Heart size={17} />
+              <Link href="/wishlist" className="nav-action-btn" title={t.nav.myWishlist} style={{ textDecoration: 'none' }}>
+                <Heart size={18} />
                 {wishlistCount > 0 && (
-                  <span style={{ position: 'absolute', top: 0, right: 0, minWidth: 15, height: 15, borderRadius: 8, background: 'var(--primary)', color: '#fff', fontSize: '.58rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>
-                    {wishlistCount}
-                  </span>
+                  <span className="nav-action-badge">{wishlistCount}</span>
                 )}
               </Link>
             )}
@@ -147,38 +145,31 @@ export default function Navbar() {
             )}
 
             {/* Cart */}
-            <button className="btn-ghost nav-cart" onClick={() => setCartOpen(true)} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <ShoppingBag size={17} />
+            <button className="nav-action-btn nav-cart" onClick={() => setCartOpen(true)} title="Cart">
+              <ShoppingBag size={18} />
               {mounted && totalItems > 0 && (
                 <span className="cart-count">{totalItems}</span>
               )}
             </button>
 
+            {/* Divider */}
+            <div className="nav-divider" />
+
             {/* Profile / Auth */}
             {mounted && user ? (
               <div ref={dropdownRef} style={{ position: 'relative' }}>
-                {/* Avatar trigger */}
                 <button
+                  className="nav-avatar-trigger"
                   onClick={() => setProfileOpen(p => !p)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 7, background: 'var(--bg3)',
-                    border: `1px solid ${profileOpen ? 'var(--primary)' : 'var(--border)'}`,
-                    borderRadius: 22, padding: '4px 10px 4px 4px', cursor: 'pointer',
-                    transition: 'border-color .2s',
-                  }}
+                  aria-label="Profile menu"
                 >
-                  <div style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    background: 'var(--gradient)', color: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '.72rem', fontWeight: 800, flexShrink: 0,
-                  }}>
+                  <div className="nav-avatar">
                     {initials}
                   </div>
                   <span className="nav-profile-name" style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--text)', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {user.name.split(' ')[0]}
                   </span>
-                  <ChevronDown size={13} className="nav-profile-chevron" style={{ color: 'var(--text2)', transition: 'transform .2s', transform: profileOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} />
+                  <ChevronDown size={13} className="nav-profile-chevron" style={{ color: 'var(--text3)', transition: 'transform .2s', transform: profileOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} />
                 </button>
 
                 {/* Dropdown */}
@@ -252,20 +243,22 @@ export default function Navbar() {
               </>
             )}
 
+            {/* Divider */}
+            <div className="nav-divider" />
+
             {/* Language switcher */}
             <div ref={langRef} style={{ position: 'relative' }}>
               <button
+                className="nav-action-btn nav-lang-btn"
                 onClick={() => setLangOpen(p => !p)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  background: langOpen ? 'var(--bg3)' : 'transparent',
-                  border: `1px solid ${langOpen ? 'var(--primary)' : 'var(--border)'}`,
-                  borderRadius: 9, padding: '5px 10px', cursor: 'pointer',
-                  color: 'var(--text2)', fontSize: '.82rem', transition: 'all .2s',
+                  width: 'auto', gap: 5, padding: '0 10px',
+                  border: langOpen ? '1px solid var(--primary)' : '1px solid transparent',
+                  background: langOpen ? 'rgba(99,102,241,.08)' : undefined,
                 }}
               >
-                <Globe size={14} />
-                <span className="nav-lang-label">{LANG_OPTIONS.find(o => o.value === locale)?.label}</span>
+                <Globe size={15} />
+                <span className="nav-lang-label" style={{ fontSize: '.8rem', fontWeight: 500 }}>{LANG_OPTIONS.find(o => o.value === locale)?.label}</span>
                 <ChevronDown size={11} className="nav-lang-chevron" style={{ transform: langOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }} />
               </button>
               {langOpen && (
