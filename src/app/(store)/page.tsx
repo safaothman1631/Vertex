@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
 import HomeClient from '@/components/shop/HomeClient'
-import type { Product } from '@/types'
+import type { Product, Promotion } from '@/types'
 
 export const metadata: Metadata = {
   title: 'Vertex — Professional POS Equipment',
@@ -33,6 +33,7 @@ export default async function Home() {
     { count: totalReviewCount },
     { data: allReviewRatings },
     { data: terminalProducts },
+    { data: activePromos },
   ] = await Promise.all([
     supabase.from('products').select('*').order('created_at', { ascending: false }),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'user'),
@@ -44,6 +45,7 @@ export default async function Home() {
     supabase.from('reviews').select('*', { count: 'exact', head: true }),
     supabase.from('reviews').select('rating'),
     supabase.from('products').select('name, model, price, brand').eq('in_stock', true).eq('hidden', false).limit(3),
+    supabase.from('promotions').select('*').eq('is_active', true).lte('starts_at', new Date().toISOString()).or(`ends_at.is.null,ends_at.gte.${new Date().toISOString()}`).order('sort_order'),
   ])
 
   const visible = ((products as Product[]) ?? []).filter(p => !p.hidden)
@@ -146,7 +148,7 @@ export default async function Home() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <HomeClient products={visible} statsData={statsData} dbBrands={dbBrands} reviews={reviews} heroData={heroData} />
+      <HomeClient products={visible} statsData={statsData} dbBrands={dbBrands} reviews={reviews} heroData={heroData} promotions={(activePromos as Promotion[]) ?? []} />
     </>
   )
 }

@@ -424,6 +424,14 @@ const en = {
     totalOrders: 'Total Orders',
     totalUsers: 'Total Users',
     totalProducts: 'Total Products',
+    promotions: 'Promotions',
+    notifications: 'Notifications',
+    system: 'System Health',
+    backup: 'Backup & Restore',
+    downloadBackup: 'Download Backup',
+    restoreBackup: 'Restore from Backup',
+    broadcastNotification: 'Broadcast Notification',
+    systemLogs: 'System Logs',
   },
 
   // ── STATS STRIP

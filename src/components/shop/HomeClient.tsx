@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight, ShoppingCart, Mail, Phone, MapPin } from 'lu
 import { useT } from '@/contexts/locale'
 import { useCartStore } from '@/store/cart'
 import { createClient } from '@/lib/supabase-client'
-import type { Product } from '@/types'
+import type { Product, Promotion } from '@/types'
 
 const PER_PAGE = 10
 
@@ -91,7 +91,7 @@ const DEFAULT_HERO: HeroData = {
 
 const STATS_KEYS: Array<keyof StatsData> = ['customers', 'products', 'brands', 'support']
 
-export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBrands = [], reviews = [], heroData = DEFAULT_HERO }: { products: Product[]; statsData?: StatsData; dbBrands?: BrandCard[]; reviews?: HomeReview[]; heroData?: HeroData }) {
+export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBrands = [], reviews = [], heroData = DEFAULT_HERO, promotions = [] }: { products: Product[]; statsData?: StatsData; dbBrands?: BrandCard[]; reviews?: HomeReview[]; heroData?: HeroData; promotions?: Promotion[] }) {
   const brandCards: BrandCard[] = dbBrands.length > 0 ? dbBrands : BRAND_CARDS
   const [selectedBrand, setSelectedBrand] = useState<BrandCard | null>(null)
   const [activeCat, setActiveCat] = useState('all')
@@ -200,6 +200,21 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
 
   return (
     <main>
+      {/* ── PROMO BAR ── */}
+      {promotions.filter(p => p.position === 'bar').length > 0 && (
+        <div className="promo-bar">
+          <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '8px 16px' }}>
+            {promotions.filter(p => p.position === 'bar').map(promo => (
+              <a key={promo.id} href={promo.link_url || '#'} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff', textDecoration: 'none', fontSize: '.85rem', fontWeight: 600 }}>
+                {promo.badge_text && <span style={{ background: 'rgba(255,255,255,.2)', padding: '2px 8px', borderRadius: 6, fontSize: '.72rem', fontWeight: 800 }}>{promo.badge_text}</span>}
+                {promo.title}
+                {promo.description && <span style={{ opacity: .8, fontWeight: 400 }}>— {promo.description}</span>}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── HERO ── */}
       <section id="hero" className="hero">
         <div className="hero-glow" />

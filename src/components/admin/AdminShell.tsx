@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, ShoppingBag, Users, MessageSquare, FolderTree, Building2, Ticket, Trash2, ArrowLeft, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingBag, Users, MessageSquare, FolderTree, Building2, Ticket, Trash2, Megaphone, Bell, Activity, HardDrive, ArrowLeft, Menu, X } from 'lucide-react'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -14,6 +14,10 @@ const navItems = [
   { href: '/admin/categories', label: 'Categories', icon: FolderTree },
   { href: '/admin/brands', label: 'Brands', icon: Building2 },
   { href: '/admin/coupons', label: 'Coupons', icon: Ticket },
+  { href: '/admin/promotions', label: 'Promotions', icon: Megaphone },
+  { href: '/admin/notifications', label: 'Notifications', icon: Bell },
+  { href: '/admin/system', label: 'System', icon: Activity },
+  { href: '/admin/backup', label: 'Backup', icon: HardDrive },
   { href: '/admin/trash', label: 'Trash', icon: Trash2 },
 ]
 

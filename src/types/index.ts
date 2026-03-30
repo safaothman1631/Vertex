@@ -163,3 +163,27 @@ export interface TrashItem {
   deleted_at: string
   expires_at: string
 }
+
+export interface Promotion {
+  id: string
+  title: string
+  description: string
+  image_url: string
+  link_url: string
+  badge_text: string
+  position: 'hero_banner' | 'bar' | 'popup' | 'sidebar'
+  is_active: boolean
+  starts_at: string
+  ends_at: string | null
+  sort_order: number
+  created_at: string
+}
+
+export interface SystemLog {
+  id: string
+  level: 'info' | 'warning' | 'error' | 'critical'
+  source: 'api' | 'auth' | 'db' | 'cron' | 'manual'
+  message: string
+  details: Record<string, unknown>
+  created_at: string
+}

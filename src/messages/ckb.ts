@@ -418,6 +418,14 @@ const ckb = {
     totalOrders: 'کۆی داواکارییەکان',
     totalUsers: 'کۆی بەکارهێنەران',
     totalProducts: 'کۆی بەرهەمەکان',
+    promotions: 'ڕیکلامەکان',
+    notifications: 'ئاگادارییەکان',
+    system: 'تەندروستی سیستەم',
+    backup: 'پاشکەوت و گەڕاندنەوە',
+    downloadBackup: 'داگرتنی پاشکەوت',
+    restoreBackup: 'گەڕاندنەوەی پاشکەوت',
+    broadcastNotification: 'ناردنی ئاگاداری',
+    systemLogs: 'تۆمارەکانی سیستەم',
   },
 
   // ── STATS STRIP

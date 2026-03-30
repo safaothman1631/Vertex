@@ -417,6 +417,14 @@ const tr = {
     totalOrders: 'Toplam Siparişler',
     totalUsers: 'Toplam Kullanıcılar',
     totalProducts: 'Toplam Ürünler',
+    promotions: 'Promosyonlar',
+    notifications: 'Bildirimler',
+    system: 'Sistem Sağlığı',
+    backup: 'Yedekleme ve Geri Yükleme',
+    downloadBackup: 'Yedeği İndir',
+    restoreBackup: 'Yedekten Geri Yükle',
+    broadcastNotification: 'Bildirim Gönder',
+    systemLogs: 'Sistem Kayıtları',
   },
 
   // ── STATS STRIP

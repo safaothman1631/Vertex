@@ -415,6 +415,14 @@ const ar = {
     totalOrders: 'إجمالي الطلبات',
     totalUsers: 'إجمالي المستخدمين',
     totalProducts: 'إجمالي المنتجات',
+    promotions: 'العروض الترويجية',
+    notifications: 'الإشعارات',
+    system: 'صحة النظام',
+    backup: 'النسخ الاحتياطي والاستعادة',
+    downloadBackup: 'تنزيل النسخة الاحتياطية',
+    restoreBackup: 'استعادة من نسخة احتياطية',
+    broadcastNotification: 'إرسال إشعار جماعي',
+    systemLogs: 'سجلات النظام',
   },
 
   // ── STATS STRIP
