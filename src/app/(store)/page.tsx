@@ -16,7 +16,7 @@ export default async function Home() {
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'user'),
     supabase.from('orders').select('*', { count: 'exact', head: true }),
     supabase.from('brands').select('*').order('name', { ascending: true }),
-    supabase.from('reviews').select('id, rating, comment, created_at, profiles!reviews_user_id_fkey(full_name, avatar_url), products!reviews_product_id_fkey(name, brand)').neq('comment', '').order('created_at', { ascending: false }).limit(24),
+    supabase.from('reviews').select('id, rating, comment, created_at, profiles!reviews_user_id_fkey(full_name), products!reviews_product_id_fkey(name, brand)').neq('comment', '').order('created_at', { ascending: false }).limit(24),
   ])
 
   const visible = ((products as Product[]) ?? []).filter(p => !p.hidden)
@@ -38,7 +38,7 @@ export default async function Home() {
     c2: b.color2 ?? '#4f46e5',
   }))
 
-  type RawProfile = { full_name: string | null; avatar_url: string | null }
+  type RawProfile = { full_name: string | null }
   type RawProduct = { name: string; brand: string }
   type RawReview = {
     id: string; rating: number; comment: string; created_at: string;
@@ -55,7 +55,7 @@ export default async function Home() {
         comment: r.comment,
         created_at: r.created_at,
         reviewer_name: prof?.full_name ?? 'Customer',
-        avatar_url: prof?.avatar_url ?? null,
+        avatar_url: null,
         product_name: prod?.name ?? '',
         product_brand: prod?.brand ?? '',
       }

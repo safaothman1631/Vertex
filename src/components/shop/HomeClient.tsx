@@ -502,7 +502,11 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
 
       {/* ── REVIEWS / TESTIMONIALS SECTION ── */}
       {(() => {
-        const displayReviews = reviews.length >= 3 ? reviews : DEMO_REVIEWS
+        // Merge real reviews first, then fill with demo (exclude demo ids that match real)
+        const realIds = new Set(reviews.map(r => r.id))
+        const demoFill = DEMO_REVIEWS.filter(r => !realIds.has(r.id))
+        const merged = [...reviews, ...demoFill]
+        const displayReviews = merged.length >= 3 ? merged : DEMO_REVIEWS
         const mid = Math.ceil(displayReviews.length / 2)
         const row1 = [...displayReviews.slice(0, mid), ...displayReviews.slice(0, mid), ...displayReviews.slice(0, mid)]
         const half2 = displayReviews.length > mid ? displayReviews.slice(mid) : displayReviews.slice(0, mid)
