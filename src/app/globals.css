@@ -605,7 +605,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
     background:rgba(255,255,255,.05);
     color:var(--text);
   }
-  .hamburger{display:inline-flex;order:99}
+  .hamburger{display:inline-flex}
   .cart-sidebar{width:100%;max-width:100vw}
   .nav-inner{gap:8px}
   .nav-actions{gap:2px}
@@ -614,6 +614,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
   .nav-action-btn{width:34px;height:34px;border-radius:9px}
   .nav-avatar{width:28px;height:28px;font-size:.62rem;border-width:1.5px}
   .nav-avatar-trigger{padding:2px}
+  .nav-profile-wrap{order:99}
   .nav-lang-btn{width:34px!important;padding:0!important}
   .resp-grid-contact{grid-template-columns:1fr;gap:24px}
 }

@@ -107,6 +107,19 @@ export default function Navbar() {
     <>
       <header className={`navbar${scrolled ? ' scrolled' : ''}`}>
         <div className="container nav-inner">
+          {/* Hamburger (mobile - left side) */}
+          <button
+            className={`hamburger${menuOpen ? ' is-open' : ''}`}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Menu"
+          >
+            <span className="hb-box">
+              <span className="hb-line hb-top" />
+              <span className="hb-line hb-mid" />
+              <span className="hb-line hb-bot" />
+            </span>
+          </button>
+
           {/* Logo */}
           <button
             className="logo"
@@ -157,7 +170,7 @@ export default function Navbar() {
 
             {/* Profile / Auth */}
             {mounted && user ? (
-              <div ref={dropdownRef} style={{ position: 'relative' }}>
+              <div ref={dropdownRef} className="nav-profile-wrap" style={{ position: 'relative' }}>
                 <button
                   className="nav-avatar-trigger"
                   onClick={() => setProfileOpen(p => !p)}
@@ -285,19 +298,6 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-
-            {/* Hamburger (mobile) */}
-            <button
-              className={`hamburger${menuOpen ? ' is-open' : ''}`}
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Menu"
-            >
-              <span className="hb-box">
-                <span className="hb-line hb-top" />
-                <span className="hb-line hb-mid" />
-                <span className="hb-line hb-bot" />
-              </span>
-            </button>
           </div>
         </div>
       </header>
