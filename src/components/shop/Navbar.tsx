@@ -19,6 +19,8 @@ const LANG_OPTIONS: { value: Locale; label: string; flag: string }[] = [
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const [activeSection, setActiveSection] = useState('hero')
   const [menuOpen, setMenuOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -37,8 +39,20 @@ export default function Navbar() {
 
   useEffect(() => {
     setMounted(true)
-    const onScroll = () => setScrolled(window.scrollY > 40)
-    window.addEventListener('scroll', onScroll)
+    const onScroll = () => {
+      setScrolled(window.scrollY > 40)
+      const docH = document.documentElement.scrollHeight - window.innerHeight
+      setScrollProgress(docH > 0 ? (window.scrollY / docH) * 100 : 0)
+      // active section detection
+      const sections = ['hero', 'products', 'brands', 'contact']
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sections[i])
+        if (el && window.scrollY >= el.offsetTop - 120) {
+          setActiveSection(sections[i]); break
+        }
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
 
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -106,6 +120,8 @@ export default function Navbar() {
   return (
     <>
       <header className={`navbar${scrolled ? ' scrolled' : ''}`}>
+        {/* Scroll progress bar */}
+        {scrolled && <div className="nav-progress" style={{ width: `${scrollProgress}%` }} />}
         <div className="container nav-inner">
           {/* Hamburger (mobile - left side) */}
           <button
@@ -131,10 +147,10 @@ export default function Navbar() {
 
           {/* Nav links */}
           <nav className={`nav-links${menuOpen ? ' open' : ''}`}>
-            <button className="nav-scroll-btn" onClick={() => scrollToSection('hero')}>{t.nav.home}</button>
-            <button className="nav-scroll-btn" onClick={() => scrollToSection('products')}>{t.nav.shop}</button>
-            <button className="nav-scroll-btn" onClick={() => scrollToSection('brands')}>{t.nav.brands}</button>
-            <button className="nav-scroll-btn" onClick={() => scrollToSection('contact')}>{t.nav.contact}</button>
+            <button className={`nav-scroll-btn${activeSection === 'hero' ? ' nav-link-active' : ''}`} onClick={() => scrollToSection('hero')}>{t.nav.home}</button>
+            <button className={`nav-scroll-btn${activeSection === 'products' ? ' nav-link-active' : ''}`} onClick={() => scrollToSection('products')}>{t.nav.shop}</button>
+            <button className={`nav-scroll-btn${activeSection === 'brands' ? ' nav-link-active' : ''}`} onClick={() => scrollToSection('brands')}>{t.nav.brands}</button>
+            <button className={`nav-scroll-btn${activeSection === 'contact' ? ' nav-link-active' : ''}`} onClick={() => scrollToSection('contact')}>{t.nav.contact}</button>
             {mounted && user?.role === 'admin' && (
               <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: 'var(--primary)', fontWeight: 700 }}>{t.nav.admin}</Link>
             )}
