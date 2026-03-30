@@ -506,10 +506,10 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
    BRAND CARDS (colored banner style)
    ============================================================ */
 .brands-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
-.brand-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column;transition:var(--transition);text-decoration:none;color:inherit}
+.brand-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column;transition:var(--transition);text-decoration:none;color:inherit;min-width:0}
 .brand-card:hover{transform:translateY(-5px);box-shadow:0 16px 48px rgba(0,0,0,.5);border-color:rgba(99,102,241,.45)}
 .brand-banner{height:110px;position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 20px}
-.brand-logo-img{max-width:180px;max-height:65px;width:auto;height:auto;object-fit:contain;position:relative;z-index:1;filter:brightness(0) invert(1) drop-shadow(0 1px 6px rgba(0,0,0,.35))}
+.brand-logo-img{max-width:min(180px,100%);max-height:65px;width:auto;height:auto;object-fit:contain;position:relative;z-index:1;filter:brightness(0) invert(1) drop-shadow(0 1px 6px rgba(0,0,0,.35))}
 .brand-banner-shine{position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.13) 0%,transparent 60%);pointer-events:none}
 .brand-card-body{padding:16px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
 .brand-card-name{font-size:1rem;font-weight:800;color:var(--text)}
@@ -647,6 +647,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
   .section-header{margin-bottom:40px;gap:10px}
   .section-header h2{font-size:clamp(1.4rem,5vw,2rem)}
   .section-header p{font-size:.92rem}
+  .brand-banner{padding:0 12px}
+  .brand-logo-img{max-height:55px}
   .brand-card-body{padding:12px 14px}
   .brand-card-name{font-size:.88rem}
   .brand-card-cat{font-size:.72rem}
