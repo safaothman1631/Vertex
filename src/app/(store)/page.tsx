@@ -18,12 +18,32 @@ function fmtCount(n: number): string {
 export default async function Home() {
   const supabase = await createClient()
 
-  const [{ data: products }, { count: customerCount }, { count: orderCount }, { data: brands }, { data: reviewsRaw }] = await Promise.all([
+  const now = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+  const yesterdayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString()
+
+  const [
+    { data: products },
+    { count: customerCount },
+    { count: orderCount },
+    { data: brands },
+    { data: reviewsRaw },
+    { data: todayOrders },
+    { data: yesterdayOrders },
+    { count: totalReviewCount },
+    { data: allReviewRatings },
+    { data: terminalProducts },
+  ] = await Promise.all([
     supabase.from('products').select('*').order('created_at', { ascending: false }),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'user'),
     supabase.from('orders').select('*', { count: 'exact', head: true }),
     supabase.from('brands').select('*').order('name', { ascending: true }),
     supabase.from('reviews').select('id, rating, comment, created_at, profiles!reviews_user_id_fkey(full_name), products!reviews_product_id_fkey(name, brand)').neq('comment', '').order('created_at', { ascending: false }).limit(24),
+    supabase.from('orders').select('total, status').gte('created_at', todayStart).neq('status', 'cancelled'),
+    supabase.from('orders').select('total, status').gte('created_at', yesterdayStart).lt('created_at', todayStart).neq('status', 'cancelled'),
+    supabase.from('reviews').select('*', { count: 'exact', head: true }),
+    supabase.from('reviews').select('rating'),
+    supabase.from('products').select('name, model, price, brand').eq('in_stock', true).eq('hidden', false).limit(3),
   ])
 
   const visible = ((products as Product[]) ?? []).filter(p => !p.hidden)
@@ -35,6 +55,35 @@ export default async function Home() {
     brands: fmtCount((brands ?? []).length),
     orders: fmtCount(orderCount ?? 0),
     support: '24/7',
+  }
+
+  // ── Hero dynamic data ──
+  const todayRevenue = (todayOrders ?? []).reduce((s, o) => s + ((o as { total: number }).total ?? 0), 0)
+  const yesterdayRevenue = (yesterdayOrders ?? []).reduce((s, o) => s + ((o as { total: number }).total ?? 0), 0)
+  const revPctChange = yesterdayRevenue > 0
+    ? Math.round(((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100)
+    : todayRevenue > 0 ? 100 : 0
+
+  const ratings = (allReviewRatings ?? []).map(r => (r as { rating: number }).rating)
+  const avgRating = ratings.length > 0
+    ? (ratings.reduce((s, r) => s + r, 0) / ratings.length).toFixed(1)
+    : '0'
+  const reviewCountNum = totalReviewCount ?? 0
+
+  const termItems = ((terminalProducts ?? []) as { name: string; model: string; price: number; brand: string }[]).map(p => ({
+    name: `${p.brand} ${p.model ?? ''}`.trim() || p.name,
+    sku: `#${(p.model ?? p.name.slice(0, 8)).replace(/\s+/g, '-').toUpperCase()}`,
+    price: p.price,
+  }))
+  const termTotal = termItems.reduce((s, i) => s + i.price, 0)
+
+  const heroData = {
+    todayRevenue,
+    revPctChange,
+    avgRating,
+    reviewCount: fmtCount(reviewCountNum),
+    terminalItems: termItems,
+    terminalTotal: termTotal,
   }
 
   const dbBrands = (brands ?? []).map((b: { name: string; logo: string | null; category_key: string | null; color1: string | null; color2: string | null }) => ({
@@ -97,7 +146,7 @@ export default async function Home() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <HomeClient products={visible} statsData={statsData} dbBrands={dbBrands} reviews={reviews} />
+      <HomeClient products={visible} statsData={statsData} dbBrands={dbBrands} reviews={reviews} heroData={heroData} />
     </>
   )
 }

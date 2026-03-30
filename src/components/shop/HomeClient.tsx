@@ -71,9 +71,27 @@ const DEMO_REVIEWS: HomeReview[] = [
   { id: 'd8', rating: 5, comment: 'Very happy with my purchase. The product arrived quickly, well packaged, and works exactly as described on the website.', created_at: '2025-02-15T10:20:00Z', reviewer_name: 'Rania Yousef', avatar_url: null, product_name: 'Square Terminal', product_brand: 'Square' },
 ]
 
+interface HeroData {
+  todayRevenue: number
+  revPctChange: number
+  avgRating: string
+  reviewCount: string
+  terminalItems: { name: string; sku: string; price: number }[]
+  terminalTotal: number
+}
+
+const DEFAULT_HERO: HeroData = {
+  todayRevenue: 0,
+  revPctChange: 0,
+  avgRating: '0',
+  reviewCount: '0',
+  terminalItems: [],
+  terminalTotal: 0,
+}
+
 const STATS_KEYS: Array<keyof StatsData> = ['customers', 'products', 'brands', 'support']
 
-export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBrands = [], reviews = [] }: { products: Product[]; statsData?: StatsData; dbBrands?: BrandCard[]; reviews?: HomeReview[] }) {
+export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBrands = [], reviews = [], heroData = DEFAULT_HERO }: { products: Product[]; statsData?: StatsData; dbBrands?: BrandCard[]; reviews?: HomeReview[]; heroData?: HeroData }) {
   const brandCards: BrandCard[] = dbBrands.length > 0 ? dbBrands : BRAND_CARDS
   const [selectedBrand, setSelectedBrand] = useState<BrandCard | null>(null)
   const [activeCat, setActiveCat] = useState('all')
@@ -216,23 +234,21 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                   <span style={{ color: 'var(--green)', fontSize: 11 }}>{t.hero.terminalLive}</span>
                 </div>
                 <div className="pos-items">
-                  {[
-                    { name: 'Honeywell 1950g', sku: '#HW-1950', price: '$149.00' },
-                    { name: 'Zebra ZD421', sku: '#ZB-ZD421', price: '$289.00' },
-                    { name: 'Epson TM-T88VI', sku: '#EP-T88VI', price: '$199.00' },
-                  ].map((item) => (
+                  {heroData.terminalItems.length > 0 ? heroData.terminalItems.map((item) => (
                     <div key={item.sku} className="pos-item">
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 13 }}>{item.name}</div>
                         <div className="pos-sku">{item.sku}</div>
                       </div>
-                      <div style={{ color: 'var(--primary)', fontWeight: 700 }}>{item.price}</div>
+                      <div style={{ color: 'var(--primary)', fontWeight: 700 }}>${item.price.toFixed(2)}</div>
                     </div>
-                  ))}
+                  )) : (
+                    <div style={{ padding: '12px 0', color: 'var(--text3)', fontSize: 12, textAlign: 'center' }}>No products</div>
+                  )}
                 </div>
                 <div className="pos-total">
                   <span>{t.hero.total}</span>
-                  <span>$637.00</span>
+                  <span>${heroData.terminalTotal.toFixed(2)}</span>
                 </div>
                 <button className="pos-btn">{t.hero.processPayment}</button>
                 <div className="pos-pay-methods">
@@ -243,14 +259,18 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
               </div>
 
               <div className="float-card fc1">
-                <div style={{ color: 'var(--green)', fontWeight: 800, fontSize: 20 }}>+$12,450</div>
+                <div style={{ color: 'var(--green)', fontWeight: 800, fontSize: 20 }}>
+                  {heroData.todayRevenue > 0 ? `+$${heroData.todayRevenue.toLocaleString('en-US', { maximumFractionDigits: 0 })}` : '$0'}
+                </div>
                 <div style={{ fontSize: 12, opacity: 0.7 }}>{t.hero.todaySales}</div>
-                <div style={{ fontSize: 11, marginTop: 2, color: 'var(--green)' }}>{t.hero.vsYesterday}</div>
+                <div style={{ fontSize: 11, marginTop: 2, color: heroData.revPctChange >= 0 ? 'var(--green)' : '#ef4444' }}>
+                  {heroData.revPctChange >= 0 ? '▲' : '▼'} {Math.abs(heroData.revPctChange)}% vs Yesterday
+                </div>
               </div>
               <div className="float-card fc2">
-                <div style={{ fontWeight: 800, fontSize: 18 }}>★ 4.9/5</div>
+                <div style={{ fontWeight: 800, fontSize: 18 }}>★ {heroData.avgRating}/5</div>
                 <div style={{ fontSize: 12, opacity: 0.7 }}>{t.hero.customerRating}</div>
-                <div style={{ fontSize: 11, marginTop: 2, opacity: 0.6 }}>2,400+ {t.hero.reviews}</div>
+                <div style={{ fontSize: 11, marginTop: 2, opacity: 0.6 }}>{heroData.reviewCount} {t.hero.reviews}</div>
               </div>
             </div>
           </div>
@@ -260,9 +280,13 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
       {/* ── BRANDS TICKER ── */}
       <div className="brands-ticker">
         <div className="ticker-track">
-          {[...BRANDS_TICKER, ...BRANDS_TICKER].map((b, i) => (
-            <span key={i} className="ticker-item">{b}</span>
-          ))}
+          {(() => {
+            const names = brandCards.map(b => b.name)
+            const tickerNames = names.length > 0 ? names : BRANDS_TICKER
+            return [...tickerNames, ...tickerNames].map((b, i) => (
+              <span key={i} className="ticker-item">{b}</span>
+            ))
+          })()}
         </div>
       </div>
 
