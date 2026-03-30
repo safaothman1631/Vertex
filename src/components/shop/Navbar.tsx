@@ -251,13 +251,8 @@ export default function Navbar() {
               <button
                 className="nav-action-btn nav-lang-btn"
                 onClick={() => setLangOpen(p => !p)}
-                style={{
-                  width: 'auto', gap: 5, padding: '0 10px',
-                  border: langOpen ? '1px solid var(--primary)' : '1px solid transparent',
-                  background: langOpen ? 'rgba(99,102,241,.08)' : undefined,
-                }}
               >
-                <Globe size={15} />
+                <Globe size={18} />
                 <span className="nav-lang-label" style={{ fontSize: '.8rem', fontWeight: 500 }}>{LANG_OPTIONS.find(o => o.value === locale)?.label}</span>
                 <ChevronDown size={11} className="nav-lang-chevron" style={{ transform: langOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }} />
               </button>
@@ -290,20 +285,20 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Animated hamburger → X */}
-          <button
-            className={`hamburger${menuOpen ? ' is-open' : ''}`}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Menu"
-          >
-            <span className="hb-box">
-              <span className="hb-line hb-top" />
-              <span className="hb-line hb-mid" />
-              <span className="hb-line hb-bot" />
-            </span>
-          </button>
+            {/* Hamburger (mobile) */}
+            <button
+              className={`hamburger${menuOpen ? ' is-open' : ''}`}
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Menu"
+            >
+              <span className="hb-box">
+                <span className="hb-line hb-top" />
+                <span className="hb-line hb-mid" />
+                <span className="hb-line hb-bot" />
+              </span>
+            </button>
+          </div>
         </div>
       </header>
 

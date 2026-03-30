@@ -95,23 +95,12 @@ export default function NotificationsPanel({ userId }: { userId: string }) {
     <div ref={panelRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
       <button
         onClick={() => setOpen(p => !p)}
-        style={{
-          position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: 36, height: 36, borderRadius: 9, background: 'none', border: 'none',
-          cursor: 'pointer', color: 'var(--text2)',
-        }}
+        className="nav-action-btn"
         title="Notifications"
       >
-        <Bell size={17} />
+        <Bell size={18} />
         {unreadCount > 0 && (
-          <span style={{
-            position: 'absolute', top: 0, right: 0,
-            minWidth: 15, height: 15, borderRadius: 8,
-            background: '#ef4444', color: '#fff',
-            fontSize: '.58rem', fontWeight: 800,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '0 3px', animation: 'pulse 2s infinite',
-          }}>
+          <span className="nav-action-badge" style={{ animation: 'pulse 2s infinite' }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
