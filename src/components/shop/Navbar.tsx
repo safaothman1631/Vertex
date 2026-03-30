@@ -51,23 +51,25 @@ export default function Navbar() {
     document.addEventListener('mousedown', handleClickOutside)
 
     async function loadProfile(u: { id: string; email?: string | null }) {
-      const [{ data: profile }, { count }] = await Promise.all([
-        supabase.from('profiles').select('full_name, role').eq('id', u.id).single(),
-        supabase.from('wishlist').select('*', { count: 'exact', head: true }).eq('user_id', u.id),
-      ])
-      setUser({
-        email: u.email ?? '',
-        name: profile?.full_name ?? u.email ?? '',
-        role: profile?.role ?? 'user',
-        id: u.id,
-      })
-      setWishlistCount(count ?? 0)
+      try {
+        const [{ data: profile }, { count }] = await Promise.all([
+          supabase.from('profiles').select('full_name, role').eq('id', u.id).single(),
+          supabase.from('wishlist').select('*', { count: 'exact', head: true }).eq('user_id', u.id),
+        ])
+        setUser({
+          email: u.email ?? '',
+          name: profile?.full_name ?? u.email ?? '',
+          role: profile?.role ?? 'user',
+          id: u.id,
+        })
+        setWishlistCount(count ?? 0)
+      } catch {}
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) loadProfile(session.user)
       else setUser(null)
-    })
+    }).catch(() => {})
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) loadProfile(session.user)

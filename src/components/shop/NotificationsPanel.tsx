@@ -41,13 +41,15 @@ export default function NotificationsPanel({ userId }: { userId: string }) {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(20)
-      if (data) setNotifications(data)
+      try {
+        const { data } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(20)
+        if (data) setNotifications(data)
+      } catch {}
     }
     load()
 
