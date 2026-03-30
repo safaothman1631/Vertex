@@ -1,7 +1,14 @@
-﻿import { Suspense } from 'react'
+﻿import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase-server'
 import ProductsGrid from '@/components/shop/ProductsGrid'
 import type { Product } from '@/types'
+
+export const metadata: Metadata = {
+  title: 'Products',
+  description: 'Browse our full collection of professional POS equipment — barcode scanners, receipt printers, terminals, cash drawers, and accessories.',
+  alternates: { canonical: '/products' },
+}
 
 export default async function ProductsPage() {
   const supabase = await createClient()

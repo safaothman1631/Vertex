@@ -1,6 +1,13 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
 import HomeClient from '@/components/shop/HomeClient'
 import type { Product } from '@/types'
+
+export const metadata: Metadata = {
+  title: 'Vertex — Professional POS Equipment',
+  description: 'Discover barcode scanners, POS terminals, receipt printers, cash drawers, and premium POS equipment trusted by businesses worldwide.',
+  alternates: { canonical: '/' },
+}
 
 function fmtCount(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M+'
@@ -62,5 +69,35 @@ export default async function Home() {
     })
     .filter(r => r.comment.trim().length > 10)
 
-  return <HomeClient products={visible} statsData={statsData} dbBrands={dbBrands} reviews={reviews} />
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: 'Vertex',
+        url: process.env.NEXT_PUBLIC_SITE_URL || 'https://vertex-pos.com',
+        description: 'Professional POS equipment supplier — barcode scanners, receipt printers, terminals, and accessories.',
+      },
+      {
+        '@type': 'WebSite',
+        name: 'Vertex',
+        url: process.env.NEXT_PUBLIC_SITE_URL || 'https://vertex-pos.com',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://vertex-pos.com'}/products?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  }
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <HomeClient products={visible} statsData={statsData} dbBrands={dbBrands} reviews={reviews} />
+    </>
+  )
 }

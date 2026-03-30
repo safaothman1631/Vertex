@@ -1,10 +1,17 @@
-﻿import { createClient } from '@/lib/supabase-server'
+﻿import type { Metadata } from 'next'
+import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { WishlistItem } from '@/types'
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react'
 import WishlistClient from '@/components/shop/WishlistClient'
 import WishlistPageHeader from '@/components/shop/WishlistPageHeader'
+
+export const metadata: Metadata = {
+  title: 'Wishlist',
+  description: 'Your saved products.',
+  robots: { index: false },
+}
 
 export default async function WishlistPage() {
   const supabase = await createClient()
