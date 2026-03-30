@@ -151,13 +151,18 @@ export default function Navbar() {
             <button className={`nav-scroll-btn${activeSection === 'products' ? ' nav-link-active' : ''}`} onClick={() => scrollToSection('products')}>{t.nav.shop}</button>
             <button className={`nav-scroll-btn${activeSection === 'brands' ? ' nav-link-active' : ''}`} onClick={() => scrollToSection('brands')}>{t.nav.brands}</button>
             <button className={`nav-scroll-btn${activeSection === 'contact' ? ' nav-link-active' : ''}`} onClick={() => scrollToSection('contact')}>{t.nav.contact}</button>
-            {mounted && user?.role === 'admin' && (
-              <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: 'var(--primary)', fontWeight: 700 }}>{t.nav.admin}</Link>
-            )}
           </nav>
 
           {/* Actions */}
           <div className="nav-actions">
+            {/* Admin */}
+            {mounted && user?.role === 'admin' && (
+              <Link href="/admin" className="nav-admin-link">
+                <LayoutDashboard size={14} />
+                {t.nav.admin}
+              </Link>
+            )}
+            {mounted && user?.role === 'admin' && <div className="nav-divider" />}
             {/* Wishlist */}
             {mounted && user && (
               <Link href="/wishlist" className="nav-action-btn" title={t.nav.myWishlist} style={{ textDecoration: 'none' }}>
