@@ -724,24 +724,23 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
   .admin-sidebar{transform:translateX(-100%);width:260px;transition:transform .25s ease;z-index:200}
   .admin-sidebar.admin-sidebar-open{transform:translateX(0)}
   .admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
-  .admin-main{margin-left:0;padding:0}
-  .admin-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:90}
+  .admin-main{margin-left:0;padding:0 16px}
+  .admin-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:90;margin:0 -16px;width:calc(100% + 32px)}
   .admin-topbar-menu{background:none;border:none;cursor:pointer;color:var(--text);display:flex;align-items:center;padding:4px}
   .admin-topbar-brand{font-size:.95rem;font-weight:900;color:var(--text)}
   .admin-topbar-close-placeholder{width:30px}
-  .admin-page-head{margin:16px 16px 20px;padding-bottom:16px}
+  .admin-page-head{margin:16px 0 20px;padding-bottom:16px}
   .admin-page-title{font-size:1.3rem}
   .admin-table-wrap{display:none}
-  .admin-mobile-cards{display:flex;flex-direction:column;gap:10px;padding:0 16px 24px}
+  .admin-mobile-cards{display:flex;flex-direction:column;gap:10px;padding:0 0 24px}
   .admin-product-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
-  .admin-stats{grid-template-columns:1fr 1fr;padding:0 16px;margin-bottom:20px}
+  .admin-stats{grid-template-columns:1fr 1fr;padding:0;margin-bottom:20px}
   .admin-stat-card{padding:16px}
   .admin-stat-val{font-size:1.6rem}
-  .admin-dash-grid-main{grid-template-columns:1fr !important;padding:0 16px}
-  .admin-dash-grid-bottom{grid-template-columns:1fr !important;padding:0 16px}
+  .admin-dash-grid-main{grid-template-columns:1fr !important}
+  .admin-dash-grid-bottom{grid-template-columns:1fr !important}
   .admin-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .admin-table th,.admin-table td{padding:10px 12px}
-  div[style*="justifyContent: 'flex-end'"][style*="marginBottom: '16px'"]{padding:0 16px}
 }
 @media(max-width:400px){
   .admin-stats{grid-template-columns:1fr}
