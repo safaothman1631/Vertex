@@ -429,6 +429,15 @@ const ar = {
     relatedProducts: 'منتجات ذات صلة',
   },
 
+  // ── TESTIMONIALS
+  testimonials: {
+    label: 'آراء العملاء',
+    title: 'ماذا يقول',
+    titleHighlight: 'عملاؤنا',
+    sub: 'آراء حقيقية من الشركات التي تثق بمعدات نقاط البيع لدينا',
+    verifiedBuyer: 'مشترٍ موثوق',
+  },
+
   // ── COMMON
   common: {
     loading: 'جارٍ التحميل...',

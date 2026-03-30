@@ -438,6 +438,15 @@ const en = {
     relatedProducts: 'Related Products',
   },
 
+  // ── TESTIMONIALS
+  testimonials: {
+    label: 'Customer Reviews',
+    title: 'What Our',
+    titleHighlight: 'Customers Say',
+    sub: 'Real feedback from businesses that trust our POS hardware',
+    verifiedBuyer: 'Verified Buyer',
+  },
+
   // ── COMMON
   common: {
     loading: 'Loading...',

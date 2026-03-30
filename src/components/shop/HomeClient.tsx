@@ -39,6 +39,17 @@ interface BrandCard {
   c2: string
 }
 
+export interface HomeReview {
+  id: string
+  rating: number
+  comment: string
+  created_at: string
+  reviewer_name: string
+  avatar_url: string | null
+  product_name: string
+  product_brand: string
+}
+
 interface StatsData {
   customers: string
   products: string
@@ -51,7 +62,7 @@ const DEFAULT_STATS: StatsData = { customers: '—', products: '—', brands: '�
 
 const STATS_KEYS: Array<keyof StatsData> = ['customers', 'products', 'brands', 'support']
 
-export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBrands = [] }: { products: Product[]; statsData?: StatsData; dbBrands?: BrandCard[] }) {
+export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBrands = [], reviews = [] }: { products: Product[]; statsData?: StatsData; dbBrands?: BrandCard[]; reviews?: HomeReview[] }) {
   const brandCards: BrandCard[] = dbBrands.length > 0 ? dbBrands : BRAND_CARDS
   const [selectedBrand, setSelectedBrand] = useState<BrandCard | null>(null)
   const [activeCat, setActiveCat] = useState('all')
@@ -478,7 +489,34 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
         onClose={() => setSelectedBrand(null)}
       />
 
-      {/* ── CONTACT SECTION ── */}
+      {/* ── REVIEWS / TESTIMONIALS SECTION ── */}
+      {reviews.length >= 3 && (() => {
+        const mid = Math.ceil(reviews.length / 2)
+        const row1 = [...reviews.slice(0, mid), ...reviews.slice(0, mid), ...reviews.slice(0, mid)]
+        const half2 = reviews.length > mid ? reviews.slice(mid) : reviews.slice(0, mid)
+        const row2 = [...half2, ...half2, ...half2]
+        return (
+          <section className="reviews-section">
+            <div className="container">
+              <FadeIn>
+                <div className="section-header">
+                  <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '.85rem', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12 }}>{t.testimonials.label}</p>
+                  <h2 className="section-title">{t.testimonials.title} <span className="gradient-text">{t.testimonials.titleHighlight}</span></h2>
+                  <p className="section-sub">{t.testimonials.sub}</p>
+                </div>
+              </FadeIn>
+            </div>
+            <div className="reviews-marquee-wrap">
+              <div className="reviews-row">
+                {row1.map((r, i) => <ReviewCard key={`r1-${r.id}-${i}`} r={r} verifiedLabel={t.testimonials.verifiedBuyer} />)}
+              </div>
+              <div className="reviews-row reviews-row-rtl">
+                {row2.map((r, i) => <ReviewCard key={`r2-${r.id}-${i}`} r={r} verifiedLabel={t.testimonials.verifiedBuyer} />)}
+              </div>
+            </div>
+          </section>
+        )
+      })()}
       <section id="contact" className="section" style={{ background: 'var(--bg0)' }}>
         <div className="container" style={{ maxWidth: 1100 }}>
           <FadeIn>
@@ -636,5 +674,48 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
         </div>
       </section>
     </main>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ReviewCard — used in the testimonials marquee
+───────────────────────────────────────────────────────────── */
+const AVATAR_GRADIENTS = [
+  ['#6366f1', '#8b5cf6'], ['#ef4444', '#f97316'], ['#f59e0b', '#eab308'],
+  ['#10b981', '#06b6d4'], ['#3b82f6', '#6366f1'], ['#ec4899', '#a855f7'],
+]
+
+function ReviewCard({ r, verifiedLabel }: { r: HomeReview; verifiedLabel: string }) {
+  const [c1, c2] = AVATAR_GRADIENTS[(r.reviewer_name.charCodeAt(0) || 65) % AVATAR_GRADIENTS.length]
+  const initial = (r.reviewer_name[0] || '?').toUpperCase()
+  const date = new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+
+  return (
+    <div className="review-card">
+      <div className="rv-header">
+        {r.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={r.avatar_url} alt={r.reviewer_name} className="rv-avatar" style={{ objectFit: 'cover' }} />
+        ) : (
+          <div className="rv-avatar" style={{ background: `linear-gradient(135deg,${c1},${c2})` }}>{initial}</div>
+        )}
+        <div className="rv-meta">
+          <div className="rv-name">{r.reviewer_name}</div>
+          <div className="rv-date">{date} · {verifiedLabel}</div>
+        </div>
+        <div className="rv-stars">
+          {[1, 2, 3, 4, 5].map(s => (
+            <span key={s} style={{ color: s <= r.rating ? '#f59e0b' : 'var(--border)', fontSize: '.82rem' }}>★</span>
+          ))}
+        </div>
+      </div>
+      <p className="rv-comment">&#8220;{r.comment}&#8221;</p>
+      {r.product_name && (
+        <div className="rv-product">
+          <span>📦</span>
+          <span>{r.product_name}</span>
+        </div>
+      )}
+    </div>
   )
 }

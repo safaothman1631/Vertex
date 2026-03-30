@@ -432,6 +432,15 @@ const ckb = {
     relatedProducts: 'بەرهەمە پەیوەندییەکان',
   },
 
+  // ── TESTIMONIALS
+  testimonials: {
+    label: 'ڕووی کڕیاران',
+    title: 'کڕیارەکانمان',
+    titleHighlight: 'چی دەبێژن',
+    sub: 'ڕووی ڕاستەقینەی کڕیارەکانمان دەربارەی تەکنەلۆجیای POS ەکانمان',
+    verifiedBuyer: 'کڕیاری دڵنیاکراو',
+  },
+
   // ── COMMON
   common: {
     loading: 'بارکردن...',

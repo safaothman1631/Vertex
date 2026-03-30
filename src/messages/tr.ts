@@ -431,6 +431,15 @@ const tr = {
     relatedProducts: 'İlgili Ürünler',
   },
 
+  // ── TESTIMONIALS
+  testimonials: {
+    label: 'Müşteri Yorumları',
+    title: 'Müşterilerimiz',
+    titleHighlight: 'Ne Diyor',
+    sub: 'POS donanımımıza güvenen işletmelerden gerçek geri bildirimler',
+    verifiedBuyer: 'Doğrulanmış Alıcı',
+  },
+
   // ── COMMON
   common: {
     loading: 'Yükleniyor...',
