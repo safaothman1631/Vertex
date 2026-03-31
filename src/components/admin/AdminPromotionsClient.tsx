@@ -1,11 +1,14 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { Plus, Pencil, Trash2, X, Eye, EyeOff, Calendar, ExternalLink } from 'lucide-react'
 import ImageUploader from './ImageUploader'
+import AdminSearch from './AdminSearch'
+import AdminPagination from './AdminPagination'
 import type { Promotion } from '@/types'
+import { useT } from '@/contexts/locale'
 
 const POSITION_LABELS: Record<string, string> = {
   hero_banner: 'Hero Banner',
@@ -27,6 +30,7 @@ const EMPTY: Partial<Promotion> = {
 }
 
 export default function AdminPromotionsClient({ promotions: initial }: { promotions: Promotion[] }) {
+  const t = useT()
   const router = useRouter()
   const supabase = createClient()
   const [promotions, setPromotions] = useState<Promotion[]>(initial)
@@ -36,8 +40,26 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
   const [loading, setLoading] = useState(false)
   const [preview, setPreview] = useState<Promotion | null>(null)
   const modalRef = useRef<HTMLDivElement>(null)
+  const [searchQ, setSearchQ] = useState('')
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(25)
+
+  const positionLabel = (pos: string) => ({ hero_banner: t.admin.heroBanner, bar: t.admin.topBar, popup: t.admin.popup, sidebar: t.admin.sidebar }[pos] ?? pos)
+
+  const filtered = useMemo(() => {
+    if (!searchQ.trim()) return promotions
+    const q = searchQ.toLowerCase()
+    return promotions.filter(p => p.title.toLowerCase().includes(q) || (p.badge_text ?? '').toLowerCase().includes(q))
+  }, [promotions, searchQ])
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * perPage
+    return filtered.slice(start, start + perPage)
+  }, [filtered, page, perPage])
 
   useEffect(() => { setPromotions(initial) }, [initial])
+
+  useEffect(() => { setPage(1) }, [searchQ])
 
   useEffect(() => {
     if (showForm) {
@@ -93,7 +115,7 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
   }
 
   async function handleDelete(id: string, title: string) {
-    if (!confirm(`Move promotion "${title}" to trash?`)) return
+    if (!confirm(t.admin.movePromotionToTrash)) return
     const promo = promotions.find(p => p.id === id)
     if (promo) await supabase.from('trash').insert({ table_name: 'promotions', record_id: id, record_data: promo })
     await supabase.from('promotions').delete().eq('id', id)
@@ -120,8 +142,12 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <p className="admin-page-sub">{promotions.length} promotions · {promotions.filter(isLive).length} live</p>
-        <button onClick={openNew} className="admin-btn admin-btn-primary"><Plus size={15} /> Add Promotion</button>
+        <p className="admin-page-sub">{filtered.length} promotions · {filtered.filter(isLive).length} live</p>
+        <button onClick={openNew} className="admin-btn admin-btn-primary"><Plus size={15} /> {t.admin.addPromotion}</button>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <AdminSearch value={searchQ} onChange={setSearchQ} placeholder={`${t.admin.search}…`} />
       </div>
 
       {/* Table */}
@@ -129,27 +155,27 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
         <table className="admin-table">
           <thead>
             <tr>
-              {['Status', 'Title', 'Position', 'Badge', 'Schedule', 'Order', 'Actions'].map(h => <th key={h}>{h}</th>)}
+              {[t.admin.status, t.admin.title, t.admin.position, t.admin.badge, t.admin.schedule, 'Order', t.admin.actions].map((h, i) => <th key={i}>{h}</th>)}
             </tr>
           </thead>
           <tbody>
-            {promotions.length === 0 ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text2)', padding: 32 }}>No promotions yet</td></tr>
-            ) : promotions.map(p => (
+            {filtered.length === 0 ? (
+              <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text2)', padding: 32 }}>{t.admin.noPromotions}</td></tr>
+            ) : paginated.map(p => (
               <tr key={p.id}>
                 <td>
-                  <button onClick={() => toggleActive(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} title={p.is_active ? 'Active — click to pause' : 'Paused — click to activate'}>
+                  <button onClick={() => toggleActive(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} title={p.is_active ? t.admin.active : t.admin.paused}>
                     {isLive(p) ? (
-                      <span className="admin-badge admin-badge-green">● Live</span>
+                      <span className="admin-badge admin-badge-green">{t.admin.live}</span>
                     ) : p.is_active ? (
-                      <span className="admin-badge admin-badge-yellow">Scheduled</span>
+                      <span className="admin-badge admin-badge-yellow">{t.admin.scheduled}</span>
                     ) : (
-                      <span className="admin-badge admin-badge-red">Paused</span>
+                      <span className="admin-badge admin-badge-red">{t.admin.paused}</span>
                     )}
                   </button>
                 </td>
                 <td style={{ fontWeight: 700, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</td>
-                <td><span className={`admin-badge ${POSITION_COLORS[p.position] ?? ''}`}>{POSITION_LABELS[p.position] ?? p.position}</span></td>
+                <td><span className={`admin-badge ${POSITION_COLORS[p.position] ?? ''}`}>{positionLabel(p.position)}</span></td>
                 <td style={{ color: 'var(--text2)', fontSize: '.85rem' }}>{p.badge_text || '—'}</td>
                 <td style={{ fontSize: '.8rem', color: 'var(--text2)', whiteSpace: 'nowrap' }}>
                   <div>{new Date(p.starts_at).toLocaleDateString()}</div>
@@ -158,9 +184,9 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
                 <td style={{ textAlign: 'center' }}>{p.sort_order}</td>
                 <td>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <button onClick={() => setPreview(p)} title="Preview" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Eye size={14} /></button>
-                    <button onClick={() => openEdit(p)} title="Edit" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Pencil size={14} /></button>
-                    <button onClick={() => handleDelete(p.id, p.title)} title="Delete" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Trash2 size={14} /></button>
+                    <button onClick={() => setPreview(p)} title={t.admin.preview} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Eye size={14} /></button>
+                    <button onClick={() => openEdit(p)} title={t.admin.edit} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Pencil size={14} /></button>
+                    <button onClick={() => handleDelete(p.id, p.title)} title={t.admin.delete} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Trash2 size={14} /></button>
                   </div>
                 </td>
               </tr>
@@ -171,14 +197,14 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
 
       {/* Mobile Cards */}
       <div className="admin-mobile-cards">
-        {promotions.map(p => (
+        {paginated.map(p => (
           <div key={p.id} className="admin-product-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: '.95rem' }}>{p.title}</div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                  {isLive(p) ? <span className="admin-badge admin-badge-green">● Live</span> : p.is_active ? <span className="admin-badge admin-badge-yellow">Scheduled</span> : <span className="admin-badge admin-badge-red">Paused</span>}
-                  <span className={`admin-badge ${POSITION_COLORS[p.position] ?? ''}`}>{POSITION_LABELS[p.position] ?? p.position}</span>
+                  {isLive(p) ? <span className="admin-badge admin-badge-green">{t.admin.live}</span> : p.is_active ? <span className="admin-badge admin-badge-yellow">{t.admin.scheduled}</span> : <span className="admin-badge admin-badge-red">{t.admin.paused}</span>}
+                  <span className={`admin-badge ${POSITION_COLORS[p.position] ?? ''}`}>{positionLabel(p.position)}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -191,12 +217,14 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
         ))}
       </div>
 
+      <AdminPagination total={filtered.length} page={page} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
+
       {/* Create/Edit Modal */}
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16 }}>
           <div ref={modalRef} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 600, maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? 'Edit Promotion' : 'New Promotion'}</h2>
+              <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? t.admin.editPromotion : t.admin.newPromotion}</h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)' }}><X size={20} /></button>
             </div>
 
@@ -220,7 +248,7 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
 
             <div className="admin-form-grid">
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={LS}>Title *</label>
+                <label style={LS}>{t.admin.title} *</label>
                 <input type="text" value={editing.title ?? ''} onChange={e => setEditing({ ...editing, title: e.target.value })} style={IS} placeholder="Spring Sale — 20% Off Everything" />
               </div>
               <div style={{ gridColumn: '1/-1' }}>
@@ -228,20 +256,20 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
                 <textarea value={editing.description ?? ''} onChange={e => setEditing({ ...editing, description: e.target.value })} style={{ ...IS, minHeight: 60, resize: 'vertical' }} placeholder="Optional description text" />
               </div>
               <div>
-                <label style={LS}>Position</label>
+                <label style={LS}>{t.admin.position}</label>
                 <select value={editing.position ?? 'bar'} onChange={e => setEditing({ ...editing, position: e.target.value as Promotion['position'] })} style={IS}>
-                  <option value="bar">Top Bar</option>
-                  <option value="hero_banner">Hero Banner</option>
-                  <option value="popup">Popup</option>
-                  <option value="sidebar">Sidebar</option>
+                  <option value="bar">{t.admin.topBar}</option>
+                  <option value="hero_banner">{t.admin.heroBanner}</option>
+                  <option value="popup">{t.admin.popup}</option>
+                  <option value="sidebar">{t.admin.sidebar}</option>
                 </select>
               </div>
               <div>
-                <label style={LS}>Badge Text</label>
+                <label style={LS}>{t.admin.badgeText}</label>
                 <input type="text" value={editing.badge_text ?? ''} onChange={e => setEditing({ ...editing, badge_text: e.target.value })} style={IS} placeholder="e.g. NEW, HOT, 50% OFF" />
               </div>
               <div>
-                <label style={LS}>Link URL</label>
+                <label style={LS}>{t.admin.linkUrl}</label>
                 <input type="text" value={editing.link_url ?? ''} onChange={e => setEditing({ ...editing, link_url: e.target.value })} style={IS} placeholder="/products?q=spring" />
               </div>
               <div>
@@ -249,27 +277,27 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
                 <input type="number" value={editing.sort_order ?? 0} onChange={e => setEditing({ ...editing, sort_order: Number(e.target.value) })} style={IS} />
               </div>
               <div>
-                <label style={LS}>Starts At</label>
+                <label style={LS}>{t.admin.startsAt}</label>
                 <input type="datetime-local" value={editing.starts_at ?? ''} onChange={e => setEditing({ ...editing, starts_at: e.target.value })} style={IS} />
               </div>
               <div>
-                <label style={LS}>Ends At <span style={{ fontWeight: 400, textTransform: 'none' }}>(optional)</span></label>
+                <label style={LS}>{t.admin.endsAt}</label>
                 <input type="datetime-local" value={(editing.ends_at as string) ?? ''} onChange={e => setEditing({ ...editing, ends_at: e.target.value || null })} style={IS} />
               </div>
               <div style={{ gridColumn: '1/-1' }}>
-                <ImageUploader value={editing.image_url ? [editing.image_url] : []} onChange={urls => setEditing({ ...editing, image_url: urls[0] ?? '' })} folder="promotions" multiple={false} label="Banner Image" />
+                <ImageUploader value={editing.image_url ? [editing.image_url] : []} onChange={urls => setEditing({ ...editing, image_url: urls[0] ?? '' })} folder="promotions" multiple={false} label={t.admin.bannerImage} />
               </div>
               <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <input type="checkbox" id="promo-active" checked={editing.is_active ?? true} onChange={e => setEditing({ ...editing, is_active: e.target.checked })} style={{ width: 18, height: 18, accentColor: 'var(--primary)' }} />
-                <label htmlFor="promo-active" style={{ fontWeight: 700, fontSize: '.9rem', cursor: 'pointer' }}>Active</label>
+                <label htmlFor="promo-active" style={{ fontWeight: 700, fontSize: '.9rem', cursor: 'pointer' }}>{t.admin.active}</label>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
               <button onClick={handleSave} disabled={loading} className="admin-btn admin-btn-primary" style={{ flex: 1, justifyContent: 'center', padding: 11 }}>
-                {loading ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Promotion'}
+                {loading ? t.admin.loading : isEdit ? t.admin.saveChanges : t.admin.createPromotion}
               </button>
-              <button onClick={() => setShowForm(false)} className="admin-btn admin-btn-ghost">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="admin-btn admin-btn-ghost">{t.admin.cancel}</button>
             </div>
           </div>
         </div>
@@ -280,7 +308,7 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16 }} onClick={e => { if (e.target === e.currentTarget) setPreview(null) }}>
           <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 560 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h2 style={{ fontWeight: 900 }}>Preview</h2>
+              <h2 style={{ fontWeight: 900 }}>{t.admin.preview}</h2>
               <button onClick={() => setPreview(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)' }}><X size={20} /></button>
             </div>
 
@@ -318,8 +346,8 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
             )}
 
             <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: '.8rem' }}>
-              <span className={`admin-badge ${POSITION_COLORS[preview.position]}`}>{POSITION_LABELS[preview.position]}</span>
-              {isLive(preview) ? <span className="admin-badge admin-badge-green">● Live</span> : <span className="admin-badge admin-badge-red">Inactive</span>}
+              <span className={`admin-badge ${POSITION_COLORS[preview.position]}`}>{positionLabel(preview.position)}</span>
+              {isLive(preview) ? <span className="admin-badge admin-badge-green">{t.admin.live}</span> : <span className="admin-badge admin-badge-red">{t.admin.inactive}</span>}
               <span style={{ color: 'var(--text2)' }}><Calendar size={11} /> {new Date(preview.starts_at).toLocaleDateString()} {preview.ends_at ? `→ ${new Date(preview.ends_at).toLocaleDateString()}` : '(no end)'}</span>
             </div>
           </div>

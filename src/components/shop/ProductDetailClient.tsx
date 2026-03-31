@@ -105,7 +105,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
                 display: 'flex', alignItems: 'center', gap: 5,
                 color: '#fff', fontSize: '.75rem', fontWeight: 600,
               }}>
-                <ZoomIn size={13} /> Click to zoom
+                <ZoomIn size={13} /> {t.productDetail.clickToZoom}
               </div>
             ) : null}
           </div>

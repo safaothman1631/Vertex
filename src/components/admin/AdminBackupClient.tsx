@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Download, Upload, FileJson, AlertTriangle, CheckCircle, Loader2, Shield } from 'lucide-react'
+import { useT } from '@/contexts/locale'
 
 interface RestoreResult {
   table: string
@@ -10,6 +11,7 @@ interface RestoreResult {
 }
 
 export default function AdminBackupClient() {
+  const t = useT()
   const [downloading, setDownloading] = useState(false)
   const [restoring, setRestoring] = useState(false)
   const [preview, setPreview] = useState<{ tables: Record<string, unknown[]>; created_at: string; version: string } | null>(null)
@@ -22,7 +24,7 @@ export default function AdminBackupClient() {
     setError('')
     try {
       const res = await fetch('/api/admin/backup')
-      if (!res.ok) throw new Error('Backup failed')
+      if (!res.ok) throw new Error(t.admin.backupFailed)
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -31,7 +33,7 @@ export default function AdminBackupClient() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Download failed')
+      setError(e instanceof Error ? e.message : t.admin.downloadFailed)
     }
     setDownloading(false)
   }
@@ -47,12 +49,12 @@ export default function AdminBackupClient() {
       try {
         const data = JSON.parse(ev.target?.result as string)
         if (!data.version || !data.tables) {
-          setError('Invalid backup file format')
+          setError(t.admin.invalidFormat)
           return
         }
         setPreview(data)
       } catch {
-        setError('Failed to parse JSON file')
+        setError(t.admin.parseError)
       }
     }
     reader.readAsText(file)
@@ -69,11 +71,11 @@ export default function AdminBackupClient() {
         body: JSON.stringify(preview),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Restore failed')
+      if (!res.ok) throw new Error(data.error || t.admin.restoreFailed)
       setRestoreResults(data.results)
       setPreview(null)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Restore failed')
+      setError(e instanceof Error ? e.message : t.admin.restoreFailed)
     }
     setRestoring(false)
   }
@@ -83,7 +85,7 @@ export default function AdminBackupClient() {
   return (
     <div>
       <p className="admin-page-sub" style={{ marginBottom: 24 }}>
-        Download a full database backup or restore from a previous backup file.
+        {t.admin.backupDesc}
       </p>
 
       {error && (
@@ -100,15 +102,15 @@ export default function AdminBackupClient() {
               <Download size={20} color="#fff" />
             </div>
             <div>
-              <h3 style={{ fontWeight: 800, fontSize: '1rem' }}>Download Backup</h3>
-              <p style={{ fontSize: '.82rem', color: 'var(--text2)' }}>Export all tables as JSON</p>
+              <h3 style={{ fontWeight: 800, fontSize: '1rem' }}>{t.admin.downloadBackupBtn}</h3>
+              <p style={{ fontSize: '.82rem', color: 'var(--text2)' }}>{t.admin.downloadBackupDesc}</p>
             </div>
           </div>
           <p style={{ fontSize: '.85rem', color: 'var(--text2)', marginBottom: 16, lineHeight: 1.5 }}>
-            Creates a complete snapshot of all database tables. Use this to keep periodic backups or before making major changes.
+            {t.admin.downloadBackupLong}
           </p>
           <button onClick={handleDownload} disabled={downloading} className="admin-btn admin-btn-primary" style={{ width: '100%', justifyContent: 'center', gap: 8 }}>
-            {downloading ? <><Loader2 size={16} className="spin" /> Downloading...</> : <><Download size={16} /> Download Backup</>}
+            {downloading ? <><Loader2 size={16} className="spin" /> {t.admin.downloading}...</> : <><Download size={16} /> {t.admin.downloadBackupBtn}</>}
           </button>
         </div>
 
@@ -119,16 +121,16 @@ export default function AdminBackupClient() {
               <Upload size={20} color="#fff" />
             </div>
             <div>
-              <h3 style={{ fontWeight: 800, fontSize: '1rem' }}>Restore from Backup</h3>
-              <p style={{ fontSize: '.82rem', color: 'var(--text2)' }}>Import data from a backup file</p>
+              <h3 style={{ fontWeight: 800, fontSize: '1rem' }}>{t.admin.restoreBackupBtn}</h3>
+              <p style={{ fontSize: '.82rem', color: 'var(--text2)' }}>{t.admin.restoreBackupDesc}</p>
             </div>
           </div>
           <p style={{ fontSize: '.85rem', color: 'var(--text2)', marginBottom: 16, lineHeight: 1.5 }}>
-            Upload a previously downloaded backup file to restore data. Existing records will be updated, new records inserted.
+            {t.admin.restoreBackupLong}
           </p>
           <input ref={fileRef} type="file" accept=".json" onChange={handleFileSelect} style={{ display: 'none' }} />
           <button onClick={() => fileRef.current?.click()} className="admin-btn" style={{ width: '100%', justifyContent: 'center', gap: 8, background: 'var(--bg3)', border: '1px solid var(--border)' }}>
-            <FileJson size={16} /> Select Backup File
+            <FileJson size={16} /> {t.admin.selectFile}
           </button>
         </div>
       </div>
@@ -137,20 +139,20 @@ export default function AdminBackupClient() {
       {preview && (
         <div className="admin-card" style={{ padding: 20, marginBottom: 20 }}>
           <h3 style={{ fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Shield size={16} /> Backup Preview
+            <Shield size={16} /> {t.admin.backupPreview}
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 6, marginBottom: 16 }}>
             <div style={{ padding: '8px 12px', background: 'var(--bg3)', borderRadius: 8, fontSize: '.82rem' }}>
-              <span style={{ color: 'var(--text3)' }}>Version:</span> <strong>{preview.version}</strong>
+              <span style={{ color: 'var(--text3)' }}>{t.admin.version}:</span> <strong>{preview.version}</strong>
             </div>
             <div style={{ padding: '8px 12px', background: 'var(--bg3)', borderRadius: 8, fontSize: '.82rem' }}>
-              <span style={{ color: 'var(--text3)' }}>Date:</span> <strong>{new Date(preview.created_at).toLocaleDateString()}</strong>
+              <span style={{ color: 'var(--text3)' }}>{t.admin.backupDate}</span> <strong>{new Date(preview.created_at).toLocaleDateString()}</strong>
             </div>
             <div style={{ padding: '8px 12px', background: 'var(--bg3)', borderRadius: 8, fontSize: '.82rem' }}>
-              <span style={{ color: 'var(--text3)' }}>Tables:</span> <strong>{Object.keys(preview.tables).length}</strong>
+              <span style={{ color: 'var(--text3)' }}>{t.admin.tables}:</span> <strong>{Object.keys(preview.tables).length}</strong>
             </div>
             <div style={{ padding: '8px 12px', background: 'var(--bg3)', borderRadius: 8, fontSize: '.82rem' }}>
-              <span style={{ color: 'var(--text3)' }}>Rows:</span> <strong>{totalPreviewRows}</strong>
+              <span style={{ color: 'var(--text3)' }}>{t.admin.rows}:</span> <strong>{totalPreviewRows}</strong>
             </div>
           </div>
 
@@ -165,10 +167,10 @@ export default function AdminBackupClient() {
 
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={handleRestore} disabled={restoring} className="admin-btn admin-btn-primary" style={{ gap: 8 }}>
-              {restoring ? <><Loader2 size={14} className="spin" /> Restoring...</> : <><Upload size={14} /> Confirm Restore</>}
+              {restoring ? <><Loader2 size={14} className="spin" /> {t.admin.restoring}...</> : <><Upload size={14} /> {t.admin.confirmRestore}</>}
             </button>
             <button onClick={() => setPreview(null)} className="admin-btn" style={{ background: 'var(--bg3)', border: '1px solid var(--border)' }}>
-              Cancel
+              {t.admin.cancel}
             </button>
           </div>
         </div>
@@ -178,7 +180,7 @@ export default function AdminBackupClient() {
       {restoreResults && (
         <div className="admin-card" style={{ padding: 20 }}>
           <h3 style={{ fontWeight: 800, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <CheckCircle size={16} color="#22c55e" /> Restore Complete
+            <CheckCircle size={16} color="#22c55e" /> {t.admin.restoreComplete}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {restoreResults.map(r => (

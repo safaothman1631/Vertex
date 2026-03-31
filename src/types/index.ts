@@ -85,6 +85,7 @@ export interface OrderItem {
 export interface ShippingAddress {
   name: string
   email: string
+  phone?: string
   address: string
   city: string
   country: string

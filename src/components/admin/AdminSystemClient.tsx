@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Activity, Database, Shield, HardDrive, Zap, AlertTriangle, CheckCircle, Clock, RefreshCw, ChevronDown, ChevronUp, Server } from 'lucide-react'
 import type { SystemLog } from '@/types'
+import { useT } from '@/contexts/locale'
 
 interface HealthData {
   tableCounts: Record<string, number>
@@ -44,6 +45,7 @@ function HealthCard({ label, score, icon: Icon, detail }: { label: string; score
 }
 
 export default function AdminSystemClient({ initialLogs }: { initialLogs: SystemLog[] }) {
+  const t = useT()
   const [health, setHealth] = useState<HealthData | null>(null)
   const [logs, setLogs] = useState<SystemLog[]>(initialLogs)
   const [loading, setLoading] = useState(true)
@@ -86,10 +88,10 @@ export default function AdminSystemClient({ initialLogs }: { initialLogs: System
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <p className="admin-page-sub">
-          {loading ? 'Loading...' : `Overall health: ${h?.overall ?? '—'}/100`}
+          {loading ? `${t.admin.loading}...` : t.admin.overallHealth.replace('{score}', String(h?.overall ?? '—'))}
         </p>
         <button onClick={fetchHealth} disabled={loading} className="admin-btn admin-btn-primary" style={{ gap: 6 }}>
-          <RefreshCw size={14} className={loading ? 'spin' : ''} /> Refresh
+          <RefreshCw size={14} className={loading ? 'spin' : ''} /> {t.admin.refresh}
         </button>
       </div>
 
@@ -106,10 +108,10 @@ export default function AdminSystemClient({ initialLogs }: { initialLogs: System
             </div>
           </div>
           <div style={{ fontWeight: 800, fontSize: '1rem' }}>
-            {h.overall >= 80 ? '✓ System Healthy' : h.overall >= 50 ? '⚠ Needs Attention' : '✕ Critical Issues'}
+            {h.overall >= 80 ? `✓ ${t.admin.systemHealthy}` : h.overall >= 50 ? `⚠ ${t.admin.needsAttention}` : `✕ ${t.admin.criticalIssues}`}
           </div>
           <div style={{ color: 'var(--text2)', fontSize: '.82rem', marginTop: 4 }}>
-            Last checked: {lastRefresh.toLocaleTimeString()}
+            {t.admin.lastChecked}: {lastRefresh.toLocaleTimeString()}
           </div>
         </div>
       )}
@@ -117,10 +119,10 @@ export default function AdminSystemClient({ initialLogs }: { initialLogs: System
       {/* Health Cards */}
       {h && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, marginBottom: 24 }}>
-          <HealthCard label="Database" score={h.database} icon={Database} detail={`${health?.totalRows ?? 0} total rows · ${health?.errors24h ?? 0} errors (24h)`} />
-          <HealthCard label="Security" score={h.security} icon={Shield} detail={`${health?.adminCount ?? 0} admin users · RLS enabled`} />
-          <HealthCard label="Storage" score={h.storage} icon={HardDrive} detail={`${Object.keys(health?.tableCounts ?? {}).length} tables active`} />
-          <HealthCard label="Performance" score={h.performance} icon={Zap} detail={health?.lastOrderAt ? `Last order: ${new Date(health.lastOrderAt).toLocaleDateString()}` : 'No orders yet'} />
+          <HealthCard label={t.admin.database} score={h.database} icon={Database} detail={`${health?.totalRows ?? 0} total rows · ${health?.errors24h ?? 0} errors (24h)`} />
+          <HealthCard label={t.admin.security} score={h.security} icon={Shield} detail={`${health?.adminCount ?? 0} admin users · RLS enabled`} />
+          <HealthCard label={t.admin.storage} score={h.storage} icon={HardDrive} detail={`${Object.keys(health?.tableCounts ?? {}).length} tables active`} />
+          <HealthCard label={t.admin.performance} score={h.performance} icon={Zap} detail={health?.lastOrderAt ? `Last order: ${new Date(health.lastOrderAt).toLocaleDateString()}` : 'No orders yet'} />
         </div>
       )}
 
@@ -128,7 +130,7 @@ export default function AdminSystemClient({ initialLogs }: { initialLogs: System
       {health && (
         <div className="admin-card" style={{ padding: 20, marginBottom: 24 }}>
           <h3 style={{ fontWeight: 800, fontSize: '.95rem', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Server size={16} /> Database Tables
+            <Server size={16} /> {t.admin.databaseTables}
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }}>
             {Object.entries(health.tableCounts).sort(([, a], [, b]) => b - a).map(([table, count]) => (
@@ -143,21 +145,21 @@ export default function AdminSystemClient({ initialLogs }: { initialLogs: System
 
       {/* System Logs */}
       <div style={{ marginBottom: 12, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <h2 style={{ fontWeight: 900, fontSize: '1.05rem' }}>System Logs</h2>
+        <h2 style={{ fontWeight: 900, fontSize: '1.05rem' }}>{t.admin.systemLogs}</h2>
         <select value={levelFilter} onChange={e => setLevelFilter(e.target.value)} style={{ padding: '6px 10px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: '.82rem' }}>
-          <option value="all">All Levels</option>
-          <option value="info">Info</option>
-          <option value="warning">Warning</option>
-          <option value="error">Error</option>
-          <option value="critical">Critical</option>
+          <option value="all">{t.admin.allLevels}</option>
+          <option value="info">{t.admin.info}</option>
+          <option value="warning">{t.admin.warning}</option>
+          <option value="error">{t.admin.error}</option>
+          <option value="critical">{t.admin.critical}</option>
         </select>
         <select value={sourceFilter} onChange={e => setSourceFilter(e.target.value)} style={{ padding: '6px 10px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: '.82rem' }}>
-          <option value="all">All Sources</option>
-          <option value="api">API</option>
-          <option value="auth">Auth</option>
-          <option value="db">Database</option>
-          <option value="cron">Cron</option>
-          <option value="manual">Manual</option>
+          <option value="all">{t.admin.allSources}</option>
+          <option value="api">{t.admin.api}</option>
+          <option value="auth">{t.admin.auth}</option>
+          <option value="db">{t.admin.dbSource}</option>
+          <option value="cron">{t.admin.cron}</option>
+          <option value="manual">{t.admin.manual}</option>
         </select>
         <span style={{ fontSize: '.8rem', color: 'var(--text3)' }}>{filteredLogs.length} entries</span>
       </div>
@@ -165,8 +167,8 @@ export default function AdminSystemClient({ initialLogs }: { initialLogs: System
       {filteredLogs.length === 0 ? (
         <div className="admin-card" style={{ textAlign: 'center', padding: 48, color: 'var(--text2)' }}>
           <Activity size={40} style={{ opacity: .3, marginBottom: 12 }} />
-          <p>No logs found</p>
-          <p style={{ fontSize: '.82rem', color: 'var(--text3)' }}>Logs are recorded automatically when system events occur</p>
+          <p>{t.admin.noLogs}</p>
+          <p style={{ fontSize: '.82rem', color: 'var(--text3)' }}>{t.admin.logsExplanation}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

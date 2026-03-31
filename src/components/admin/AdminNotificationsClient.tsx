@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Send, Bell, Users, Shield, Globe, CheckCircle, Clock } from 'lucide-react'
+import { useT } from '@/contexts/locale'
 
 interface Broadcast {
   title: string
@@ -22,6 +23,7 @@ const TYPE_CONFIG: Record<string, { label: string; color: string; badge: string 
 
 export default function AdminNotificationsClient({ broadcasts, totalUsers }: { broadcasts: Broadcast[]; totalUsers: number }) {
   const router = useRouter()
+  const t = useT()
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
   const [type, setType] = useState('info')
@@ -60,7 +62,7 @@ export default function AdminNotificationsClient({ broadcasts, totalUsers }: { b
 
   return (
     <div>
-      <p className="admin-page-sub">{totalUsers} registered users</p>
+      <p className="admin-page-sub">{totalUsers} {t.admin.registeredUsers}</p>
 
       {/* Compose Section */}
       <div className="admin-card" style={{ padding: 24, marginTop: 16 }}>
@@ -69,8 +71,8 @@ export default function AdminNotificationsClient({ broadcasts, totalUsers }: { b
             <Send size={18} color="#fff" />
           </div>
           <div>
-            <h2 style={{ fontWeight: 900, fontSize: '1.05rem', margin: 0 }}>Compose Broadcast</h2>
-            <p style={{ color: 'var(--text2)', fontSize: '.82rem', margin: 0 }}>Send a notification to multiple users at once</p>
+            <h2 style={{ fontWeight: 900, fontSize: '1.05rem', margin: 0 }}>{t.admin.composeBroadcast}</h2>
+            <p style={{ color: 'var(--text2)', fontSize: '.82rem', margin: 0 }}>{t.admin.broadcastDesc}</p>
           </div>
         </div>
 
@@ -80,24 +82,24 @@ export default function AdminNotificationsClient({ broadcasts, totalUsers }: { b
             <input type="text" value={title} onChange={e => setTitle(e.target.value)} style={IS} placeholder="e.g. New Products Available!" maxLength={200} />
           </div>
           <div style={{ gridColumn: '1/-1' }}>
-            <label style={LS}>Message *</label>
+            <label style={LS}>{t.admin.message} *</label>
             <textarea value={message} onChange={e => setMessage(e.target.value)} style={{ ...IS, minHeight: 80, resize: 'vertical' }} placeholder="Write your notification message..." maxLength={2000} />
             <div style={{ textAlign: 'right', fontSize: '.75rem', color: 'var(--text3)', marginTop: 4 }}>{message.length}/2000</div>
           </div>
           <div>
-            <label style={LS}>Type</label>
+            <label style={LS}>{t.admin.type}</label>
             <select value={type} onChange={e => setType(e.target.value)} style={IS}>
-              <option value="info">ℹ️ Info</option>
-              <option value="promo">🎉 Promo</option>
-              <option value="system">⚙️ System</option>
+              <option value="info">{t.admin.infoType}</option>
+              <option value="promo">{t.admin.promoType}</option>
+              <option value="system">{t.admin.systemType}</option>
             </select>
           </div>
           <div>
-            <label style={LS}>Recipients</label>
+            <label style={LS}>{t.admin.recipients}</label>
             <select value={target} onChange={e => setTarget(e.target.value)} style={IS}>
-              <option value="all">🌐 All Users ({totalUsers})</option>
-              <option value="users">👤 Customers Only</option>
-              <option value="admins">🛡️ Admins Only</option>
+              <option value="all">{t.admin.allUsers} ({totalUsers})</option>
+              <option value="users">{t.admin.customersOnly}</option>
+              <option value="admins">{t.admin.adminsOnly}</option>
             </select>
           </div>
         </div>
@@ -105,7 +107,7 @@ export default function AdminNotificationsClient({ broadcasts, totalUsers }: { b
         {/* Preview */}
         {title && (
           <div style={{ marginTop: 16, padding: 14, background: 'var(--bg3)', borderRadius: 12, border: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '.72rem', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', marginBottom: 6 }}>Preview</div>
+            <div style={{ fontSize: '.72rem', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', marginBottom: 6 }}>{t.admin.preview}</div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: TYPE_CONFIG[type]?.color ?? 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Bell size={16} color="#fff" />
@@ -120,22 +122,22 @@ export default function AdminNotificationsClient({ broadcasts, totalUsers }: { b
 
         {result && (
           <div style={{ marginTop: 12, padding: 12, borderRadius: 10, background: result.success ? 'rgba(34,197,94,.1)' : 'rgba(239,68,68,.1)', border: `1px solid ${result.success ? 'rgba(34,197,94,.3)' : 'rgba(239,68,68,.3)'}`, color: result.success ? '#16a34a' : '#ef4444', fontWeight: 700, fontSize: '.85rem' }}>
-            {result.success ? `✓ Sent to ${result.sent} users` : `✕ ${result.error}`}
+            {result.success ? `✓ ${t.admin.sentTo.replace('{count}', String(result.sent))}` : `✕ ${result.error}`}
           </div>
         )}
 
         <button onClick={handleSend} disabled={loading || !title.trim() || !message.trim()} className="admin-btn admin-btn-primary" style={{ marginTop: 16, width: '100%', justifyContent: 'center', padding: 12 }}>
-          <Send size={15} /> {loading ? 'Sending…' : 'Send Broadcast'}
+          <Send size={15} /> {loading ? `${t.admin.loading}…` : t.admin.sendBroadcast}
         </button>
       </div>
 
       {/* History */}
       <div style={{ marginTop: 28 }}>
-        <h2 style={{ fontWeight: 900, fontSize: '1.05rem', marginBottom: 14 }}>Broadcast History</h2>
+        <h2 style={{ fontWeight: 900, fontSize: '1.05rem', marginBottom: 14 }}>{t.admin.broadcastHistory}</h2>
         {broadcasts.length === 0 ? (
           <div className="admin-card" style={{ textAlign: 'center', padding: 48, color: 'var(--text2)' }}>
             <Bell size={40} style={{ opacity: .3, marginBottom: 12 }} />
-            <p>No broadcasts sent yet</p>
+            <p>{t.admin.noBroadcasts}</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -154,8 +156,8 @@ export default function AdminNotificationsClient({ broadcasts, totalUsers }: { b
                     </div>
                     <div style={{ color: 'var(--text2)', fontSize: '.82rem', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.body}</div>
                     <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: '.78rem', color: 'var(--text3)' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Users size={12} /> {b.recipientCount} recipients</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle size={12} /> {readPct}% read</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Users size={12} /> {t.admin.sentTo.replace('{count}', String(b.recipientCount))}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle size={12} /> {readPct}{t.admin.readPercentage}</span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} /> {new Date(b.created_at).toLocaleDateString()}</span>
                     </div>
                     {/* Read progress bar */}

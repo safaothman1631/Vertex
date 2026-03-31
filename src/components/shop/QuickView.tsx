@@ -75,7 +75,7 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
 
             {!p.in_stock && (
               <div style={{ display: 'inline-block', background: 'rgba(249,115,22,.12)', color: '#f97316', fontWeight: 700, fontSize: '.8rem', padding: '5px 12px', borderRadius: 20, marginBottom: 12 }}>
-                Out of Stock
+                {t.common.outOfStock}
               </div>
             )}
 
@@ -96,7 +96,7 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
                 style={{ flex: 1, opacity: p.in_stock ? 1 : 0.5, cursor: p.in_stock ? 'pointer' : 'not-allowed' }}
                 onClick={() => { if (p.in_stock) { onAddToCart(); onClose() } }}
               >
-                {p.in_stock ? t.quickView.addToCart : 'Out of Stock'}
+                {p.in_stock ? t.quickView.addToCart : t.common.outOfStock}
               </button>
               <button className="btn btn-outline" onClick={onClose}>{t.quickView.close}</button>
             </div>

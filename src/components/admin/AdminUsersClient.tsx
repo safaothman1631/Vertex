@@ -1,8 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Trash2, ShieldCheck, User, Eye, X, ShoppingBag } from 'lucide-react'
 import type { Profile } from '@/types'
+import { useT } from '@/contexts/locale'
+import AdminSearch from './AdminSearch'
+import AdminPagination from './AdminPagination'
 
 type UserWithOrders = Profile & { order_count: number }
 
@@ -11,6 +14,29 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
   const [detail, setDetail] = useState<UserWithOrders | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [searchQ, setSearchQ] = useState('')
+  const [filterRole, setFilterRole] = useState<'' | 'admin' | 'customer'>('')
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(25)
+  const t = useT()
+
+  useEffect(() => { setPage(1) }, [searchQ, filterRole])
+
+  const filtered = useMemo(() => {
+    let list = users
+    if (searchQ) {
+      const q = searchQ.toLowerCase()
+      list = list.filter(u => (u.full_name ?? '').toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
+    }
+    if (filterRole === 'admin') list = list.filter(u => u.role === 'admin')
+    if (filterRole === 'customer') list = list.filter(u => u.role === 'user')
+    return list
+  }, [users, searchQ, filterRole])
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * perPage
+    return filtered.slice(start, start + perPage)
+  }, [filtered, page, perPage])
 
   async function handleRoleToggle(id: string, current: 'user' | 'admin') {
     const next = current === 'admin' ? 'user' : 'admin'
@@ -23,7 +49,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      setError(data.error ?? 'Failed to update role')
+      setError(data.error ?? t.admin.failedUpdateRole)
     } else {
       setUsers(prev => prev.map(u => u.id === id ? { ...u, role: next } : u))
       if (detail?.id === id) setDetail(prev => prev ? { ...prev, role: next } : prev)
@@ -32,7 +58,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this user and all their data?')) return
+    if (!confirm(t.admin.deleteUserConfirm)) return
     setError(null)
     const res = await fetch('/api/admin/users', {
       method: 'DELETE',
@@ -41,15 +67,15 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      setError(data.error ?? 'Failed to delete user')
+      setError(data.error ?? t.admin.failedDeleteUser)
     } else {
       setUsers(prev => prev.filter(u => u.id !== id))
       if (detail?.id === id) setDetail(null)
     }
   }
 
-  const admins = users.filter(u => u.role === 'admin').length
-  const regular = users.filter(u => u.role === 'user').length
+  const admins = filtered.filter(u => u.role === 'admin').length
+  const regular = filtered.filter(u => u.role === 'user').length
 
   return (
     <div>
@@ -61,9 +87,22 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
       )}
       <div className="admin-page-head">
         <div>
-          <h1 className="admin-page-title">Users</h1>
-          <p className="admin-page-sub">{users.length} registered — {admins} admin, {regular} customer</p>
+          <h1 className="admin-page-title">{t.admin.users}</h1>
+          <p className="admin-page-sub">{filtered.length} {t.admin.registered} — {admins} {t.admin.adminRole}, {regular} {t.admin.customerRole}</p>
         </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
+        <AdminSearch value={searchQ} onChange={setSearchQ} placeholder={t.admin.search} />
+        <select
+          value={filterRole}
+          onChange={e => setFilterRole(e.target.value as '' | 'admin' | 'customer')}
+          style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: '.82rem', padding: '7px 10px' }}
+        >
+          <option value="">{t.admin.all}</option>
+          <option value="admin">{t.admin.adminRole}</option>
+          <option value="customer">{t.admin.customerRole}</option>
+        </select>
       </div>
 
       {/* Desktop Table */}
@@ -71,15 +110,15 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
         <table className="admin-table">
           <thead>
             <tr>
-              {['Name', 'Email', 'Orders', 'Role', 'Joined', 'Actions'].map(h => (
+              {[t.admin.name, t.admin.email, t.admin.orderCount, t.admin.role, t.admin.joinDate, t.admin.actions].map(h => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text2)', padding: '40px' }}>No users yet</td></tr>
-            ) : users.map(u => (
+            {paginated.length === 0 ? (
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text2)', padding: '40px' }}>{t.admin.noUsers}</td></tr>
+            ) : paginated.map(u => (
               <tr key={u.id}>
                 <td style={{ fontWeight: 600 }}>{u.full_name ?? '—'}</td>
                 <td style={{ color: 'var(--text2)' }}>{u.email}</td>
@@ -93,7 +132,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
                   <button
                     onClick={() => handleRoleToggle(u.id, u.role)}
                     disabled={updatingId === u.id}
-                    title={u.role === 'admin' ? 'Revoke admin' : 'Make admin'}
+                    title={u.role === 'admin' ? t.admin.revokeAdmin : t.admin.makeAdmin}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 5,
                       padding: '6px 14px', borderRadius: 20,
@@ -114,14 +153,14 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button
                       onClick={() => setDetail(u)}
-                      title="View details"
+                      title={t.admin.userDetails}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: 'var(--primary)' }}
                     >
                       <Eye size={15} />
                     </button>
                     <button
                       onClick={() => handleDelete(u.id)}
-                      title="Delete user"
+                      title={t.admin.deleteUser}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: '#ef4444' }}
                     >
                       <Trash2 size={15} />
@@ -134,11 +173,13 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
         </table>
       </div>
 
+      <AdminPagination total={filtered.length} page={page} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
+
       {/* Mobile Cards */}
       <div className="admin-mobile-cards">
-        {users.length === 0 ? (
-          <div style={{ textAlign: 'center', color: 'var(--text2)', padding: '40px 0' }}>No users yet</div>
-        ) : users.map(u => (
+        {paginated.length === 0 ? (
+          <div style={{ textAlign: 'center', color: 'var(--text2)', padding: '40px 0' }}>{t.admin.noUsers}</div>
+        ) : paginated.map(u => (
           <div key={u.id} className="admin-product-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
@@ -166,7 +207,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
               >
                 {u.role}
               </button>
-              <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>{u.order_count} orders</span>
+              <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>{u.order_count} {t.admin.orders}</span>
               <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>{new Date(u.created_at).toLocaleDateString()}</span>
             </div>
           </div>
@@ -181,7 +222,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
         >
           <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 460 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <h2 style={{ fontWeight: 900, fontSize: '1.05rem' }}>User Details</h2>
+              <h2 style={{ fontWeight: 900, fontSize: '1.05rem' }}>{t.admin.userDetails}</h2>
               <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)', padding: 4 }}>
                 <X size={20} />
               </button>
@@ -201,10 +242,10 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
             {/* Info grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
               {[
-                { label: 'Role', value: detail.role, highlight: detail.role === 'admin' ? '#a855f7' : '#38bdf8' },
-                { label: 'Total Orders', value: String(detail.order_count), highlight: 'var(--primary)' },
-                { label: 'User ID', value: detail.id.slice(0, 12) + '…', highlight: undefined },
-                { label: 'Joined', value: new Date(detail.created_at).toLocaleDateString(), highlight: undefined },
+                { label: t.admin.role, value: detail.role, highlight: detail.role === 'admin' ? '#a855f7' : '#38bdf8' },
+                { label: t.admin.totalOrders, value: String(detail.order_count), highlight: 'var(--primary)' },
+                { label: t.admin.userId, value: detail.id.slice(0, 12) + '…', highlight: undefined },
+                { label: t.admin.joinDate, value: new Date(detail.created_at).toLocaleDateString(), highlight: undefined },
               ].map(({ label, value, highlight }) => (
                 <div key={label} style={{ background: 'var(--bg3)', borderRadius: 'var(--radius-lg)', padding: '12px 14px' }}>
                   <div style={{ fontSize: '.7rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>{label}</div>
@@ -223,7 +264,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}
               >
-                {detail.role === 'admin' ? <><User size={14} /> Revoke Admin</> : <><ShieldCheck size={14} /> Make Admin</>}
+                {detail.role === 'admin' ? <><User size={14} /> {t.admin.revokeAdmin}</> : <><ShieldCheck size={14} /> {t.admin.makeAdmin}</>}
               </button>
               <button
                 onClick={() => handleDelete(detail.id)}
@@ -233,7 +274,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
                   border: '1px solid rgba(239,68,68,.25)', cursor: 'pointer', fontWeight: 700, fontSize: '.85rem',
                 }}
               >
-                Delete
+                {t.admin.delete}
               </button>
             </div>
           </div>

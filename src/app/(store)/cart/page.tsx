@@ -3,7 +3,7 @@
 import { useCartStore } from '@/store/cart'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Trash2, Plus, Minus } from 'lucide-react'
+import { Trash2, Plus, Minus, Package } from 'lucide-react'
 import { useT } from '@/contexts/locale'
 import EmptyState from '@/components/ui/EmptyState'
 
@@ -47,7 +47,7 @@ export default function CartPage() {
                     sizes="80px"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                  <div className="w-full h-full flex items-center justify-center"><Package size={24} style={{ color: 'var(--text-secondary)' }} /></div>
                 )}
               </div>
 
@@ -104,8 +104,8 @@ export default function CartPage() {
               <span>${totalPrice().toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm mb-4">
-              <span style={{ color: 'var(--text-secondary)' }}>{t.cartPage.tax}</span>
-              <span className="text-green-400">$0.00</span>
+              <span style={{ color: 'var(--text-secondary)' }}>{t.cartPage.shipping}</span>
+              <span className="text-green-400">{t.cartPage.free}</span>
             </div>
             <div
               className="flex justify-between font-bold text-base pt-4 mb-5"

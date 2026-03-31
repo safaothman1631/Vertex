@@ -261,7 +261,7 @@ function BrandProductCard({
         <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
           {p.is_hot && <span style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', fontSize: '.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.hot}</span>}
           {p.is_new && <span style={{ background: 'var(--gradient)', color: '#fff', fontSize: '.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.new}</span>}
-          {!p.in_stock && <span style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)', color: '#fff', fontSize: '.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>Out of Stock</span>}
+          {!p.in_stock && <span style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)', color: '#fff', fontSize: '.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.common.outOfStock}</span>}
         </div>
 
         {/* quick-view hint */}
@@ -299,7 +299,7 @@ function BrandProductCard({
           transition: 'all .22s',
           boxShadow: (!p.in_stock || isAdded) ? 'none' : `0 4px 14px ${brandC1}44`,
         }}>
-          {!p.in_stock ? 'Out of Stock' : isAdded ? t.productCard.added : <><ShoppingCart size={12} /> {t.productCard.addToCart}</>}
+          {!p.in_stock ? t.common.outOfStock : isAdded ? t.productCard.added : <><ShoppingCart size={12} /> {t.productCard.addToCart}</>}
         </button>
       </div>
     </div>

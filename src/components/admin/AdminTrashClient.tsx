@@ -1,10 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { Trash2, RotateCcw, Clock, Package, ShoppingBag, Mail, Tag, FolderTree, Building2, RefreshCw, AlertTriangle } from 'lucide-react'
+import AdminSearch from './AdminSearch'
+import AdminPagination from './AdminPagination'
 import type { TrashItem } from '@/types'
+import { useT } from '@/contexts/locale'
 
 const TABLE_META: Record<string, { label: string; icon: typeof Package; color: string }> = {
   products:         { label: 'Product',  icon: Package,    color: '#6366f1' },
@@ -28,11 +31,30 @@ function getDaysLeft(expires: string): number {
 }
 
 export default function AdminTrashClient({ items: initial }: { items: TrashItem[] }) {
+  const t = useT()
   const [items, setItems] = useState<TrashItem[]>(initial)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
+  const typeLabels: Record<string, string> = { products: t.admin.product, orders: t.admin.order, contact_messages: t.admin.messageTr, coupons: t.admin.coupon, brands: t.admin.brandTr, categories: t.admin.categoryTr }
+
+  const [searchQ, setSearchQ] = useState('')
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(25)
+
+  const filtered = useMemo(() => {
+    if (!searchQ.trim()) return items
+    const q = searchQ.toLowerCase()
+    return items.filter(item => getItemLabel(item).toLowerCase().includes(q))
+  }, [items, searchQ])
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * perPage
+    return filtered.slice(start, start + perPage)
+  }, [filtered, page, perPage])
+
+  useEffect(() => { setPage(1) }, [searchQ])
 
   async function handleRestore(item: TrashItem) {
     setLoadingId(item.id)
@@ -50,7 +72,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
       .insert(data)
 
     if (insertErr) {
-      setError(`Restore failed: ${insertErr.message}`)
+      setError(`${t.admin.restoreFailed}: ${insertErr.message}`)
       setLoadingId(null)
       return
     }
@@ -63,13 +85,13 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
   }
 
   async function handlePermanentDelete(item: TrashItem) {
-    if (!confirm('Permanently delete? This cannot be undone.')) return
+    if (!confirm(t.admin.permanentDeleteConfirm)) return
     setLoadingId(item.id)
     setError(null)
 
     const { error: delErr } = await supabase.from('trash').delete().eq('id', item.id)
     if (delErr) {
-      setError(`Delete failed: ${delErr.message}`)
+      setError(`${t.admin.deleteFailed}: ${delErr.message}`)
     } else {
       setItems(prev => prev.filter(i => i.id !== item.id))
     }
@@ -77,7 +99,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
   }
 
   async function handleEmptyTrash() {
-    if (!confirm('Permanently delete ALL items in trash? This cannot be undone.')) return
+    if (!confirm(t.admin.emptyTrashConfirm)) return
     setLoadingId('all')
     setError(null)
 
@@ -99,7 +121,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
 
       <div className="admin-page-head">
         <div>
-          <p className="admin-page-sub">{items.length} item(s) in trash — auto-deleted after 30 days</p>
+          <p className="admin-page-sub">{filtered.length} {t.admin.itemsInTrash} — {t.admin.autoDeleteInfo}</p>
         </div>
         {items.length > 0 && (
           <button
@@ -109,15 +131,19 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
             style={{ background: 'rgba(239,68,68,.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,.25)', gap: 6 }}
           >
             <Trash2 size={14} />
-            Empty Trash
+            {t.admin.emptyTrash}
           </button>
         )}
       </div>
 
-      {items.length === 0 ? (
+      <div style={{ marginBottom: 16 }}>
+        <AdminSearch value={searchQ} onChange={setSearchQ} placeholder={`${t.admin.search}…`} />
+      </div>
+
+      {filtered.length === 0 ? (
         <div className="admin-card" style={{ textAlign: 'center', padding: '64px', color: 'var(--text2)' }}>
           <Trash2 size={32} style={{ margin: '0 auto 12px', opacity: .3 }} />
-          <p>Trash is empty</p>
+          <p>{t.admin.trashEmpty}</p>
         </div>
       ) : (
         <>
@@ -126,13 +152,13 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
             <table className="admin-table">
               <thead>
                 <tr>
-                  {['Type', 'Name', 'Deleted', 'Expires In', 'Actions'].map(h => (
-                    <th key={h}>{h}</th>
+                  {[t.admin.type, t.admin.name, t.admin.deleted, t.admin.expiresIn, t.admin.actions].map((h, i) => (
+                    <th key={i}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {items.map(item => {
+                {paginated.map(item => {
                   const meta = TABLE_META[item.table_name] || { label: item.table_name, icon: Package, color: '#888' }
                   const Icon = meta.icon
                   const daysLeft = getDaysLeft(item.expires_at)
@@ -149,7 +175,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
                           }}>
                             <Icon size={14} />
                           </div>
-                          <span style={{ fontSize: '.82rem', fontWeight: 600 }}>{meta.label}</span>
+                          <span style={{ fontSize: '.82rem', fontWeight: 600 }}>{typeLabels[item.table_name] ?? meta.label}</span>
                         </div>
                       </td>
                       <td style={{ fontWeight: 600, maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -165,7 +191,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
                             fontSize: '.82rem', fontWeight: 600,
                             color: daysLeft <= 3 ? '#ef4444' : daysLeft <= 7 ? '#f59e0b' : 'var(--text2)',
                           }}>
-                            {daysLeft}d left
+                            {daysLeft}{t.admin.daysLeft}
                           </span>
                         </div>
                       </td>
@@ -174,7 +200,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
                           <button
                             onClick={() => handleRestore(item)}
                             disabled={isLoading}
-                            title="Restore"
+                            title={t.admin.restore}
                             style={{
                               display: 'flex', alignItems: 'center', gap: 5,
                               padding: '6px 12px', borderRadius: 8, fontSize: '.78rem', fontWeight: 700,
@@ -183,12 +209,12 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
                             }}
                           >
                             {isLoading ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RotateCcw size={12} />}
-                            Restore
+                            {t.admin.restore}
                           </button>
                           <button
                             onClick={() => handlePermanentDelete(item)}
                             disabled={isLoading}
-                            title="Delete permanently"
+                            title={t.admin.deletePermanently}
                             style={{
                               display: 'flex', alignItems: 'center', gap: 5,
                               padding: '6px 12px', borderRadius: 8, fontSize: '.78rem', fontWeight: 700,
@@ -209,7 +235,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
 
           {/* Mobile Cards */}
           <div className="admin-mobile-cards">
-            {items.map(item => {
+            {paginated.map(item => {
               const meta = TABLE_META[item.table_name] || { label: item.table_name, icon: Package, color: '#888' }
               const Icon = meta.icon
               const daysLeft = getDaysLeft(item.expires_at)
@@ -231,7 +257,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
                           {getItemLabel(item)}
                         </div>
                         <div style={{ fontSize: '.78rem', color: 'var(--text2)', marginTop: 2 }}>
-                          {meta.label} · {new Date(item.deleted_at).toLocaleDateString()}
+                          {typeLabels[item.table_name] ?? meta.label} · {new Date(item.deleted_at).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
@@ -257,7 +283,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
                       }}
                     >
                       {isLoading ? <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RotateCcw size={13} />}
-                      Restore
+                      {t.admin.restore}
                     </button>
                     <button
                       onClick={() => handlePermanentDelete(item)}
@@ -276,6 +302,8 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
               )
             })}
           </div>
+
+          <AdminPagination total={filtered.length} page={page} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
         </>
       )}
     </div>

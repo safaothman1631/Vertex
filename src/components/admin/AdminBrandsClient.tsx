@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { Plus, Pencil, Trash2, X, Eye, Package } from 'lucide-react'
 import ImageUploader from './ImageUploader'
+import AdminSearch from './AdminSearch'
+import AdminPagination from './AdminPagination'
+import { useT } from '@/contexts/locale'
 
 interface BrandProduct {
   id: string
@@ -37,6 +40,7 @@ export default function AdminBrandsClient({
   productsByBrand: Record<string, BrandProduct[]>
 }) {
   const router = useRouter()
+  const t = useT()
   const [brands, setBrands] = useState<Brand[]>(initial)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partial<Brand>>({ name: '', logo: '', color1: '#6366f1', color2: '#4338ca', category_key: '' })
@@ -46,9 +50,25 @@ export default function AdminBrandsClient({
   const [brandProducts, setBrandProducts] = useState<BrandProduct[]>([])
   const supabase = createClient()
   const modalRef = useRef<HTMLDivElement>(null)
+  const [searchQ, setSearchQ] = useState('')
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(25)
+
+  const filtered = useMemo(() => {
+    if (!searchQ.trim()) return brands
+    const q = searchQ.toLowerCase()
+    return brands.filter(b => b.name.toLowerCase().includes(q) || (b.category_key ?? '').toLowerCase().includes(q))
+  }, [brands, searchQ])
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * perPage
+    return filtered.slice(start, start + perPage)
+  }, [filtered, page, perPage])
 
   // Sync when server re-fetches (after router.refresh)
   useEffect(() => { setBrands(initial) }, [initial])
+
+  useEffect(() => { setPage(1) }, [searchQ])
 
   function openBrandProducts(b: Brand) {
     setViewBrand(b)
@@ -102,10 +122,10 @@ export default function AdminBrandsClient({
   async function handleDelete(id: string, name: string) {
     const count = productCounts[name] ?? 0
     if (count > 0) {
-      alert(`Cannot delete "${name}" — ${count} product(s) use this brand.`)
+      alert(t.admin.cantDeleteBrand)
       return
     }
-    if (!confirm(`Move brand "${name}" to trash?`)) return
+    if (!confirm(t.admin.moveBrandToTrash)) return
     const brand = brands.find(b => b.id === id)
     if (brand) {
       await supabase.from('trash').insert({ table_name: 'brands', record_id: id, record_data: brand })
@@ -118,10 +138,14 @@ export default function AdminBrandsClient({
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <p className="admin-page-sub">{brands.length} brands</p>
+        <p className="admin-page-sub">{filtered.length} {t.admin.brands}</p>
         <button onClick={openNew} className="admin-btn admin-btn-primary">
-          <Plus size={15} /> Add Brand
+          <Plus size={15} /> {t.admin.addBrand}
         </button>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <AdminSearch value={searchQ} onChange={setSearchQ} placeholder={`${t.admin.search}…`} />
       </div>
 
       {/* Table */}
@@ -129,15 +153,15 @@ export default function AdminBrandsClient({
         <table className="admin-table">
           <thead>
             <tr>
-              {['Color', 'Name', 'Logo', 'Category Key', 'Products', 'Actions'].map(h => (
+              {[t.admin.color1, t.admin.name, t.admin.logo, t.admin.categoryKey, t.admin.productCount, t.admin.actions].map(h => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {brands.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text2)', padding: 32 }}>No brands yet</td></tr>
-            ) : brands.map(b => (
+            {filtered.length === 0 ? (
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text2)', padding: 32 }}>{t.admin.noBrands}</td></tr>
+            ) : paginated.map(b => (
               <tr key={b.id}>
                 <td>
                   <div style={{ display: 'flex', gap: 4 }}>
@@ -168,13 +192,13 @@ export default function AdminBrandsClient({
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <button onClick={() => openBrandProducts(b)} title="View Products" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => openBrandProducts(b)} title={t.admin.viewProducts} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Eye size={14} />
                     </button>
-                    <button onClick={() => openEdit(b)} title="Edit" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => openEdit(b)} title={t.admin.edit} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Pencil size={14} />
                     </button>
-                    <button onClick={() => handleDelete(b.id, b.name)} title="Delete" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => handleDelete(b.id, b.name)} title={t.admin.delete} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -187,14 +211,14 @@ export default function AdminBrandsClient({
 
       {/* Mobile Cards */}
       <div className="admin-mobile-cards">
-        {brands.map(b => (
+        {paginated.map(b => (
           <div key={b.id} className="admin-product-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${b.color1}, ${b.color2})`, flexShrink: 0 }} />
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '.95rem' }}>{b.name}</div>
-                  <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace', marginTop: 2 }}>{b.logo ? '✓ Logo' : 'no logo'}</div>
+                  <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace', marginTop: 2 }}>{b.logo ? t.admin.logoAdded : t.admin.noLogo}</div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -204,7 +228,7 @@ export default function AdminBrandsClient({
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               <button onClick={() => openBrandProducts(b)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                <span className="admin-badge admin-badge-blue" style={{ cursor: 'pointer' }}>{productCounts[b.name] ?? 0} products</span>
+                <span className="admin-badge admin-badge-blue" style={{ cursor: 'pointer' }}>{productCounts[b.name] ?? 0} {t.admin.products}</span>
               </button>
               {b.category_key && <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>{b.category_key}</span>}
             </div>
@@ -212,23 +236,25 @@ export default function AdminBrandsClient({
         ))}
       </div>
 
+      <AdminPagination total={filtered.length} page={page} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
+
       {/* Modal */}
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16 }}>
           <div ref={modalRef} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 520 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? 'Edit Brand' : 'New Brand'}</h2>
+              <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? t.admin.editBrand : t.admin.newBrand}</h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)' }}><X size={20} /></button>
             </div>
 
             {/* Preview banner */}
             <div style={{ height: 60, borderRadius: 12, background: `linear-gradient(135deg, ${editing.color1 ?? '#6366f1'}, ${editing.color2 ?? '#4338ca'})`, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: '#fff', fontWeight: 800, fontSize: '1.1rem' }}>{editing.name || 'Brand Preview'}</span>
+              <span style={{ color: '#fff', fontWeight: 800, fontSize: '1.1rem' }}>{editing.name || t.admin.brandPreview}</span>
             </div>
 
             <div className="admin-form-grid">
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Brand Name</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.brandName}</label>
                 <input
                   type="text"
                   value={editing.name ?? ''}
@@ -247,7 +273,7 @@ export default function AdminBrandsClient({
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Category Key</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.categoryKey}</label>
                 <input
                   type="text"
                   value={editing.category_key ?? ''}
@@ -257,7 +283,7 @@ export default function AdminBrandsClient({
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Color 1</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.color1}</label>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <input
                     type="color"
@@ -274,7 +300,7 @@ export default function AdminBrandsClient({
                 </div>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Color 2</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.color2}</label>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <input
                     type="color"
@@ -294,9 +320,9 @@ export default function AdminBrandsClient({
 
             <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
               <button onClick={handleSave} disabled={loading} className="admin-btn admin-btn-primary" style={{ flex: 1, justifyContent: 'center', padding: 11 }}>
-                {loading ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Brand'}
+                {loading ? t.admin.loading : isEdit ? t.admin.saveChanges : t.admin.create}
               </button>
-              <button onClick={() => setShowForm(false)} className="admin-btn admin-btn-ghost">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="admin-btn admin-btn-ghost">{t.admin.cancel}</button>
             </div>
           </div>
         </div>
@@ -314,15 +340,15 @@ export default function AdminBrandsClient({
               <div style={{ width: 40, height: 40, borderRadius: 10, background: `linear-gradient(135deg, ${viewBrand.color1}, ${viewBrand.color2})`, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <h2 style={{ fontWeight: 900, fontSize: '1.1rem', margin: 0 }}>{viewBrand.name}</h2>
-                <p style={{ color: 'var(--text2)', fontSize: '.82rem', margin: 0 }}>{brandProducts.length} product(s)</p>
+                <p style={{ color: 'var(--text2)', fontSize: '.82rem', margin: 0 }}>{brandProducts.length} {t.admin.productCount}</p>
               </div>
               <Link
                 href={`/admin/products`}
                 style={{ fontSize: '.8rem', fontWeight: 700, color: 'var(--primary)', textDecoration: 'none', padding: '6px 12px', borderRadius: 8, background: 'rgba(99,102,241,.1)' }}
               >
-                Go to Products →
+                {t.admin.viewProducts} →
               </Link>
-              <button onClick={() => setViewBrand(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)', padding: 4 }}>
+              <button onClick={() => setViewBrand(null)} title={t.admin.close} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)', padding: 4 }}>
                 <X size={20} />
               </button>
             </div>
@@ -332,7 +358,7 @@ export default function AdminBrandsClient({
               {brandProducts.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: 48, color: 'var(--text2)' }}>
                   <Package size={40} style={{ opacity: .3, marginBottom: 12 }} />
-                  <p>No products for {viewBrand.name} yet.</p>
+                  <p>{t.admin.noProducts}</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -356,12 +382,12 @@ export default function AdminBrandsClient({
                       {/* Badges */}
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                         {p.in_stock
-                          ? <span className="admin-badge admin-badge-green">In Stock</span>
-                          : <span className="admin-badge admin-badge-red">Out</span>
+                          ? <span className="admin-badge admin-badge-green">{t.admin.inStock}</span>
+                          : <span className="admin-badge admin-badge-red">{t.admin.outOfStock}</span>
                         }
                       </div>
                       {/* View link */}
-                      <Link href={`/products/${p.id}`} target="_blank" style={{ color: 'var(--text2)', flexShrink: 0, textDecoration: 'none' }} title="View in shop">
+                      <Link href={`/products/${p.id}`} target="_blank" style={{ color: 'var(--text2)', flexShrink: 0, textDecoration: 'none' }} title={t.admin.viewInShop}>
                         <Eye size={15} />
                       </Link>
                     </div>

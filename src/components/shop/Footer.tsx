@@ -51,8 +51,8 @@ export default function Footer() {
           <div className="footer-btm-inner">
             <span>© {new Date().getFullYear()} Vertex. {t.footer.rights}</span>
             <div style={{ display: 'flex', gap: 20 }}>
-              <Link href="#">{t.footer.privacy}</Link>
-              <Link href="#">{t.footer.terms}</Link>
+              <Link href="/privacy">{t.footer.privacy}</Link>
+              <Link href="/terms">{t.footer.terms}</Link>
             </div>
           </div>
         </div>

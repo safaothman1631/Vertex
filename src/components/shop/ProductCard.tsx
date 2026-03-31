@@ -74,7 +74,7 @@ export default function ProductCard({ product: p }: Props) {
           {/* Slide 1 — Key Features */}
           <div className={`prod-slide${slide === 1 ? ' active' : ''}`}>
             <div className="prod-art" style={{ '--pa1': p.pa2, '--pa2': p.pa1 } as React.CSSProperties}>
-              <span className="prod-art-type">KEY FEATURES</span>
+              <span className="prod-art-type">{t.productCard.keyFeatures}</span>
               {p.specs.slice(0, 3).map((s, i) => (
                 <span key={i} className="prod-slide-spec">✓ {s}</span>
               ))}

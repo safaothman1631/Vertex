@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { useCartStore } from '@/store/cart'
 import Link from 'next/link'
 import { useT } from '@/contexts/locale'
+import { ShoppingCart, X, Trash2, Package } from 'lucide-react'
+import Image from 'next/image'
 
 export default function CartSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore()
@@ -25,7 +27,7 @@ export default function CartSidebar({ open, onClose }: { open: boolean; onClose:
       <div className={`cart-overlay${open ? ' open' : ''}`} onClick={onClose} role="presentation" />
       <div className={`cart-sidebar${open ? ' open' : ''}`} role="dialog" aria-modal="true" aria-label={t.cartSidebar.title}>
         <div className="cart-header">
-          <h3>🛒 {t.cartSidebar.title} ({items.length})</h3>
+          <h3><ShoppingCart size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} /> {t.cartSidebar.title} ({items.length})</h3>
           <button
             onClick={onClose}
             aria-label="Close cart"
@@ -43,14 +45,21 @@ export default function CartSidebar({ open, onClose }: { open: boolean; onClose:
         <div className="cart-items-list">
           {items.length === 0 ? (
             <div className="cart-empty">
-              <span style={{ fontSize: '3rem' }}>🛒</span>
+              <ShoppingCart size={48} style={{ color: 'var(--text3)' }} />
               <p style={{ fontWeight: 500 }}>{t.cartSidebar.empty}</p>
               <p style={{ fontSize: '.9rem' }}>{t.cartSidebar.emptyDesc}</p>
             </div>
           ) : (
             items.map(({ product, quantity }) => (
               <div key={product.id} className="cart-item">
-                <div className="cart-item-info">
+                <div style={{ width: 48, height: 48, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {product.images?.[0] ? (
+                    <Image src={product.images[0]} alt={product.name} width={48} height={48} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
+                  ) : (
+                    <Package size={20} style={{ color: 'var(--text3)' }} />
+                  )}
+                </div>
+                <div className="cart-item-info" style={{ flex: 1, minWidth: 0 }}>
                   <div className="cart-item-name">{product.name}</div>
                   <div className="cart-item-price">${(product.price * quantity).toFixed(2)}</div>
                 </div>
@@ -62,9 +71,9 @@ export default function CartSidebar({ open, onClose }: { open: boolean; onClose:
                 <button
                   onClick={() => removeItem(product.id)}
                   aria-label={`Remove ${product.name}`}
-                  style={{ color: 'var(--text3)', fontSize: '.85rem', cursor: 'pointer', marginLeft: 8, background: 'none', border: 'none' }}
+                  style={{ color: 'var(--text3)', cursor: 'pointer', marginLeft: 8, background: 'none', border: 'none', padding: 4 }}
                 >
-                  🗑
+                  <Trash2 size={15} />
                 </button>
               </div>
             ))

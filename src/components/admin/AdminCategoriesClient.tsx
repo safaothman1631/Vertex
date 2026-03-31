@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { Plus, Pencil, Trash2, X, GripVertical, Eye, Package } from 'lucide-react'
 import ImageUploader from './ImageUploader'
+import AdminSearch from './AdminSearch'
+import AdminPagination from './AdminPagination'
+import { useT } from '@/contexts/locale'
 import type { Category } from '@/types'
 
 interface CategoryProduct {
@@ -32,6 +35,7 @@ export default function AdminCategoriesClient({
   productsByCategory: Record<string, CategoryProduct[]>
 }) {
   const router = useRouter()
+  const t = useT()
   const [categories, setCategories] = useState<Category[]>(initial)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partial<Category>>({ name: '', slug: '', icon: '', sort_order: 0 })
@@ -41,9 +45,27 @@ export default function AdminCategoriesClient({
   const [categoryProducts, setCategoryProducts] = useState<CategoryProduct[]>([])
   const supabase = createClient()
   const modalRef = useRef<HTMLDivElement>(null)
+  const [searchQ, setSearchQ] = useState('')
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(25)
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null)
+
+  const filtered = useMemo(() => {
+    if (!searchQ.trim()) return categories
+    const q = searchQ.toLowerCase()
+    return categories.filter(c => c.name.toLowerCase().includes(q) || c.slug.toLowerCase().includes(q))
+  }, [categories, searchQ])
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * perPage
+    return filtered.slice(start, start + perPage)
+  }, [filtered, page, perPage])
 
   // Sync when server re-fetches (after router.refresh)
   useEffect(() => { setCategories(initial) }, [initial])
+
+  useEffect(() => { setPage(1) }, [searchQ])
 
   function openCategoryProducts(c: Category) {
     setViewCategory(c)
@@ -99,10 +121,10 @@ export default function AdminCategoriesClient({
     const slug = toSlug(name)
     const count = productCounts[slug] ?? 0
     if (count > 0) {
-      alert(`Cannot delete "${name}" — ${count} product(s) use this category. Reassign them first.`)
+      alert(t.admin.cantDeleteCategory)
       return
     }
-    if (!confirm(`Move category "${name}" to trash?`)) return
+    if (!confirm(t.admin.moveCategoryToTrash)) return
     const category = categories.find(c => c.id === id)
     if (category) {
       await supabase.from('trash').insert({ table_name: 'categories', record_id: id, record_data: category })
@@ -112,13 +134,33 @@ export default function AdminCategoriesClient({
     router.refresh()
   }
 
+  async function handleReorder(fromId: string, toId: string) {
+    const fromIdx = categories.findIndex(c => c.id === fromId)
+    const toIdx = categories.findIndex(c => c.id === toId)
+    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return
+    const reordered = [...categories]
+    const [moved] = reordered.splice(fromIdx, 1)
+    reordered.splice(toIdx, 0, moved)
+    for (let i = 0; i < reordered.length; i++) {
+      reordered[i] = { ...reordered[i], sort_order: i }
+    }
+    setCategories(reordered)
+    for (const cat of reordered) {
+      await supabase.from('categories').update({ sort_order: cat.sort_order }).eq('id', cat.id)
+    }
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <p className="admin-page-sub">{categories.length} categories</p>
+        <p className="admin-page-sub">{filtered.length} {t.admin.categories}</p>
         <button onClick={openNew} className="admin-btn admin-btn-primary">
-          <Plus size={15} /> Add Category
+          <Plus size={15} /> {t.admin.addCategory}
         </button>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <AdminSearch value={searchQ} onChange={setSearchQ} placeholder={`${t.admin.search}…`} />
       </div>
 
       {/* Table */}
@@ -126,19 +168,27 @@ export default function AdminCategoriesClient({
         <table className="admin-table">
           <thead>
             <tr>
-              {['Order', 'Name', 'Slug', 'Products', 'Actions'].map(h => (
+              {[t.admin.sortOrder, t.admin.name, t.admin.slug, t.admin.productCount, t.admin.actions].map(h => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {categories.length === 0 ? (
-              <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text2)', padding: 32 }}>No categories yet</td></tr>
-            ) : categories.map(c => (
-              <tr key={c.id}>
+            {filtered.length === 0 ? (
+              <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text2)', padding: 32 }}>{t.admin.noCategories}</td></tr>
+            ) : paginated.map(c => (
+              <tr
+                key={c.id}
+                draggable
+                onDragStart={() => setDragId(c.id)}
+                onDragOver={(e) => { e.preventDefault(); setDropTargetId(c.id) }}
+                onDrop={() => { if (dragId && dragId !== c.id) handleReorder(dragId, c.id); setDragId(null); setDropTargetId(null) }}
+                onDragEnd={() => { setDragId(null); setDropTargetId(null) }}
+                style={{ opacity: dragId === c.id ? 0.5 : 1, borderTop: dropTargetId === c.id && dragId !== c.id ? '2px solid var(--accent)' : undefined, transition: 'opacity .15s' }}
+              >
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text2)' }}>
-                    <GripVertical size={14} style={{ opacity: .4 }} />
+                    <GripVertical size={14} style={{ cursor: 'grab', color: 'var(--text3)', padding: '0 4px' }} />
                     {c.sort_order}
                   </div>
                 </td>
@@ -153,13 +203,13 @@ export default function AdminCategoriesClient({
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <button onClick={() => openCategoryProducts(c)} title="View products" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => openCategoryProducts(c)} title={t.admin.viewProducts} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Eye size={14} />
                     </button>
-                    <button onClick={() => openEdit(c)} title="Edit" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => openEdit(c)} title={t.admin.edit} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Pencil size={14} />
                     </button>
-                    <button onClick={() => handleDelete(c.id, c.name)} title="Delete" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => handleDelete(c.id, c.name)} title={t.admin.delete} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -172,12 +222,24 @@ export default function AdminCategoriesClient({
 
       {/* Mobile Cards */}
       <div className="admin-mobile-cards">
-        {categories.map(c => (
-          <div key={c.id} className="admin-product-card">
+        {paginated.map(c => (
+          <div
+            key={c.id}
+            className="admin-product-card"
+            draggable
+            onDragStart={() => setDragId(c.id)}
+            onDragOver={(e) => { e.preventDefault(); setDropTargetId(c.id) }}
+            onDrop={() => { if (dragId && dragId !== c.id) handleReorder(dragId, c.id); setDragId(null); setDropTargetId(null) }}
+            onDragEnd={() => { setDragId(null); setDropTargetId(null) }}
+            style={{ opacity: dragId === c.id ? 0.5 : 1, borderTop: dropTargetId === c.id && dragId !== c.id ? '2px solid var(--accent)' : undefined, transition: 'opacity .15s' }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '.95rem' }}>{c.name}</div>
-                <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace', marginTop: 2 }}>{c.slug}</div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <GripVertical size={16} style={{ cursor: 'grab', color: 'var(--text3)', padding: '0 4px', flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '.95rem' }}>{c.name}</div>
+                  <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace', marginTop: 2 }}>{c.slug}</div>
+                </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => openEdit(c)} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Pencil size={15} /></button>
@@ -186,13 +248,15 @@ export default function AdminCategoriesClient({
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               <button onClick={() => openCategoryProducts(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                <span className="admin-badge admin-badge-blue" style={{ cursor: 'pointer' }}>{productCounts[c.slug] ?? 0} products</span>
+                <span className="admin-badge admin-badge-blue" style={{ cursor: 'pointer' }}>{productCounts[c.slug] ?? 0} {t.admin.products}</span>
               </button>
-              <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>Order: {c.sort_order}</span>
+              <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>{t.admin.sortOrder}: {c.sort_order}</span>
             </div>
           </div>
         ))}
       </div>
+
+      <AdminPagination total={filtered.length} page={page} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
 
       {/* Category Products Modal */}
       {viewCategory && (
@@ -207,7 +271,7 @@ export default function AdminCategoriesClient({
                   <div style={{ fontSize: '.78rem', color: 'var(--text2)', fontFamily: 'monospace' }}>{viewCategory.slug}</div>
                 </div>
               </div>
-              <button onClick={() => setViewCategory(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)', padding: 4 }}>
+              <button onClick={() => setViewCategory(null)} title={t.admin.close} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)', padding: 4 }}>
                 <X size={20} />
               </button>
             </div>
@@ -216,7 +280,7 @@ export default function AdminCategoriesClient({
               {categoryProducts.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: 48, color: 'var(--text2)' }}>
                   <Package size={40} style={{ opacity: .3, marginBottom: 12 }} />
-                  <p>No products in {viewCategory.name} yet.</p>
+                  <p>{t.admin.noProducts}</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -236,11 +300,11 @@ export default function AdminCategoriesClient({
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
                         <span style={{ fontWeight: 700, fontSize: '.85rem' }}>${p.price}</span>
                         {p.in_stock
-                          ? <span className="admin-badge admin-badge-green">In Stock</span>
-                          : <span className="admin-badge admin-badge-red">Out</span>
+                          ? <span className="admin-badge admin-badge-green">{t.admin.inStock}</span>
+                          : <span className="admin-badge admin-badge-red">{t.admin.outOfStock}</span>
                         }
                       </div>
-                      <Link href={`/products/${p.id}`} target="_blank" style={{ color: 'var(--text2)', flexShrink: 0, textDecoration: 'none' }} title="View in shop">
+                      <Link href={`/products/${p.id}`} target="_blank" style={{ color: 'var(--text2)', flexShrink: 0, textDecoration: 'none' }} title={t.admin.viewInShop}>
                         <Eye size={15} />
                       </Link>
                     </div>
@@ -249,7 +313,7 @@ export default function AdminCategoriesClient({
               )}
             </div>
             <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', fontSize: '.8rem', color: 'var(--text2)', textAlign: 'right' }}>
-              {categoryProducts.length} product(s)
+              {categoryProducts.length} {t.admin.productCount}
             </div>
           </div>
         </div>
@@ -260,13 +324,13 @@ export default function AdminCategoriesClient({
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16 }}>
           <div ref={modalRef} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 480 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? 'Edit Category' : 'New Category'}</h2>
+              <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? t.admin.editCategory : t.admin.newCategory}</h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)' }}><X size={20} /></button>
             </div>
 
             <div className="admin-form-grid">
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Name</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.categoryName}</label>
                 <input
                   type="text"
                   value={editing.name ?? ''}
@@ -276,7 +340,7 @@ export default function AdminCategoriesClient({
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Slug</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.slug}</label>
                 <input
                   type="text"
                   value={editing.slug ?? ''}
@@ -286,7 +350,7 @@ export default function AdminCategoriesClient({
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Sort Order</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.sortOrder}</label>
                 <input
                   type="number"
                   value={editing.sort_order ?? 0}
@@ -308,9 +372,9 @@ export default function AdminCategoriesClient({
 
             <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
               <button onClick={handleSave} disabled={loading} className="admin-btn admin-btn-primary" style={{ flex: 1, justifyContent: 'center', padding: 11 }}>
-                {loading ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Category'}
+                {loading ? t.admin.loading : isEdit ? t.admin.saveChanges : t.admin.create}
               </button>
-              <button onClick={() => setShowForm(false)} className="admin-btn admin-btn-ghost">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="admin-btn admin-btn-ghost">{t.admin.cancel}</button>
             </div>
           </div>
         </div>

@@ -386,7 +386,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                     <div className="prod-badges">
                       {p.is_hot && <span className="badge-hot">{t.productCard.hot}</span>}
                       {p.is_new && <span className="badge-new">{t.productCard.new}</span>}
-                      {!p.in_stock && <span className="badge-out">Out of Stock</span>}
+                      {!p.in_stock && <span className="badge-out">{t.common.outOfStock}</span>}
                     </div>
 
                     {/* Image */}
@@ -435,7 +435,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                         }
                       >
                         {!p.in_stock
-                          ? 'Out of Stock'
+                          ? t.common.outOfStock
                           : isAdded
                           ? t.productCard.added
                           : <><ShoppingCart size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />{t.productCard.addToCart}</>

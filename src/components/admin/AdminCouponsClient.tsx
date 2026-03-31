@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { Plus, Pencil, Trash2, X, Copy, Check } from 'lucide-react'
+import AdminSearch from './AdminSearch'
+import AdminPagination from './AdminPagination'
 import type { Coupon } from '@/types'
+import { useT } from '@/contexts/locale'
 
 const EMPTY: Partial<Coupon> = {
   code: '', discount_type: 'percent', discount_value: 0,
@@ -11,6 +14,7 @@ const EMPTY: Partial<Coupon> = {
 }
 
 export default function AdminCouponsClient({ coupons: initial }: { coupons: Coupon[] }) {
+  const t = useT()
   const [coupons, setCoupons] = useState<Coupon[]>(initial)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partial<Coupon>>(EMPTY)
@@ -19,6 +23,22 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const supabase = createClient()
   const modalRef = useRef<HTMLDivElement>(null)
+  const [searchQ, setSearchQ] = useState('')
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(25)
+
+  const filtered = useMemo(() => {
+    if (!searchQ.trim()) return coupons
+    const q = searchQ.toLowerCase()
+    return coupons.filter(c => c.code.toLowerCase().includes(q))
+  }, [coupons, searchQ])
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * perPage
+    return filtered.slice(start, start + perPage)
+  }, [filtered, page, perPage])
+
+  useEffect(() => { setPage(1) }, [searchQ])
 
   useEffect(() => {
     if (showForm) {
@@ -95,19 +115,23 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
   }
 
   function statusBadge(c: Coupon) {
-    if (!c.active) return <span className="admin-badge admin-badge-red">Inactive</span>
-    if (isExpired(c)) return <span className="admin-badge admin-badge-red">Expired</span>
-    if (isMaxUsed(c)) return <span className="admin-badge admin-badge-purple">Fully Used</span>
-    return <span className="admin-badge admin-badge-green">Active</span>
+    if (!c.active) return <span className="admin-badge admin-badge-red">{t.admin.inactive}</span>
+    if (isExpired(c)) return <span className="admin-badge admin-badge-red">{t.admin.expired}</span>
+    if (isMaxUsed(c)) return <span className="admin-badge admin-badge-purple">{t.admin.fullyUsed}</span>
+    return <span className="admin-badge admin-badge-green">{t.admin.active}</span>
   }
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <p className="admin-page-sub">{coupons.length} coupons</p>
+        <p className="admin-page-sub">{filtered.length} coupons</p>
         <button onClick={openNew} className="admin-btn admin-btn-primary">
-          <Plus size={15} /> Add Coupon
+          <Plus size={15} /> {t.admin.addCoupon}
         </button>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <AdminSearch value={searchQ} onChange={setSearchQ} placeholder={`${t.admin.search}…`} />
       </div>
 
       {/* Table */}
@@ -115,20 +139,20 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
         <table className="admin-table">
           <thead>
             <tr>
-              {['Code', 'Discount', 'Min Order', 'Usage', 'Status', 'Expires', 'Actions'].map(h => (
-                <th key={h}>{h}</th>
+              {[t.admin.code, t.admin.discount, t.admin.minOrder, t.admin.usage, t.admin.status, t.admin.expires, t.admin.actions].map((h, i) => (
+                <th key={i}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {coupons.length === 0 ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text2)', padding: 32 }}>No coupons yet</td></tr>
-            ) : coupons.map(c => (
+            {filtered.length === 0 ? (
+              <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text2)', padding: 32 }}>{t.admin.noCoupons}</td></tr>
+            ) : paginated.map(c => (
               <tr key={c.id}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <code style={{ fontWeight: 700, fontSize: '.85rem', color: 'var(--primary)', background: 'rgba(99,102,241,.1)', padding: '3px 10px', borderRadius: 6, letterSpacing: '.04em' }}>{c.code}</code>
-                    <button onClick={() => copyCode(c.code, c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--text2)' }} title="Copy code">
+                    <button onClick={() => copyCode(c.code, c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--text2)' }} title={t.admin.copyCode}>
                       {copiedId === c.id ? <Check size={13} style={{ color: '#22c55e' }} /> : <Copy size={13} />}
                     </button>
                   </div>
@@ -146,14 +170,14 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <button onClick={() => toggleActive(c)} title={c.active ? 'Deactivate' : 'Activate'}
+                    <button onClick={() => toggleActive(c)} title={c.active ? t.admin.deactivate : t.admin.activate}
                       style={{ fontSize: '.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', background: c.active ? 'rgba(239,68,68,.1)' : 'rgba(34,197,94,.1)', color: c.active ? '#ef4444' : '#22c55e' }}>
-                      {c.active ? 'Off' : 'On'}
+                      {c.active ? t.admin.off : t.admin.on}
                     </button>
-                    <button onClick={() => openEdit(c)} title="Edit" style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => openEdit(c)} title={t.admin.edit} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Pencil size={14} />
                     </button>
-                    <button onClick={() => handleDelete(c.id)} title="Delete" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => handleDelete(c.id)} title={t.admin.delete} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -166,7 +190,7 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
 
       {/* Mobile Cards */}
       <div className="admin-mobile-cards">
-        {coupons.map(c => (
+        {paginated.map(c => (
           <div key={c.id} className="admin-product-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
@@ -189,18 +213,20 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
         ))}
       </div>
 
+      <AdminPagination total={filtered.length} page={page} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
+
       {/* Modal */}
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16 }}>
           <div ref={modalRef} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? 'Edit Coupon' : 'New Coupon'}</h2>
+              <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? t.admin.editCoupon : t.admin.newCoupon}</h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)' }}><X size={20} /></button>
             </div>
 
             <div className="admin-form-grid">
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Coupon Code</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.couponCode}</label>
                 <input
                   type="text"
                   value={editing.code ?? ''}
@@ -210,19 +236,19 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Discount Type</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.discountType}</label>
                 <select
                   value={editing.discount_type ?? 'percent'}
                   onChange={e => setEditing({ ...editing, discount_type: e.target.value as 'percent' | 'fixed' })}
                   style={{ width: '100%', padding: '10px 12px', background: 'var(--bg3)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: '.9rem', outline: 'none', cursor: 'pointer' }}
                 >
-                  <option value="percent">Percentage (%)</option>
-                  <option value="fixed">Fixed Amount ($)</option>
+                  <option value="percent">{t.admin.percentage}</option>
+                  <option value="fixed">{t.admin.fixedAmount}</option>
                 </select>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>
-                  Discount Value {editing.discount_type === 'percent' ? '(%)' : '($)'}
+                  {t.admin.discountValue} {editing.discount_type === 'percent' ? '(%)' : '($)'}
                 </label>
                 <input
                   type="number"
@@ -234,7 +260,7 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Min Order ($)</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.minOrder}</label>
                 <input
                   type="number"
                   min="0"
@@ -245,7 +271,7 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Max Uses (empty = unlimited)</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.maxUses}</label>
                 <input
                   type="number"
                   min="0"
@@ -256,7 +282,7 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Expires At (optional)</label>
+                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{t.admin.expiresAt}</label>
                 <input
                   type="date"
                   value={editing.expires_at ? new Date(editing.expires_at).toISOString().split('T')[0] : ''}
@@ -271,15 +297,15 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
                   onChange={e => setEditing({ ...editing, active: e.target.checked })}
                   style={{ accentColor: 'var(--primary)', width: 16, height: 16 }}
                 />
-                <span style={{ fontWeight: 600, fontSize: '.88rem' }}>Active</span>
+                <span style={{ fontWeight: 600, fontSize: '.88rem' }}>{t.admin.active}</span>
               </label>
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
               <button onClick={handleSave} disabled={loading} className="admin-btn admin-btn-primary" style={{ flex: 1, justifyContent: 'center', padding: 11 }}>
-                {loading ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Coupon'}
+                {loading ? t.admin.loading : isEdit ? t.admin.saveChanges : t.admin.createCoupon}
               </button>
-              <button onClick={() => setShowForm(false)} className="admin-btn admin-btn-ghost">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="admin-btn admin-btn-ghost">{t.admin.cancel}</button>
             </div>
           </div>
         </div>

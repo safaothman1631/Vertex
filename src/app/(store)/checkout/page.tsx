@@ -7,7 +7,7 @@ import { ShoppingBag, CreditCard, Truck, Lock, AlertCircle, Tag, Check } from 'l
 import type { ShippingAddress } from '@/types'
 import { useT } from '@/contexts/locale'
 
-const EMPTY: ShippingAddress = { name: '', email: '', address: '', city: '', country: '', zip: '' }
+const EMPTY: ShippingAddress = { name: '', email: '', phone: '', address: '', city: '', country: '', zip: '' }
 type FieldKey = keyof ShippingAddress
 type FieldErrors = Partial<Record<FieldKey, string>>
 
@@ -50,18 +50,18 @@ export default function CheckoutPage() {
 
   function handleBlur(field: FieldKey) {
     setTouched(prev => ({ ...prev, [field]: true }))
-    const err = validate(field, form[field])
+    const err = validate(field, form[field] ?? '')
     setFieldErrors(prev => ({ ...prev, [field]: err }))
   }
 
   function validateAll(): boolean {
-    const fields: FieldKey[] = ['name', 'email', 'address', 'city', 'country', 'zip']
+    const fields: FieldKey[] = ['name', 'email', 'phone', 'address', 'city', 'country', 'zip']
     const errors: FieldErrors = {}
     const allTouched: Partial<Record<FieldKey, boolean>> = {}
     let valid = true
     for (const f of fields) {
       allTouched[f] = true
-      const err = validate(f, form[f])
+      const err = validate(f, form[f] ?? '')
       if (err) { errors[f] = err; valid = false }
     }
     setTouched(allTouched)
@@ -187,6 +187,12 @@ export default function CheckoutPage() {
                     <input type="email" placeholder="you@email.com" value={form.email} onChange={e => handleChange('email', e.target.value)} onBlur={() => handleBlur('email')} style={inputStyle('email')} />
                     {fieldError('email')}
                   </div>
+                  {/* Phone */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.phone}</label>
+                    <input type="tel" placeholder="+1 (555) 000-0000" value={form.phone || ''} onChange={e => handleChange('phone', e.target.value)} onBlur={() => handleBlur('phone')} style={inputStyle('phone')} />
+                    {fieldError('phone')}
+                  </div>
                   {/* Address */}
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.address}</label>
@@ -258,12 +264,12 @@ export default function CheckoutPage() {
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6 }}>
                     <Tag size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
-                    Coupon Code
+                    {t.checkout.couponCode}
                   </label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input
                       type="text"
-                      placeholder="Enter code"
+                      placeholder={t.checkout.enterCode}
                       value={couponCode}
                       onChange={e => setCouponCode(e.target.value.toUpperCase())}
                       disabled={!!couponApplied}
@@ -281,7 +287,7 @@ export default function CheckoutPage() {
                         background: 'rgba(239,68,68,.1)', color: '#ef4444',
                         fontSize: '.82rem', fontWeight: 700, cursor: 'pointer',
                       }}>
-                        Remove
+                        {t.checkout.remove}
                       </button>
                     ) : (
                       <button type="button" onClick={applyCoupon} disabled={couponLoading || !couponCode.trim()} style={{
@@ -290,7 +296,7 @@ export default function CheckoutPage() {
                         fontSize: '.82rem', fontWeight: 700, cursor: couponLoading ? 'not-allowed' : 'pointer',
                         opacity: couponLoading || !couponCode.trim() ? .6 : 1,
                       }}>
-                        {couponLoading ? '...' : 'Apply'}
+                        {couponLoading ? '...' : t.checkout.apply}
                       </button>
                     )}
                   </div>
@@ -300,7 +306,7 @@ export default function CheckoutPage() {
                   {couponApplied && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: '.78rem', color: '#22c55e', fontWeight: 600 }}>
                       <Check size={13} />
-                      {couponApplied.discount_type === 'percent' ? `${couponApplied.discount_value}% off` : `$${couponApplied.discount_value.toFixed(2)} off`} applied!
+                      {couponApplied.discount_type === 'percent' ? `${couponApplied.discount_value}%` : `$${couponApplied.discount_value.toFixed(2)}`} {t.checkout.applied}
                     </div>
                   )}
                 </div>
@@ -309,13 +315,13 @@ export default function CheckoutPage() {
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginBottom: 20 }}>
                 {discount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>Subtotal</span>
+                    <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>{t.checkout.subtotalLabel}</span>
                     <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>${subtotal.toFixed(2)}</span>
                   </div>
                 )}
                 {discount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontSize: '.88rem', color: '#22c55e', fontWeight: 600 }}>Discount</span>
+                    <span style={{ fontSize: '.88rem', color: '#22c55e', fontWeight: 600 }}>{t.checkout.discountLabel}</span>
                     <span style={{ fontSize: '.88rem', color: '#22c55e', fontWeight: 600 }}>-${discount.toFixed(2)}</span>
                   </div>
                 )}

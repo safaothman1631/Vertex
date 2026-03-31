@@ -13,9 +13,9 @@ import NotificationsPanel from './NotificationsPanel'
 
 const LANG_OPTIONS: { value: Locale; label: string; flag: string }[] = [
   { value: 'en', label: 'English', flag: '🇬🇧' },
-  { value: 'ckb', label: 'کوردی', flag: '🟡' },
-  { value: 'ar', label: 'العربية', flag: '🟢' },
-  { value: 'tr', label: 'Türkçe', flag: '🔴' },
+  { value: 'ckb', label: 'کوردی', flag: '🇮🇶' },
+  { value: 'ar', label: 'العربية', flag: '🇸🇦' },
+  { value: 'tr', label: 'Türkçe', flag: '🇹🇷' },
 ]
 
 export default function Navbar() {

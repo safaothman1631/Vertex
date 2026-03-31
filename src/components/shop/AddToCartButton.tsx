@@ -5,6 +5,7 @@ import { useCartStore } from '@/store/cart'
 import { createClient } from '@/lib/supabase-client'
 import { useToast } from '@/components/ui/Toast'
 import { useRouter } from 'next/navigation'
+import { useT } from '@/contexts/locale'
 import type { Product } from '@/types'
 
 export default function AddToCartButton({ product, quantity = 1 }: { product: Product; quantity?: number }) {
@@ -12,6 +13,7 @@ export default function AddToCartButton({ product, quantity = 1 }: { product: Pr
   const supabase = createClient()
   const toast = useToast()
   const router = useRouter()
+  const t = useT()
 
   async function handleWishlist() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -34,7 +36,7 @@ export default function AddToCartButton({ product, quantity = 1 }: { product: Pr
         style={{ background: 'var(--accent)' }}
       >
         <ShoppingCart size={18} />
-        {product.in_stock ? 'Add to Cart' : 'Out of Stock'}
+        {product.in_stock ? t.productCard.addToCart : t.common.outOfStock}
       </button>
       <button
         onClick={handleWishlist}

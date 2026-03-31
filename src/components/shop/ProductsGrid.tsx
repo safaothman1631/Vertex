@@ -18,6 +18,12 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
   const router = useRouter()
   const brandParam = searchParams.get('brand') ?? 'all'
   const qParam = searchParams.get('q') ?? ''
+  const sortParam = searchParams.get('sort') ?? 'default'
+  const categoryParam = searchParams.get('category') ?? 'all'
+  const minPriceParam = searchParams.get('minPrice') ?? ''
+  const maxPriceParam = searchParams.get('maxPrice') ?? ''
+  const ratingParam = searchParams.get('rating')
+  const inStockParam = searchParams.get('inStock')
 
   // Build category list dynamically from products that actually exist
   const CATS = useMemo(() => {
@@ -33,8 +39,8 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
   }, [products])
 
   const [search, setSearch] = useState(qParam)
-  const [sort, setSort] = useState('default')
-  const [activeCat, setActiveCat] = useState('all')
+  const [sort, setSort] = useState(sortParam)
+  const [activeCat, setActiveCat] = useState(categoryParam)
   const [activeBrand, setActiveBrand] = useState(brandParam)
   const [page, setPage] = useState(1)
   const [addedId, setAddedId] = useState<string | null>(null)
@@ -43,18 +49,46 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
 
   // Advanced filters
   const [showFilters, setShowFilters] = useState(false)
-  const [priceMin, setPriceMin] = useState('')
-  const [priceMax, setPriceMax] = useState('')
-  const [minRating, setMinRating] = useState(0)
-  const [inStockOnly, setInStockOnly] = useState(false)
+  const [priceMin, setPriceMin] = useState(minPriceParam)
+  const [priceMax, setPriceMax] = useState(maxPriceParam)
+  const [minRating, setMinRating] = useState(ratingParam ? Number(ratingParam) : 0)
+  const [inStockOnly, setInStockOnly] = useState(inStockParam === '1')
 
   const hasActiveFilters = priceMin !== '' || priceMax !== '' || minRating > 0 || inStockOnly
+
+  function updateURL(overrides: Partial<{
+    q: string; sort: string; category: string; brand: string;
+    minPrice: string; maxPrice: string; rating: number; inStock: boolean;
+  }>) {
+    const params = new URLSearchParams()
+    const vals = {
+      q: overrides.q ?? search,
+      sort: overrides.sort ?? sort,
+      category: overrides.category ?? activeCat,
+      brand: overrides.brand ?? activeBrand,
+      minPrice: overrides.minPrice ?? priceMin,
+      maxPrice: overrides.maxPrice ?? priceMax,
+      rating: overrides.rating ?? minRating,
+      inStock: overrides.inStock ?? inStockOnly,
+    }
+    if (vals.q) params.set('q', vals.q)
+    if (vals.sort !== 'default') params.set('sort', vals.sort)
+    if (vals.category !== 'all') params.set('category', vals.category)
+    if (vals.brand !== 'all') params.set('brand', vals.brand)
+    if (vals.minPrice) params.set('minPrice', vals.minPrice)
+    if (vals.maxPrice) params.set('maxPrice', vals.maxPrice)
+    if (vals.rating > 0) params.set('rating', String(vals.rating))
+    if (vals.inStock) params.set('inStock', '1')
+    const qs = params.toString()
+    router.replace(`/products${qs ? `?${qs}` : ''}`, { scroll: false })
+  }
 
   function clearAdvancedFilters() {
     setPriceMin('')
     setPriceMax('')
     setMinRating(0)
     setInStockOnly(false)
+    updateURL({ minPrice: '', maxPrice: '', rating: 0, inStock: false })
   }
 
   // Sync brand from URL whenever it changes
@@ -66,9 +100,8 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
   useEffect(() => { setPage(1) }, [search, sort, activeCat, activeBrand, priceMin, priceMax, minRating, inStockOnly])
 
   function clearBrand() {
-    const params = new URLSearchParams(searchParams.toString())
-    params.delete('brand')
-    router.replace(`/products${params.toString() ? `?${params.toString()}` : ''}`)
+    setActiveBrand('all')
+    updateURL({ brand: 'all' })
   }
 
   const filtered = useMemo(() => {
@@ -139,7 +172,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
               <Search size={13} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
               <input
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={e => { setSearch(e.target.value); updateURL({ q: e.target.value }) }}
                 placeholder={t.productsSection.searchPlaceholder}
                 style={{
                   width: '100%', padding: '9px 32px 9px 32px',
@@ -151,7 +184,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                 onBlur={e => (e.target.style.borderColor = 'var(--border)')}
               />
               {search && (
-                <button onClick={() => setSearch('')} style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', display: 'flex', padding: 2 }}>
+                <button onClick={() => { setSearch(''); updateURL({ q: '' }) }} style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', display: 'flex', padding: 2 }}>
                   <X size={13} />
                 </button>
               )}
@@ -162,7 +195,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
               <ArrowUpDown size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
               <select
                 value={sort}
-                onChange={e => setSort(e.target.value)}
+                onChange={e => { setSort(e.target.value); updateURL({ sort: e.target.value }) }}
                 style={{
                   padding: '9px 12px 9px 28px',
                   background: 'var(--bg2)', border: '1px solid var(--border)',
@@ -215,7 +248,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                     type="number"
                     placeholder={`$${priceRange.min}`}
                     value={priceMin}
-                    onChange={e => setPriceMin(e.target.value)}
+                    onChange={e => { setPriceMin(e.target.value); updateURL({ minPrice: e.target.value }) }}
                     min={0}
                     style={{
                       width: 90, padding: '7px 10px', background: 'var(--bg1)', border: '1px solid var(--border)',
@@ -227,7 +260,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                     type="number"
                     placeholder={`$${priceRange.max}`}
                     value={priceMax}
-                    onChange={e => setPriceMax(e.target.value)}
+                    onChange={e => { setPriceMax(e.target.value); updateURL({ maxPrice: e.target.value }) }}
                     min={0}
                     style={{
                       width: 90, padding: '7px 10px', background: 'var(--bg1)', border: '1px solid var(--border)',
@@ -246,7 +279,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                   {[1, 2, 3, 4, 5].map(s => (
                     <button
                       key={s}
-                      onClick={() => setMinRating(minRating === s ? 0 : s)}
+                      onClick={() => { const v = minRating === s ? 0 : s; setMinRating(v); updateURL({ rating: v }) }}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 1, display: 'flex' }}
                       aria-label={`${s} stars`}
                     >
@@ -265,7 +298,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                   {t.productsSection.availability ?? 'Availability'}
                 </span>
                 <button
-                  onClick={() => setInStockOnly(!inStockOnly)}
+                  onClick={() => { setInStockOnly(!inStockOnly); updateURL({ inStock: !inStockOnly }) }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', borderRadius: 8,
                     cursor: 'pointer', fontSize: '.82rem', fontWeight: 600, transition: 'all .2s',
@@ -308,7 +341,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
             {CATS.filter(c => c.key === 'all' || (counts[c.key] ?? 0) > 0).map(c => {
               const active = activeCat === c.key
               return (
-                <button key={c.key} onClick={() => setActiveCat(c.key)} style={{
+                <button key={c.key} onClick={() => { setActiveCat(c.key); updateURL({ category: c.key }) }} style={{
                   flexShrink: 0, padding: '6px 14px', borderRadius: 40,
                   fontWeight: 700, fontSize: '.78rem', cursor: 'pointer', transition: 'all .18s',
                   background: active ? 'var(--primary)' : 'var(--bg2)',
@@ -370,7 +403,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                     <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 4 }}>
                       {p.is_hot && <span style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', fontSize: '.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.hot}</span>}
                       {p.is_new && <span style={{ background: 'var(--gradient)', color: '#fff', fontSize: '.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.new}</span>}
-                      {!p.in_stock && <span style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)', color: '#fff', fontSize: '.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>Out of Stock</span>}
+                      {!p.in_stock && <span style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)', color: '#fff', fontSize: '.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.common.outOfStock}</span>}
                     </div>
                     <div style={{ position: 'absolute', top: 8, right: 8 }} onClick={e => e.preventDefault()}>
                       <WishlistButton productId={p.id} size={14} />
@@ -406,7 +439,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                       color: !p.in_stock ? 'var(--text3)' : isAdded ? '#10b981' : '#fff',
                       boxShadow: (!p.in_stock || isAdded) ? 'none' : '0 4px 12px rgba(99,102,241,.28)',
                     }}>
-                      {!p.in_stock ? 'Out of Stock' : isAdded ? t.productCard.added : <><ShoppingCart size={13} /> {t.productCard.addToCart}</>}
+                      {!p.in_stock ? t.common.outOfStock : isAdded ? t.productCard.added : <><ShoppingCart size={13} /> {t.productCard.addToCart}</>}
                     </button>
                   </div>
                 </div>
