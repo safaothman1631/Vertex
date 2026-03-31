@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createRateLimiter, getClientIP } from '@/lib/rate-limit'
+
+// 3 password-reset requests per 15 minutes per IP
+const resetLimiter = createRateLimiter({ window: 15 * 60_000, max: 3 })
 
 export async function POST(req: NextRequest) {
   const { email } = await req.json()
 
   if (!email || typeof email !== 'string') {
     return NextResponse.json({ error: 'Email required' }, { status: 400 })
+  }
+
+  // ── Rate limit ──────────────────────────────────────────────────
+  const ip = getClientIP(req)
+  if (!resetLimiter.check(ip)) {
+    return NextResponse.json(
+      { error: 'Too many reset attempts. Please try again later.' },
+      { status: 429 },
+    )
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

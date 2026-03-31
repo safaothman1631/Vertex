@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-server'
+import { safeCompare } from '@/lib/safe-compare'
 
 const TABLES = [
   'brands', 'categories', 'profiles', 'products', 'coupons',
@@ -12,8 +13,9 @@ const BUCKET = 'backups'
 const KEEP_DAYS = 30
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const authHeader = req.headers.get('authorization') ?? ''
+  const token = authHeader.replace(/^Bearer\s+/i, '')
+  if (!safeCompare(token, process.env.CRON_SECRET ?? '')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

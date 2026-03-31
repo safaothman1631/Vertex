@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase-server'
+import { createRateLimiter, getClientIP } from '@/lib/rate-limit'
 import type { ShippingAddress } from '@/types'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
 })
+
+// 10 checkout attempts per 15 minutes per IP
+const checkoutLimiter = createRateLimiter({ window: 15 * 60_000, max: 10 })
 
 function isValidShippingAddress(a: unknown): a is ShippingAddress {
   if (!a || typeof a !== 'object') return false
@@ -20,6 +24,15 @@ function isValidShippingAddress(a: unknown): a is ShippingAddress {
 
 export async function POST(request: Request) {
   try {
+    // ── Rate limit ──────────────────────────────────────────────────
+    const ip = getClientIP(request)
+    if (!checkoutLimiter.check(ip)) {
+      return NextResponse.json(
+        { error: 'Too many checkout attempts. Please wait a few minutes.' },
+        { status: 429 },
+      )
+    }
+
     const body = await request.json()
 
     // Coupon validation mode
@@ -170,13 +183,18 @@ export async function POST(request: Request) {
       // Create Stripe coupon if discount applied
       let discounts: { coupon: string }[] = []
       if (discount > 0 && couponCode) {
-        const stripeCoupon = await stripe.coupons.create({
-          amount_off: Math.round(discount * 100),
-          currency: 'usd',
-          name: `Coupon ${couponCode}`,
-          max_redemptions: 1,
-        })
-        discounts = [{ coupon: stripeCoupon.id }]
+        try {
+          const stripeCoupon = await stripe.coupons.create({
+            amount_off: Math.round(discount * 100),
+            currency: 'usd',
+            name: `Order ${order.id.slice(0, 8)}`,
+            max_redemptions: 1,
+            duration: 'once',
+          })
+          discounts = [{ coupon: stripeCoupon.id }]
+        } catch {
+          // If coupon creation fails, proceed without discount rather than block the order
+        }
       }
 
       session = await stripe.checkout.sessions.create({

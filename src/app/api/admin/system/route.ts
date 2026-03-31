@@ -42,9 +42,9 @@ export async function GET() {
     admin.from('trash').select('*', { count: 'exact', head: true }),
     admin.from('contact_messages').select('*', { count: 'exact', head: true }),
     admin.from('promotions').select('*', { count: 'exact', head: true }),
-    admin.from('system_logs').select('*').eq('level', 'error').order('created_at', { ascending: false }).limit(5),
+    admin.from('system_logs').select('id, level, source, message, created_at').eq('level', 'error').order('created_at', { ascending: false }).limit(5),
     admin.from('system_logs').select('*', { count: 'exact', head: true }).eq('level', 'error').gte('created_at', new Date(Date.now() - 86400000).toISOString()),
-    admin.from('system_logs').select('*').order('created_at', { ascending: false }).limit(50),
+    admin.from('system_logs').select('id, level, source, message, created_at').order('created_at', { ascending: false }).limit(50),
     admin.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'admin'),
     admin.from('orders').select('id, created_at').order('created_at', { ascending: false }).limit(1),
     admin.from('products').select('*', { count: 'exact', head: true }).eq('in_stock', false),
@@ -74,6 +74,14 @@ export async function GET() {
   const performanceHealth = errCount24 === 0 ? 95 : 70
   const overallHealth = Math.round((dbHealth + securityHealth + storageHealth + performanceHealth) / 4)
 
+  // Sanitize log messages — strip file paths and internal identifiers
+  function sanitizeLog(log: { message?: string; [k: string]: unknown }) {
+    return {
+      ...log,
+      message: (log.message ?? '').replace(/[A-Z]:\\[^\s,;)]+/gi, '[path]').replace(/\/[a-z0-9_./]+\.[a-z]{1,4}/gi, '[path]'),
+    }
+  }
+
   return NextResponse.json({
     tableCounts,
     totalRows,
@@ -85,8 +93,8 @@ export async function GET() {
       overall: overallHealth,
     },
     errors24h: errCount24,
-    recentErrors: recentErrors ?? [],
-    logs: allLogs ?? [],
+    recentErrors: (recentErrors ?? []).map(sanitizeLog),
+    logs: (allLogs ?? []).map(sanitizeLog),
     adminCount: adminCount ?? 0,
     outOfStockCount: outOfStock ?? 0,
     lastOrderAt: recentOrders?.[0]?.created_at ?? null,

@@ -23,6 +23,24 @@ export default function RegisterPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    // ── Password strength enforcement ─────────────────────────────
+    if (password.length < 8) {
+      setError(t.auth.passwordMin)
+      setLoading(false)
+      return
+    }
+    if (!/[A-Z]/.test(password)) {
+      setError('Password must contain at least one uppercase letter')
+      setLoading(false)
+      return
+    }
+    if (!/[0-9]/.test(password)) {
+      setError('Password must contain at least one number')
+      setLoading(false)
+      return
+    }
+
     const fullName = firstName + ' ' + lastName
     const origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL ?? '')
     const redirectTo = `${origin}/auth/confirm?next=/login`

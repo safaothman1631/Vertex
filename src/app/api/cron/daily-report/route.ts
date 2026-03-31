@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase-server'
+import { safeCompare } from '@/lib/safe-compare'
 
 // ── Report recipient: set REPORT_EMAIL in your .env.local / Vercel env vars ─
 const REPORT_EMAIL = process.env.REPORT_EMAIL
@@ -9,9 +10,10 @@ if (!REPORT_EMAIL && process.env.NODE_ENV === 'production') {
 }
 
 export async function GET(req: NextRequest) {
-  // Verify cron secret (Vercel sets this automatically for cron jobs)
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Verify cron secret — timing-safe comparison to prevent side-channel attacks
+  const authHeader = req.headers.get('authorization') ?? ''
+  const token = authHeader.replace(/^Bearer\s+/i, '')
+  if (!safeCompare(token, process.env.CRON_SECRET ?? '')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

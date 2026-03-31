@@ -1,7 +1,20 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
+import { createRateLimiter, getClientIP } from '@/lib/rate-limit'
 
-export async function POST(request: Request) {
+// 5 broadcast notifications per hour
+const broadcastLimiter = createRateLimiter({ window: 60 * 60_000, max: 5 })
+
+export async function POST(request: NextRequest) {
+  // Rate limit broadcasts
+  const ip = getClientIP(request)
+  if (!broadcastLimiter.check(ip)) {
+    return NextResponse.json(
+      { error: 'Too many broadcast notifications. Wait before sending more.' },
+      { status: 429 },
+    )
+  }
+
   // Verify admin
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

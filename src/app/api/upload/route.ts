@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
+import { createRateLimiter, getClientIP } from '@/lib/rate-limit'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif']
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 
+// 20 uploads per 15 minutes per IP
+const uploadLimiter = createRateLimiter({ window: 15 * 60_000, max: 20 })
+
 export async function POST(req: NextRequest) {
+  const ip = getClientIP(req)
+  if (!uploadLimiter.check(ip)) {
+    return NextResponse.json({ error: 'Too many uploads. Please wait.' }, { status: 429 })
+  }
+
   // Verify user is authenticated and is an admin
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -33,6 +42,15 @@ export async function POST(req: NextRequest) {
   const urls: string[] = []
   const errors: string[] = []
 
+  // Map of MIME → allowed file extensions
+  const MIME_EXT: Record<string, string[]> = {
+    'image/jpeg': ['jpg', 'jpeg'],
+    'image/png': ['png'],
+    'image/webp': ['webp'],
+    'image/svg+xml': ['svg'],
+    'image/gif': ['gif'],
+  }
+
   for (const file of files) {
     if (!ALLOWED_TYPES.includes(file.type)) {
       errors.push(`${file.name}: unsupported file type`)
@@ -43,7 +61,10 @@ export async function POST(req: NextRequest) {
       continue
     }
 
-    const ext = file.name.split('.').pop() || 'jpg'
+    // Validate extension matches the declared MIME type to prevent type spoofing
+    const rawExt = (file.name.split('.').pop() ?? '').toLowerCase()
+    const validExts = MIME_EXT[file.type] ?? []
+    const ext = validExts.includes(rawExt) ? rawExt : (validExts[0] ?? 'jpg')
     const fileName = `${folder}/${crypto.randomUUID()}.${ext}`
 
     const buffer = await file.arrayBuffer()
