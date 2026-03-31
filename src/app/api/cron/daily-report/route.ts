@@ -2,13 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase-server'
 
-const REPORT_EMAIL = 'safaothman1631@gmail.com'
+// ── Report recipient: set REPORT_EMAIL in your .env.local / Vercel env vars ─
+const REPORT_EMAIL = process.env.REPORT_EMAIL
+if (!REPORT_EMAIL && process.env.NODE_ENV === 'production') {
+  console.error('REPORT_EMAIL environment variable is not set')
+}
 
 export async function GET(req: NextRequest) {
   // Verify cron secret (Vercel sets this automatically for cron jobs)
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!REPORT_EMAIL) {
+    return NextResponse.json({ error: 'REPORT_EMAIL not configured' }, { status: 500 })
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY)
@@ -221,7 +229,7 @@ export async function GET(req: NextRequest) {
 
   const { error: emailError } = await resend.emails.send({
     from: 'Vertex System <onboarding@resend.dev>',
-    to: REPORT_EMAIL,
+    to: REPORT_EMAIL!,
     subject: `Vertex Daily Report — Health: ${overallHealth}/100 ${overallHealth >= 80 ? '✅' : overallHealth >= 50 ? '⚠️' : '🔴'} — ${date}`,
     html,
   })

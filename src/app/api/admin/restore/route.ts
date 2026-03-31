@@ -9,6 +9,11 @@ const TABLE_ORDER = [
   'trash', 'promotions', 'system_logs',
 ]
 
+// ── Sensitive tables that must NOT be restored via backup upload ─────────────
+// Restoring `profiles` would allow an attacker to escalate their own role
+// Restoring `orders` protects financial records from tampering
+const RESTRICTED_TABLES = new Set(['profiles', 'orders', 'order_items'])
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -32,6 +37,12 @@ export async function POST(req: NextRequest) {
   const results: { table: string; inserted: number; error?: string }[] = []
 
   for (const table of TABLE_ORDER) {
+    // Skip restricted tables to prevent role escalation and financial data tampering
+    if (RESTRICTED_TABLES.has(table)) {
+      results.push({ table, inserted: 0, error: 'Restricted: this table cannot be restored via backup upload' })
+      continue
+    }
+
     const rows = body.tables[table]
     if (!rows || !Array.isArray(rows) || rows.length === 0) {
       results.push({ table, inserted: 0 })

@@ -28,6 +28,24 @@ export async function PATCH(request: Request) {
 
   // Use admin client to bypass RLS
   const adminClient = createAdminClient()
+
+  // ── Guard: cannot demote the last administrator ──────────────────────────
+  if (role === 'user') {
+    const { data: targetProfile } = await adminClient
+      .from('profiles').select('role').eq('id', userId).single()
+    if (targetProfile?.role === 'admin') {
+      const { count: adminCount } = await adminClient
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'admin')
+      if ((adminCount ?? 0) <= 1) {
+        return NextResponse.json(
+          { error: 'Cannot demote the last administrator' },
+          { status: 400 }
+        )
+      }
+    }
+  }
   const { error } = await adminClient
     .from('profiles')
     .update({ role })
@@ -60,6 +78,14 @@ export async function DELETE(request: Request) {
 
   const { userId } = await request.json()
   if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
+
+  // ── Guard: admin cannot delete their own account via admin panel ──────────
+  if (userId === user.id) {
+    return NextResponse.json(
+      { error: 'Cannot delete your own account from the admin panel' },
+      { status: 400 }
+    )
+  }
 
   // Use admin client to delete from auth.users (cascades to profiles)
   const adminClient = createAdminClient()

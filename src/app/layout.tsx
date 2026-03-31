@@ -3,6 +3,12 @@ import './globals.css'
 import { LocaleProvider } from '@/contexts/locale'
 import ScrollbarEffect from '@/components/ui/ScrollbarEffect'
 import { ToastProvider } from '@/components/ui/Toast'
+import { validateEnv } from '@/lib/env'
+
+// Validate required environment variables at startup (server-side only)
+if (typeof window === 'undefined') {
+  validateEnv()
+}
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vertex-pos.com'
 

@@ -19,7 +19,11 @@ export async function POST(req: NextRequest) {
 
   const formData = await req.formData()
   const files = formData.getAll('files') as File[]
-  const folder = (formData.get('folder') as string) || 'general'
+
+  // ── Whitelist allowed storage folders to prevent path traversal ──────────
+  const ALLOWED_FOLDERS = ['brands', 'products', 'categories', 'promotions', 'avatars'] as const
+  const rawFolder = (formData.get('folder') as string | null)?.replace(/[^a-z0-9_-]/g, '') || ''
+  const folder: string = (ALLOWED_FOLDERS as readonly string[]).includes(rawFolder) ? rawFolder : 'general'
 
   if (!files.length) {
     return NextResponse.json({ error: 'No files provided' }, { status: 400 })

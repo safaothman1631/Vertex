@@ -75,6 +75,8 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
 
   // ── Delete account state
   const [deleting, setDeleting] = useState(false)
+  const [deleteStep, setDeleteStep] = useState<'idle' | 'confirm'>('idle')
+  const [deletePassword, setDeletePassword] = useState('')
 
   // ── Styles
   const inputStyle: React.CSSProperties = {
@@ -194,15 +196,30 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   // 6. DELETE ACCOUNT
   // ══════════════════════════════════════════════════════════
   async function handleDeleteAccount() {
-    if (!confirm(t.settings.deleteAccountConfirm)) return
+    if (deleteStep === 'idle') {
+      setDeleteStep('confirm')
+      setDeletePassword('')
+      return
+    }
+    if (!deletePassword) {
+      alert('Please enter your password to confirm')
+      return
+    }
     setDeleting(true)
-    const res = await fetch('/api/account', { method: 'DELETE' })
+    const res = await fetch('/api/account', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: deletePassword }),
+    })
     if (res.ok) {
       await supabase.auth.signOut()
       router.push('/')
     } else {
+      const data = await res.json().catch(() => ({}))
       setDeleting(false)
-      alert('Failed to delete account')
+      setDeleteStep('idle')
+      setDeletePassword('')
+      alert(data.error || 'Failed to delete account')
     }
   }
 
@@ -561,6 +578,29 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             <p style={{ color: 'var(--text3)', fontSize: '.82rem', marginBottom: 16, marginTop: -10 }}>
               {t.settings.deleteAccountDesc}
             </p>
+
+            {deleteStep === 'confirm' && (
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ ...labelStyle, color: '#ef4444' }}>Enter your password to confirm</label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={e => setDeletePassword(e.target.value)}
+                  placeholder="Your current password"
+                  autoFocus
+                  style={{ ...inputStyle, border: '1px solid rgba(239,68,68,.5)' }}
+                  onKeyDown={e => e.key === 'Escape' && (setDeleteStep('idle'), setDeletePassword(''))}
+                />
+                <button
+                  onClick={() => { setDeleteStep('idle'); setDeletePassword('') }}
+                  style={{
+                    marginTop: 8, fontSize: '.8rem', background: 'none', border: 'none',
+                    color: 'var(--text3)', cursor: 'pointer', padding: 0,
+                  }}
+                >Cancel</button>
+              </div>
+            )}
+
             <button onClick={handleDeleteAccount} disabled={deleting}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
@@ -568,7 +608,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                 borderRadius: 10, fontWeight: 700, fontSize: '.85rem', cursor: deleting ? 'not-allowed' : 'pointer',
                 opacity: deleting ? 0.6 : 1,
               }}>
-              <Trash2 size={14} /> {deleting ? t.settings.deleting : t.settings.deleteAccount}
+              <Trash2 size={14} /> {deleting ? t.settings.deleting : deleteStep === 'confirm' ? 'Confirm Delete' : t.settings.deleteAccount}
             </button>
           </div>
 
