@@ -335,6 +335,14 @@ const en = {
     deleteAccountDesc: 'Permanently delete your account and all associated data. This action cannot be undone.',
     deleteAccountConfirm: 'Are you sure you want to delete your account? This action is permanent and irreversible.',
     deleting: 'Deleting...',
+    deletePasswordLabel: 'Enter your current password to confirm',
+    deletePasswordPlaceholder: 'Your current password',
+    deletePasswordRequired: 'Please enter your password to confirm',
+    cancelBtn: 'Cancel',
+    confirmDeleteBtn: 'Confirm & Delete',
+    // Section nav labels
+    sectionProfile: 'Profile',
+    sectionPassword: 'Password',
   },
 
   // ── CONTACT

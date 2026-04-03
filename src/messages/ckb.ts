@@ -328,8 +328,13 @@ const ckb = {
     deleteAccount: 'سڕینەوەی ئەکاونت',
     deleteAccountDesc: 'ئەکاونتەکەت و هەموو داتاکانی بەشێوەیەکی هەمیشەیی دەسڕدرێتەوە. ئەم کارە ناتوانرێت پووچەلبکرێتەوە.',
     deleteAccountConfirm: 'دڵنیایت لە سڕینەوەی ئەکاونتەکەت؟ ئەم کارە هەمیشەییە و ناگەڕێتەوە.',
-    deleting: 'سڕینەوە...',
-  },
+    deleting: 'سڕینەوە...',    deletePasswordLabel: 'وشەی نهێنیی کۆنەکەت بنووسە بۆ دڕبەستکىردن',
+    deletePasswordPlaceholder: 'وشەی نهێنیی کۆنەکەت',
+    deletePasswordRequired: 'تکایە وشەی نهێنیی بنووسە بۆ دڕبەستکىردن',
+    cancelBtn: 'وازگەڕانەوە',
+    confirmDeleteBtn: 'دڵنیاتکە بکە و بیسڕەوە',
+    sectionProfile: 'پرۆفایل',
+    sectionPassword: 'وشەی نهێنی',  },
 
   // ── CONTACT
   contact: {

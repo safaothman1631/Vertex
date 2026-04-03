@@ -8,7 +8,7 @@ import {
   User, Mail, Lock, Save, CheckCircle, MapPin, Globe, Bell,
   ShoppingBag, Trash2, Phone, Plus, Pencil, X, Star, ChevronRight,
   Camera, Loader2, LocateFixed, Map, BellRing, Package, Tag, Info,
-  Settings, CheckCheck, Clock, Eye,
+  Settings, CheckCheck, Clock, Eye, EyeOff, AlertTriangle,
 } from 'lucide-react'
 import { useT, useLocale, type Locale } from '@/contexts/locale'
 import type { UserAddress, Notification } from '@/types'
@@ -74,6 +74,34 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const [pickedLatLng, setPickedLatLng] = useState<{ lat: number; lng: number } | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
+  // ── IntersectionObserver: track active section for sidebar
+  useEffect(() => {
+    const ids = ['profile', 'password', 'addresses', 'language', 'notifications', 'orders', 'danger']
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(e => { if (e.isIntersecting) setActiveSection(e.target.id) })
+      },
+      { rootMargin: '-20% 0px -70% 0px' }
+    )
+    ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el) })
+    return () => observer.disconnect()
+  }, [])
+
+  // ── Supabase realtime: new notification arrives → prepend to inbox
+  useEffect(() => {
+    const channel = supabase
+      .channel(`notif-${user.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, payload => {
+        setNotifications(prev => [payload.new as Notification, ...prev])
+        setUnreadCount(prev => prev + 1)
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [supabase, user.id])
+
   // Listen for map clicks from iframe
   useEffect(() => {
     function onMessage(e: MessageEvent) {
@@ -133,6 +161,9 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   }
 
   // ── Notifications state
+  const [showPw, setShowPw] = useState({ current: false, next: false, confirm: false })
+  const [activeSection, setActiveSection] = useState('profile')
+  const [clearConfirm, setClearConfirm] = useState(false)
   const [notifyEmail, setNotifyEmail] = useState(profile?.notify_email ?? true)
   const [notifyOrder, setNotifyOrder] = useState(profile?.notify_order ?? true)
   const [notifyPromo, setNotifyPromo] = useState(profile?.notify_promo ?? false)
@@ -341,7 +372,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
       return
     }
     if (!deletePassword) {
-      alert('Please enter your password to confirm')
+      alert(t.settings.deletePasswordRequired)
       return
     }
     setDeleting(true)
@@ -361,6 +392,17 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
       alert(data.error || 'Failed to delete account')
     }
   }
+
+  // ── Sections list for sidebar nav
+  const SECTIONS = [
+    { id: 'profile',       icon: <User size={14} />,         label: t.settings.sectionProfile },
+    { id: 'password',      icon: <Lock size={14} />,         label: t.settings.sectionPassword },
+    { id: 'addresses',     icon: <MapPin size={14} />,       label: t.settings.myAddresses },
+    { id: 'language',      icon: <Globe size={14} />,        label: t.settings.language },
+    { id: 'notifications', icon: <Bell size={14} />,         label: t.settings.notifications },
+    { id: 'orders',        icon: <ShoppingBag size={14} />,  label: t.settings.recentOrders },
+    { id: 'danger',        icon: <AlertTriangle size={14} />,label: t.settings.dangerZone },
+  ]
 
   // ── Initials avatar
   const initials = (name || user.email || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
@@ -386,7 +428,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
 
   return (
     <div className="resp-page-padding" style={{ minHeight: '100vh', background: 'var(--bg0)' }}>
-      <div className="container" style={{ maxWidth: 720 }}>
+      <div className="container" style={{ maxWidth: 980 }}>
         {/* ── Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 36 }}>
           <div style={{ position: 'relative' }}>
@@ -419,10 +461,28 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="settings-layout">
+
+          {/* ── Sidebar nav ── */}
+          <aside className="settings-sidebar">
+            {SECTIONS.map(s => (
+              <button
+                key={s.id}
+                type="button"
+                className={`settings-nav-btn${activeSection === s.id ? ' active' : ''}`}
+                onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              >
+                <span className="snav-icon">{s.icon}</span>
+                <span>{s.label}</span>
+              </button>
+            ))}
+          </aside>
+
+          {/* ── Main content ── */}
+          <div className="settings-main">
 
           {/* ═══════════ 1. PROFILE ═══════════ */}
-          <div className="resp-card-padding-lg" style={card}>
+          <div id="profile" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(<User size={16} style={{ color: 'var(--primary)' }} />, t.settings.fullName.split(' ')[0] + ' — ' + t.settings.email)}
             <form onSubmit={saveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
@@ -459,7 +519,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 2. PASSWORD ═══════════ */}
-          <div className="resp-card-padding-lg" style={card}>
+          <div id="password" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(<Lock size={16} style={{ color: 'var(--primary)' }} />, t.settings.changePassword)}
             <form onSubmit={savePassword} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {([
@@ -469,7 +529,22 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
               ] as const).map(({ key, label }) => (
                 <div key={key}>
                   <label style={labelStyle}>{label}</label>
-                  <input type="password" required value={pwForm[key]} onChange={e => setPwForm(p => ({ ...p, [key]: e.target.value }))} style={inputStyle} />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPw[key] ? 'text' : 'password'}
+                      required
+                      value={pwForm[key]}
+                      onChange={e => setPwForm(p => ({ ...p, [key]: e.target.value }))}
+                      style={{ ...inputStyle, paddingRight: 42 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw(p => ({ ...p, [key]: !p[key] }))}
+                      style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 2, display: 'flex', alignItems: 'center' }}
+                    >
+                      {showPw[key] ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
                 </div>
               ))}
               {pwMsg && (
@@ -491,7 +566,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 3. ADDRESSES ═══════════ */}
-          <div className="resp-card-padding-lg" style={card}>
+          <div id="addresses" className="settings-section resp-card-padding-lg" style={card}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <MapPin size={16} style={{ color: 'var(--primary)' }} />
@@ -703,7 +778,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 4. LANGUAGE ═══════════ */}
-          <div className="resp-card-padding-lg" style={card}>
+          <div id="language" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(<Globe size={16} style={{ color: 'var(--primary)' }} />, t.settings.language)}
             <p style={{ color: 'var(--text3)', fontSize: '.8rem', marginBottom: 14, marginTop: -10 }}>{t.settings.languageDesc}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
@@ -725,7 +800,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 5. NOTIFICATIONS ═══════════ */}
-          <div className="resp-card-padding-lg" style={card}>
+          <div id="notifications" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(
               <div style={{ position: 'relative' }}>
                 <Bell size={16} style={{ color: 'var(--primary)' }} />
@@ -819,14 +894,33 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                   )}
                   {/* Clear all */}
                   {notifications.length > 0 && (
-                    <button onClick={clearAllNotifs} style={{
-                      padding: '4px 10px', borderRadius: 8, border: '1px solid var(--border)',
-                      background: 'transparent', color: '#ef4444', fontSize: '.72rem',
-                      fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-                    }}>
-                      <Trash2 size={12} />
-                      {t.settings.clearAll}
-                    </button>
+                    clearConfirm ? (
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button onClick={() => { clearAllNotifs(); setClearConfirm(false) }} style={{
+                          padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(239,68,68,.4)',
+                          background: 'rgba(239,68,68,.1)', color: '#ef4444', fontSize: '.72rem',
+                          fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                        }}>
+                          <Trash2 size={12} /> {t.settings.confirmDeleteBtn}
+                        </button>
+                        <button onClick={() => setClearConfirm(false)} style={{
+                          padding: '4px 8px', borderRadius: 8, border: '1px solid var(--border)',
+                          background: 'transparent', color: 'var(--text3)', fontSize: '.72rem',
+                          fontWeight: 600, cursor: 'pointer',
+                        }}>
+                          {t.settings.cancelBtn}
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setClearConfirm(true)} style={{
+                        padding: '4px 10px', borderRadius: 8, border: '1px solid var(--border)',
+                        background: 'transparent', color: '#ef4444', fontSize: '.72rem',
+                        fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                      }}>
+                        <Trash2 size={12} />
+                        {t.settings.clearAll}
+                      </button>
+                    )
                   )}
                 </div>
               </div>
@@ -930,7 +1024,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 6. RECENT ORDERS ═══════════ */}
-          <div className="resp-card-padding-lg" style={card}>
+          <div id="orders" className="settings-section resp-card-padding-lg" style={card}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ShoppingBag size={16} style={{ color: 'var(--primary)' }} />
@@ -983,7 +1077,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
 
           {/* ═══════════ 7. DANGER ZONE ═══════════ */}
-          <div className="resp-card-padding-lg" style={{ ...card, border: '1px solid rgba(239,68,68,.25)' }}>
+          <div id="danger" className="settings-section resp-card-padding-lg" style={{ ...card, border: '1px solid rgba(239,68,68,.25)' }}>
             {sectionHeader(<Trash2 size={16} style={{ color: '#ef4444' }} />, t.settings.dangerZone)}
             <p style={{ color: 'var(--text3)', fontSize: '.82rem', marginBottom: 16, marginTop: -10 }}>
               {t.settings.deleteAccountDesc}
@@ -991,12 +1085,12 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
 
             {deleteStep === 'confirm' && (
               <div style={{ marginBottom: 12 }}>
-                <label style={{ ...labelStyle, color: '#ef4444' }}>Enter your password to confirm</label>
+                <label style={{ ...labelStyle, color: '#ef4444' }}>{t.settings.deletePasswordLabel}</label>
                 <input
                   type="password"
                   value={deletePassword}
                   onChange={e => setDeletePassword(e.target.value)}
-                  placeholder="Your current password"
+                  placeholder={t.settings.deletePasswordPlaceholder}
                   autoFocus
                   style={{ ...inputStyle, border: '1px solid rgba(239,68,68,.5)' }}
                   onKeyDown={e => e.key === 'Escape' && (setDeleteStep('idle'), setDeletePassword(''))}
@@ -1007,7 +1101,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                     marginTop: 8, fontSize: '.8rem', background: 'none', border: 'none',
                     color: 'var(--text3)', cursor: 'pointer', padding: 0,
                   }}
-                >Cancel</button>
+                >{t.settings.cancelBtn}</button>
               </div>
             )}
 
@@ -1018,11 +1112,12 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                 borderRadius: 10, fontWeight: 700, fontSize: '.85rem', cursor: deleting ? 'not-allowed' : 'pointer',
                 opacity: deleting ? 0.6 : 1,
               }}>
-              <Trash2 size={14} /> {deleting ? t.settings.deleting : deleteStep === 'confirm' ? 'Confirm Delete' : t.settings.deleteAccount}
+              <Trash2 size={14} /> {deleting ? t.settings.deleting : deleteStep === 'confirm' ? t.settings.confirmDeleteBtn : t.settings.deleteAccount}
             </button>
           </div>
 
-        </div>
+          </div>{/* end settings-main */}
+        </div>{/* end settings-layout */}
       </div>
     </div>
   )

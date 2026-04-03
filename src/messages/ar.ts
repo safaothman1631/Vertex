@@ -327,8 +327,13 @@ const ar = {
     deleteAccount: 'حذف الحساب',
     deleteAccountDesc: 'حذف حسابك وجميع بياناتك بشكل دائم. لا يمكن التراجع عن هذا الإجراء.',
     deleteAccountConfirm: 'هل أنت متأكد من حذف حسابك؟ هذا الإجراء دائم ولا يمكن التراجع عنه.',
-    deleting: 'جارٍ الحذف...',
-  },
+    deleting: 'جارٍ الحذف...',    deletePasswordLabel: 'أدخل كلمة مرورك الحالية للتأكيد',
+    deletePasswordPlaceholder: 'كلمة المرور الحالية',
+    deletePasswordRequired: 'الرجاء إدخال كلمة المرور للتأكيد',
+    cancelBtn: 'إلغاء',
+    confirmDeleteBtn: 'تأكيد و حذف',
+    sectionProfile: 'الملف الشخصي',
+    sectionPassword: 'كلمة المرور',  },
 
   // ── CONTACT
   contact: {

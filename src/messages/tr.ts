@@ -330,6 +330,13 @@ const tr = {
     deleteAccountDesc: 'Hesabınız ve tüm verileriniz kalıcı olarak silinecektir. Bu işlem geri alınamaz.',
     deleteAccountConfirm: 'Hesabınızı silmek istediğinizden emin misiniz? Bu işlem kalıcıdır ve geri alınamaz.',
     deleting: 'Siliniyor...',
+    deletePasswordLabel: 'Onaylamak için mevcut şifrenizi girin',
+    deletePasswordPlaceholder: 'Mevcut şifreniz',
+    deletePasswordRequired: 'Lütfen onaylamak için şifrenizi girin',
+    cancelBtn: 'İptal',
+    confirmDeleteBtn: 'Onayla ve Sil',
+    sectionProfile: 'Profil',
+    sectionPassword: 'Şifre',
   },
 
   // ── CONTACT
