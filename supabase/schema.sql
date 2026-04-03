@@ -327,11 +327,13 @@ create policy "Admins can manage coupons"
   on public.coupons for all
   using ((select role from public.profiles where id = auth.uid()) = 'admin');
 
--- Notifications: users read/update own; admins manage all
+-- Notifications: users read/update/delete own; admins manage all
 create policy "Users can read own notifications"
   on public.notifications for select using (auth.uid() = user_id);
 create policy "Users can update own notifications"
   on public.notifications for update using (auth.uid() = user_id);
+create policy "Users can delete own notifications"
+  on public.notifications for delete using (auth.uid() = user_id);
 create policy "Admins can manage notifications"
   on public.notifications for all
   using ((select role from public.profiles where id = auth.uid()) = 'admin');

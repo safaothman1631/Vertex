@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import SettingsClient from '@/components/shop/SettingsClient'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Settings',
   description: 'Manage your account settings, addresses, and preferences.',

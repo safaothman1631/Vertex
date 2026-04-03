@@ -321,9 +321,14 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   // 5. NOTIFICATIONS
   // ══════════════════════════════════════════════════════════
   async function toggleNotification(key: 'notify_email' | 'notify_order' | 'notify_promo', value: boolean) {
+    const prev = { notify_email: notifyEmail, notify_order: notifyOrder, notify_promo: notifyPromo }
     const setters = { notify_email: setNotifyEmail, notify_order: setNotifyOrder, notify_promo: setNotifyPromo }
-    setters[key](value)
-    await supabase.from('profiles').update({ [key]: value }).eq('id', user.id)
+    setters[key](value) // optimistic
+    const { error } = await supabase.from('profiles').update({ [key]: value }).eq('id', user.id)
+    if (error) {
+      setters[key](prev[key]) // revert on failure
+      console.error('toggleNotification failed:', error.message)
+    }
   }
 
   // ══════════════════════════════════════════════════════════
