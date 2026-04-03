@@ -113,14 +113,14 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 .nav-admin-link:hover{background:rgba(99,102,241,.16);border-color:rgba(99,102,241,.3);color:#a78bfa;transform:translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,.2)}
 .nav-admin-link:active{transform:scale(.96) translateY(0)}
 /* Action buttons */
-.nav-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.nav-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto}
 .nav-action-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;color:rgba(255,255,255,.5);background:none;border:none;cursor:pointer;transition:color .2s,background .2s,transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s;flex-shrink:0;overflow:hidden}
 .nav-action-btn::before{content:'';position:absolute;inset:0;border-radius:10px;background:radial-gradient(circle at center,rgba(99,102,241,.18),transparent 70%);opacity:0;transition:opacity .2s;pointer-events:none}
 .nav-action-btn:hover{color:#fff;background:rgba(99,102,241,.1);transform:scale(1.1) translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,.2),0 0 0 1px rgba(99,102,241,.12)}
 .nav-action-btn:hover::before{opacity:1}
 .nav-action-btn:active{transform:scale(.93) translateY(0)}
 .nav-action-badge{position:absolute;top:1px;right:1px;min-width:15px;height:15px;border-radius:99px;background:linear-gradient(135deg,#f87171,#ef4444);color:#fff;font-size:.58rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 3px;pointer-events:none;border:2px solid rgba(8,8,16,.92);animation:badgePop .4s cubic-bezier(.34,1.56,.64,1) both;box-shadow:0 0 8px rgba(239,68,68,.4)}
-.nav-divider{width:1px;height:18px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.1),transparent);margin:0 6px;flex-shrink:0}
+.nav-divider{width:1px;height:18px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.1),transparent);margin:0 2px;flex-shrink:0}
 /* Avatar / profile */
 .nav-avatar-trigger{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)!important;cursor:pointer;padding:3px 10px 3px 3px;border-radius:99px;transition:background .25s,border-color .25s,box-shadow .25s,transform .22s cubic-bezier(.34,1.56,.64,1);flex-shrink:0}
 .nav-avatar-trigger:hover{background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.25)!important;box-shadow:0 0 0 3px rgba(99,102,241,.06),0 4px 14px rgba(99,102,241,.15);transform:translateY(-1px)}

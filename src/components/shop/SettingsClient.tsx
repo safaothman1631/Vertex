@@ -1,13 +1,13 @@
 ﻿'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   User, Mail, Lock, Save, CheckCircle, MapPin, Globe, Bell,
   ShoppingBag, Trash2, Phone, Plus, Pencil, X, Star, ChevronRight,
-  Camera, Loader2,
+  Camera, Loader2, LocateFixed, Map,
 } from 'lucide-react'
 import { useT, useLocale, type Locale } from '@/contexts/locale'
 import type { UserAddress } from '@/types'
@@ -67,6 +67,68 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const [addresses, setAddresses] = useState<UserAddress[]>(initAddresses)
   const [editingAddr, setEditingAddr] = useState<Partial<UserAddress> | null>(null)
   const [savingAddr, setSavingAddr] = useState(false)
+  const [mapPickerOpen, setMapPickerOpen] = useState(false)
+  const [geocoding, setGeocoding] = useState(false)
+  const [pickedLatLng, setPickedLatLng] = useState<{ lat: number; lng: number } | null>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  // Listen for map clicks from iframe
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.data && typeof e.data.lat === 'number' && typeof e.data.lng === 'number') {
+        setPickedLatLng({ lat: e.data.lat, lng: e.data.lng })
+        reverseGeocode(e.data.lat, e.data.lng)
+      }
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function reverseGeocode(lat: number, lng: number) {
+    setGeocoding(true)
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+        { headers: { 'Accept-Language': 'en' } }
+      )
+      const data = await res.json()
+      const a = data.address ?? {}
+      setEditingAddr(prev => ({
+        ...prev,
+        address: [a.road, a.house_number].filter(Boolean).join(' ') || a.suburb || a.neighbourhood || data.display_name?.split(',')[0] || '',
+        city: a.city || a.town || a.village || a.county || a.state_district || '',
+        country: a.country || '',
+        zip: a.postcode || '',
+      }))
+      setMapPickerOpen(false)
+    } catch {}
+    setGeocoding(false)
+  }
+
+  const [geoError, setGeoError] = useState('')
+
+  async function useMyLocation() {
+    setGeocoding(true)
+    setGeoError('')
+    if (!navigator.geolocation) {
+      setGeoError('براوزەرەکەت لۆکەیشن پشتگیری ناکات')
+      setGeocoding(false)
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude: lat, longitude: lng } = pos.coords
+        iframeRef.current?.contentWindow?.postMessage({ flyTo: true, lat, lng }, '*')
+        reverseGeocode(lat, lng)
+      },
+      () => {
+        setGeoError('تکایە ڕێگەپێدان بدە بە لۆکەیشن — لە بار ئادرەس کلیک بکە لەسەر ئایکۆنی 🔒 و Location بگۆڕە بۆ Allow')
+        setGeocoding(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
 
   // ── Notifications state
   const [notifyEmail, setNotifyEmail] = useState(profile?.notify_email ?? true)
@@ -88,6 +150,8 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     display: 'block', fontSize: '.75rem', fontWeight: 700, color: 'var(--text2)',
     marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.06em',
   }
+
+  // Leaflet map HTML for iframe srcdoc
   const card: React.CSSProperties = {
     background: 'var(--bg2)', border: '1px solid var(--border)',
     borderRadius: 'var(--radius-xl)',
@@ -367,6 +431,115 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
 
             {editingAddr && (
               <form onSubmit={saveAddress} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20, padding: 20, background: 'var(--bg3)', borderRadius: 12 }}>
+
+                {/* Map picker buttons */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+                  <button
+                    type="button"
+                    onClick={() => setMapPickerOpen(true)}
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                      padding: '10px 16px', borderRadius: 10, cursor: 'pointer', fontWeight: 700,
+                      fontSize: '.82rem', fontFamily: 'inherit', border: '1.5px solid rgba(99,102,241,.4)',
+                      background: 'rgba(99,102,241,.08)', color: 'var(--primary)', transition: 'all .18s',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,.18)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,.08)' }}
+                  >
+                    <Map size={15} />
+                    لەسەر ماپ دیاری بکە
+                  </button>
+                  <button
+                    type="button"
+                    onClick={useMyLocation}
+                    disabled={geocoding}
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                      padding: '10px 16px', borderRadius: 10, cursor: geocoding ? 'not-allowed' : 'pointer',
+                      fontWeight: 700, fontSize: '.82rem', fontFamily: 'inherit',
+                      border: '1.5px solid rgba(16,185,129,.35)',
+                      background: geocoding ? 'rgba(16,185,129,.05)' : 'rgba(16,185,129,.08)',
+                      color: '#10b981', transition: 'all .18s', opacity: geocoding ? 0.6 : 1,
+                    }}
+                    onMouseEnter={e => { if (!geocoding) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(16,185,129,.18)' }}
+                    onMouseLeave={e => { if (!geocoding) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(16,185,129,.08)' }}
+                  >
+                    {geocoding ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <LocateFixed size={15} />}
+                    {geocoding ? 'چاوەڕوانبە...' : 'شوێنم بنووسەرەوە'}
+                  </button>
+                </div>
+
+                {/* Geolocation error */}
+                {geoError && (
+                  <div style={{
+                    padding: '10px 14px', borderRadius: 10,
+                    background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)',
+                    color: '#f87171', fontSize: '.8rem', fontWeight: 600,
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                    <MapPin size={14} />
+                    {geoError}
+                  </div>
+                )}
+
+                {/* Map picker modal */}
+                {mapPickerOpen && (
+                  <div style={{
+                    position: 'fixed', inset: 0, zIndex: 2000,
+                    background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(6px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: 16,
+                  }}>
+                    <div style={{
+                      background: 'var(--bg2)', borderRadius: 18, overflow: 'hidden',
+                      width: '100%', maxWidth: 640,
+                      border: '1px solid var(--border)',
+                      boxShadow: '0 24px 60px rgba(0,0,0,.6)',
+                      display: 'flex', flexDirection: 'column',
+                    }}>
+                      {/* Modal header */}
+                      <div style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '16px 20px', borderBottom: '1px solid var(--border)',
+                        background: 'var(--bg3)',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <MapPin size={16} style={{ color: 'var(--primary)' }} />
+                          <span style={{ fontWeight: 800, fontSize: '.95rem' }}>شوێنەکەت لەسەر ماپ دیاری بکە</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setMapPickerOpen(false)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)', padding: 4, borderRadius: 6 }}
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                      {/* Hint */}
+                      <div style={{ padding: '10px 20px', background: 'rgba(99,102,241,.05)', borderBottom: '1px solid var(--border)', fontSize: '.8rem', color: 'var(--text2)' }}>
+                        📍 لەسەر ماپ کلیک بکە تا شوێنەکەت دیاری بکەیت، خۆی هەموو زانیاریەکان دەخاتەوە
+                      </div>
+                      {/* Map iframe */}
+                      <iframe
+                        ref={iframeRef}
+                        src="/map-picker.html"
+                        style={{ border: 0, width: '100%', height: 420, display: 'block' }}
+                        title="Location Picker"
+                        allow="geolocation"
+                      />
+                      {geocoding && (
+                        <div style={{
+                          padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 8,
+                          color: 'var(--primary)', fontSize: '.82rem', borderTop: '1px solid var(--border)',
+                        }}>
+                          <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                          ئادرەس دەخوێنرێتەوە...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="resp-grid-2col" style={{ gap: 12 }}>
                   <div>
                     <label style={labelStyle}>{t.settings.addressLabel}</label>

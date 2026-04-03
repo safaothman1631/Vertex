@@ -184,6 +184,86 @@ export default function ContactPage() {
             )}
           </div>
         </div>
+
+        {/* Map Section */}
+        <div style={{ marginTop: 56 }}>
+          <div style={{
+            background: 'var(--bg2)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            overflow: 'hidden',
+          }}>
+            {/* Map header */}
+            <div style={{
+              padding: '20px 28px',
+              borderBottom: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              background: 'var(--bg3)',
+            }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: 10,
+                background: 'rgba(99,102,241,.15)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <MapPin size={18} style={{ color: 'var(--primary)' }} />
+              </div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '.95rem' }}>Vertex — هەولێر</div>
+                <div style={{ color: 'var(--text2)', fontSize: '.8rem', marginTop: 2 }}>
+                  سوڵتان مزەفەر · فەرعی جیهانی کامیرە · بینای ئیپسۆن
+                </div>
+              </div>
+              <a
+                href="https://maps.app.goo.gl/cs2VCTksetkwhKt19"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  marginLeft: 'auto',
+                  padding: '8px 16px',
+                  borderRadius: 9,
+                  background: 'rgba(99,102,241,.12)',
+                  border: '1px solid rgba(99,102,241,.2)',
+                  color: 'var(--primary)',
+                  fontSize: '.8rem',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'background .2s',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(99,102,241,.22)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(99,102,241,.12)')}
+              >
+                <MapPin size={13} />
+                Google Maps بکەرەوە
+              </a>
+            </div>
+
+            {/* Iframe map */}
+            <div style={{ position: 'relative', width: '100%', height: 420 }}>
+              <iframe
+                src="https://maps.google.com/maps?q=36.191161,44.0035543&z=18&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0, display: 'block', filter: 'brightness(.9) contrast(1.05) saturate(.85)' }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Vertex Location"
+              />
+              {/* Subtle overlay to match dark theme */}
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: 'linear-gradient(180deg,rgba(6,6,14,.08) 0%,transparent 30%,transparent 70%,rgba(6,6,14,.1) 100%)',
+              }} />
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   )

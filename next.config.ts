@@ -7,17 +7,17 @@ const SUPABASE_HOST = 'xlzcnxketisxbuznfipn.supabase.co'
 const csp = [
   "default-src 'self'",
   // Next.js needs unsafe-inline for its injected scripts; Stripe needs its CDN
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://maps.googleapis.com",
   // Inline styles used throughout the app
   "style-src 'self' 'unsafe-inline'",
   // Images: own origin, Supabase storage, base64 data URIs, blobs
-  `img-src 'self' data: blob: https://${SUPABASE_HOST}`,
+  `img-src 'self' data: blob: https://${SUPABASE_HOST} https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.googleusercontent.com`,
   // Fonts: own origin + data: URIs
   "font-src 'self' data:",
-  // XHR / fetch / WebSocket: Supabase REST + Realtime, Stripe API
-  `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://api.stripe.com`,
-  // Stripe payment iframe
-  "frame-src https://js.stripe.com https://hooks.stripe.com",
+  // XHR / fetch / WebSocket: Supabase REST + Realtime, Stripe API, Nominatim geocoding
+  `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://api.stripe.com https://nominatim.openstreetmap.org`,
+  // Stripe payment iframe + Google Maps
+  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://maps.googleapis.com https://www.google.com",
   // Never load plugins (Flash, etc.)
   "object-src 'none'",
   // Prevent base-tag hijacking
@@ -40,7 +40,7 @@ const securityHeaders = [
   // Only send origin, not full URL, in Referer header
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   // Restrict browser feature access
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()' },
   // Enable DNS prefetch
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   // Full CSP
