@@ -15,6 +15,15 @@ create table if not exists public.profiles (
   notify_email      boolean not null default true,
   notify_order      boolean not null default true,
   notify_promo      boolean not null default false,
+  notify_wishlist   boolean not null default true,
+  notify_stock      boolean not null default true,
+  notify_sms        boolean not null default false,
+  newsletter        boolean not null default true,
+  login_alerts      boolean not null default true,
+  auto_apply_coupon boolean not null default true,
+  theme             text not null default 'dark',
+  currency          text not null default 'USD',
+  compact_mode      boolean not null default false,
   created_at        timestamptz default now()
 );
 

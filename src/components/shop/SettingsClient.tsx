@@ -9,6 +9,8 @@ import {
   ShoppingBag, Trash2, Phone, Plus, Pencil, X, Star, ChevronRight,
   Camera, Loader2, LocateFixed, Map, BellRing, Package, Tag, Info,
   Settings, CheckCheck, Clock, Eye, EyeOff, AlertTriangle,
+  Palette, DollarSign, Heart, BoxIcon, MessageSquare, Shield, Zap, LayoutGrid,
+  Sun, Moon, Monitor,
 } from 'lucide-react'
 import { useT, useLocale, type Locale } from '@/contexts/locale'
 import type { UserAddress, Notification } from '@/types'
@@ -23,6 +25,15 @@ interface Props {
     notify_email?: boolean
     notify_order?: boolean
     notify_promo?: boolean
+    notify_wishlist?: boolean
+    notify_stock?: boolean
+    notify_sms?: boolean
+    newsletter?: boolean
+    login_alerts?: boolean
+    auto_apply_coupon?: boolean
+    theme?: string
+    currency?: string
+    compact_mode?: boolean
   } | null
   addresses: UserAddress[]
   recentOrders: { id: string; total: number; status: string; created_at: string }[]
@@ -76,7 +87,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
 
   // ── IntersectionObserver: track active section for sidebar
   useEffect(() => {
-    const ids = ['profile', 'password', 'addresses', 'language', 'notifications', 'orders', 'danger']
+    const ids = ['profile', 'password', 'addresses', 'appearance', 'language', 'notifications', 'privacy', 'orders', 'danger']
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(e => { if (e.isIntersecting) setActiveSection(e.target.id) })
@@ -167,6 +178,15 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const [notifyEmail, setNotifyEmail] = useState(profile?.notify_email ?? true)
   const [notifyOrder, setNotifyOrder] = useState(profile?.notify_order ?? true)
   const [notifyPromo, setNotifyPromo] = useState(profile?.notify_promo ?? false)
+  const [notifyWishlist, setNotifyWishlist] = useState(profile?.notify_wishlist ?? true)
+  const [notifyStock, setNotifyStock] = useState(profile?.notify_stock ?? true)
+  const [notifySms, setNotifySms] = useState(profile?.notify_sms ?? false)
+  const [newsletter, setNewsletter] = useState(profile?.newsletter ?? true)
+  const [loginAlerts, setLoginAlerts] = useState(profile?.login_alerts ?? true)
+  const [autoApplyCoupon, setAutoApplyCoupon] = useState(profile?.auto_apply_coupon ?? true)
+  const [theme, setTheme] = useState(profile?.theme ?? 'dark')
+  const [currency, setCurrency] = useState(profile?.currency ?? 'USD')
+  const [compactMode, setCompactMode] = useState(profile?.compact_mode ?? false)
   const [notifications, setNotifications] = useState<Notification[]>(initNotifications)
   const [unreadCount, setUnreadCount] = useState(unreadNotifications)
   const [notifFilter, setNotifFilter] = useState<'all' | 'unread'>('all')
@@ -351,14 +371,38 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   // ══════════════════════════════════════════════════════════
   // 5. NOTIFICATIONS
   // ══════════════════════════════════════════════════════════
-  async function toggleNotification(key: 'notify_email' | 'notify_order' | 'notify_promo', value: boolean) {
-    const prev = { notify_email: notifyEmail, notify_order: notifyOrder, notify_promo: notifyPromo }
-    const setters = { notify_email: setNotifyEmail, notify_order: setNotifyOrder, notify_promo: setNotifyPromo }
+  type BoolPrefKey = 'notify_email' | 'notify_order' | 'notify_promo' | 'notify_wishlist' | 'notify_stock' | 'notify_sms' | 'newsletter' | 'login_alerts' | 'auto_apply_coupon' | 'compact_mode'
+
+  async function toggleNotification(key: BoolPrefKey, value: boolean) {
+    const prev: Record<BoolPrefKey, boolean> = {
+      notify_email: notifyEmail, notify_order: notifyOrder, notify_promo: notifyPromo,
+      notify_wishlist: notifyWishlist, notify_stock: notifyStock, notify_sms: notifySms,
+      newsletter, login_alerts: loginAlerts, auto_apply_coupon: autoApplyCoupon,
+      compact_mode: compactMode,
+    }
+    const setters: Record<BoolPrefKey, (v: boolean) => void> = {
+      notify_email: setNotifyEmail, notify_order: setNotifyOrder, notify_promo: setNotifyPromo,
+      notify_wishlist: setNotifyWishlist, notify_stock: setNotifyStock, notify_sms: setNotifySms,
+      newsletter: setNewsletter, login_alerts: setLoginAlerts, auto_apply_coupon: setAutoApplyCoupon,
+      compact_mode: setCompactMode,
+    }
     setters[key](value) // optimistic
     const { error } = await supabase.from('profiles').update({ [key]: value }).eq('id', user.id)
     if (error) {
       setters[key](prev[key]) // revert on failure
       console.error('toggleNotification failed:', error.message)
+    }
+  }
+
+  async function updateTextPref(key: 'theme' | 'currency', value: string) {
+    const prev = { theme, currency }
+    if (key === 'theme') setTheme(value)
+    else setCurrency(value)
+    const { error } = await supabase.from('profiles').update({ [key]: value }).eq('id', user.id)
+    if (error) {
+      if (key === 'theme') setTheme(prev.theme)
+      else setCurrency(prev.currency)
+      console.error('updateTextPref failed:', error.message)
     }
   }
 
@@ -398,8 +442,10 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     { id: 'profile',       icon: <User size={14} />,         label: t.settings.sectionProfile },
     { id: 'password',      icon: <Lock size={14} />,         label: t.settings.sectionPassword },
     { id: 'addresses',     icon: <MapPin size={14} />,       label: t.settings.myAddresses },
+    { id: 'appearance',    icon: <Palette size={14} />,      label: t.settings.sectionAppearance },
     { id: 'language',      icon: <Globe size={14} />,        label: t.settings.language },
     { id: 'notifications', icon: <Bell size={14} />,         label: t.settings.notifications },
+    { id: 'privacy',       icon: <Shield size={14} />,       label: t.settings.sectionPrivacy },
     { id: 'orders',        icon: <ShoppingBag size={14} />,  label: t.settings.recentOrders },
     { id: 'danger',        icon: <AlertTriangle size={14} />,label: t.settings.dangerZone },
   ]
@@ -777,7 +823,96 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             </div>
           </div>
 
-          {/* ═══════════ 4. LANGUAGE ═══════════ */}
+          {/* ═══════════ 4. APPEARANCE ═══════════ */}
+          <div id="appearance" className="settings-section resp-card-padding-lg" style={card}>
+            {sectionHeader(<Palette size={16} style={{ color: 'var(--primary)' }} />, t.settings.sectionAppearance)}
+
+            {/* Theme */}
+            <p style={{ fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '.5px' }}>
+              {t.settings.themeLabel}
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
+              {([
+                { value: 'dark', icon: <Moon size={16} />, label: t.settings.themeDark },
+                { value: 'light', icon: <Sun size={16} />, label: t.settings.themeLight },
+                { value: 'auto', icon: <Monitor size={16} />, label: t.settings.themeAuto },
+              ]).map(opt => (
+                <button key={opt.value} onClick={() => updateTextPref('theme', opt.value)}
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                    padding: '16px 12px', borderRadius: 12, cursor: 'pointer', fontWeight: 600,
+                    fontSize: '.82rem', fontFamily: 'inherit', transition: 'all .15s',
+                    background: theme === opt.value ? 'rgba(99,102,241,.12)' : 'var(--bg3)',
+                    border: theme === opt.value ? '1.5px solid var(--primary)' : '1px solid var(--border)',
+                    color: theme === opt.value ? 'var(--primary)' : 'var(--text)',
+                  }}>
+                  <span style={{ opacity: theme === opt.value ? 1 : 0.5 }}>{opt.icon}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Currency */}
+            <p style={{ fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '.5px' }}>
+              {t.settings.currencyLabel}
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10, marginBottom: 20 }}>
+              {([
+                { code: 'USD', symbol: '$', label: 'USD' },
+                { code: 'IQD', symbol: 'د.ع', label: 'IQD' },
+                { code: 'EUR', symbol: '€', label: 'EUR' },
+                { code: 'TRY', symbol: '₺', label: 'TRY' },
+              ]).map(cur => (
+                <button key={cur.code} onClick={() => updateTextPref('currency', cur.code)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px',
+                    borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: '.85rem', fontFamily: 'inherit',
+                    background: currency === cur.code ? 'rgba(99,102,241,.1)' : 'var(--bg3)',
+                    border: currency === cur.code ? '1.5px solid var(--primary)' : '1px solid var(--border)',
+                    color: currency === cur.code ? 'var(--primary)' : 'var(--text)',
+                    transition: 'all .15s',
+                  }}>
+                  <span style={{ fontSize: '1rem', fontWeight: 800, opacity: 0.7, width: 24, textAlign: 'center' }}>{cur.symbol}</span>
+                  {cur.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Compact mode & Auto-apply coupons */}
+            <p style={{ fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '.5px' }}>
+              {t.settings.displayLabel}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {([
+                { key: 'compact_mode' as const, icon: <LayoutGrid size={15} />, label: t.settings.compactMode, desc: t.settings.compactModeDesc, value: compactMode },
+                { key: 'auto_apply_coupon' as const, icon: <Zap size={15} />, label: t.settings.autoApplyCoupon, desc: t.settings.autoApplyCouponDesc, value: autoApplyCoupon },
+              ]).map(n => (
+                <div key={n.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 10, background: 'var(--bg3)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: 'var(--primary)', flexShrink: 0 }}>{n.icon}</span>
+                    <div>
+                      <p style={{ fontWeight: 700, fontSize: '.85rem' }}>{n.label}</p>
+                      <p style={{ color: 'var(--text3)', fontSize: '.73rem', marginTop: 2 }}>{n.desc}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => toggleNotification(n.key, !n.value)}
+                    style={{
+                      width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
+                      background: n.value ? 'var(--primary)' : 'var(--border)', position: 'relative', transition: 'background .2s', flexShrink: 0,
+                    }}>
+                    <span style={{
+                      position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%',
+                      background: '#fff', transition: 'left .2s',
+                      left: n.value ? 22 : 2,
+                    }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ═══════════ 5. LANGUAGE ═══════════ */}
           <div id="language" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(<Globe size={16} style={{ color: 'var(--primary)' }} />, t.settings.language)}
             <p style={{ color: 'var(--text3)', fontSize: '.8rem', marginBottom: 14, marginTop: -10 }}>{t.settings.languageDesc}</p>
@@ -799,7 +934,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             </div>
           </div>
 
-          {/* ═══════════ 5. NOTIFICATIONS ═══════════ */}
+          {/* ═══════════ 6. NOTIFICATIONS ═══════════ */}
           <div id="notifications" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(
               <div style={{ position: 'relative' }}>
@@ -824,6 +959,10 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                 { key: 'notify_email' as const, icon: <Mail size={15} />, label: t.settings.notifyEmail, desc: t.settings.notifyEmailDesc, value: notifyEmail },
                 { key: 'notify_order' as const, icon: <Package size={15} />, label: t.settings.notifyOrder, desc: t.settings.notifyOrderDesc, value: notifyOrder },
                 { key: 'notify_promo' as const, icon: <Tag size={15} />, label: t.settings.notifyPromo, desc: t.settings.notifyPromoDesc, value: notifyPromo },
+                { key: 'notify_wishlist' as const, icon: <Heart size={15} />, label: t.settings.notifyWishlist, desc: t.settings.notifyWishlistDesc, value: notifyWishlist },
+                { key: 'notify_stock' as const, icon: <BoxIcon size={15} />, label: t.settings.notifyStock, desc: t.settings.notifyStockDesc, value: notifyStock },
+                { key: 'notify_sms' as const, icon: <MessageSquare size={15} />, label: t.settings.notifySms, desc: t.settings.notifySmsDesc, value: notifySms },
+                { key: 'newsletter' as const, icon: <Mail size={15} />, label: t.settings.newsletter, desc: t.settings.newsletterDesc, value: newsletter },
               ]).map(n => (
                 <div key={n.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 10, background: 'var(--bg3)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1019,7 +1158,82 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                     </div>
                   ))}
                 </div>
-              )}
+              )}7. PRIVACY & SECURITY ═══════════ */}
+          <div id="privacy" className="settings-section resp-card-padding-lg" style={card}>
+            {sectionHeader(<Shield size={16} style={{ color: 'var(--primary)' }} />, t.settings.sectionPrivacy)}
+            <p style={{ color: 'var(--text3)', fontSize: '.8rem', marginBottom: 14, marginTop: -10 }}>{t.settings.privacyDesc}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 10, background: 'var(--bg3)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ color: 'var(--primary)', flexShrink: 0 }}><Shield size={15} /></span>
+                  <div>
+                    <p style={{ fontWeight: 700, fontSize: '.85rem' }}>{t.settings.loginAlerts}</p>
+                    <p style={{ color: 'var(--text3)', fontSize: '.73rem', marginTop: 2 }}>{t.settings.loginAlertsDesc}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => toggleNotification('login_alerts', !loginAlerts)}
+                  style={{
+                    width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
+                    background: loginAlerts ? 'var(--primary)' : 'var(--border)', position: 'relative', transition: 'background .2s', flexShrink: 0,
+                  }}>
+                  <span style={{
+                    position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%',
+                    background: '#fff', transition: 'left .2s',
+                    left: loginAlerts ? 22 : 2,
+                  }} />
+                </button>
+              </div>
+
+              {/* Active sessions info */}
+              <div style={{
+                padding: '14px 16px', borderRadius: 10, background: 'var(--bg3)',
+                border: '1px solid var(--border)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <Monitor size={15} style={{ color: 'var(--primary)' }} />
+                  <p style={{ fontWeight: 700, fontSize: '.85rem' }}>{t.settings.activeSessions}</p>
+                </div>
+                <p style={{ color: 'var(--text3)', fontSize: '.78rem', lineHeight: 1.5 }}>{t.settings.activeSessionsDesc}</p>
+                <button
+                  onClick={async () => {
+                    await supabase.auth.signOut({ scope: 'others' })
+                    alert(t.settings.sessionsRevoked)
+                  }}
+                  style={{
+                    marginTop: 10, display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
+                    background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.25)',
+                    color: '#ef4444', fontSize: '.78rem', fontWeight: 700, fontFamily: 'inherit',
+                  }}>
+                  <Lock size={13} /> {t.settings.revokeOtherSessions}
+                </button>
+              </div>
+
+              {/* Account info */}
+              <div style={9
+                padding: '14px 16px', borderRadius: 10, background: 'var(--bg3)',
+                border: '1px solid var(--border)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <Info size={15} style={{ color: 'var(--primary)' }} />
+                  <p style={{ fontWeight: 700, fontSize: '.85rem' }}>{t.settings.accountInfo}</p>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div style={{ padding: '10px 12px', borderRadius: 8, background: 'var(--bg2)' }}>
+                    <p style={{ fontSize: '.68rem', color: 'var(--text3)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>{t.settings.accountId}</p>
+                    <p style={{ fontSize: '.75rem', fontWeight: 600, fontFamily: 'monospace', opacity: 0.8 }}>{user.id.slice(0, 12)}…</p>
+                  </div>
+                  <div style={{ padding: '10px 12px', borderRadius: 8, background: 'var(--bg2)' }}>
+                    <p style={{ fontSize: '.68rem', color: 'var(--text3)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>{t.settings.memberSince}</p>
+                    <p style={{ fontSize: '.75rem', fontWeight: 600 }}>{new Date(user.created_at ?? '').toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════ 8
             </div>
           </div>
 

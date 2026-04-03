@@ -11,6 +11,15 @@ export interface Profile {
   notify_email: boolean
   notify_order: boolean
   notify_promo: boolean
+  notify_wishlist: boolean
+  notify_stock: boolean
+  notify_sms: boolean
+  newsletter: boolean
+  login_alerts: boolean
+  auto_apply_coupon: boolean
+  theme: string
+  currency: string
+  compact_mode: boolean
   created_at: string
 }
 
