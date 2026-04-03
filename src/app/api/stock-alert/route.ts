@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     if (profile.notify_sms && profile.phone) {
       fetch(`${appUrl}/api/sms`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-notify-secret': process.env.CRON_SECRET || '__dev__' },
+        headers: { 'Content-Type': 'application/json', 'x-notify-secret': process.env.CRON_SECRET?.trim() || '__dev__' },
         body: JSON.stringify({
           to: profile.phone,
           message: `Vertex: ${product.name} is back in stock! Shop now: ${appUrl}/products/${product.id}`,

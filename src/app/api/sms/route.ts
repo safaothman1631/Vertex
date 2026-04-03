@@ -14,7 +14,7 @@ import { NextResponse } from 'next/server'
  */
 export async function POST(request: Request) {
   const secret = request.headers.get('x-notify-secret')
-  if (secret !== (process.env.CRON_SECRET || '__dev__')) {
+  if (secret !== (process.env.CRON_SECRET?.trim() || '__dev__')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

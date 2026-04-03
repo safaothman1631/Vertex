@@ -14,7 +14,7 @@ import { sendOrderConfirmation, sendOrderStatusEmail, sendPromoEmail, sendBackIn
  */
 export async function POST(request: Request) {
   const secret = request.headers.get('x-notify-secret')
-  const isServerCall = secret === (process.env.CRON_SECRET || '__dev__')
+  const isServerCall = secret === (process.env.CRON_SECRET?.trim() || '__dev__')
 
   // If not server-to-server, verify the caller is an admin
   if (!isServerCall) {
@@ -142,7 +142,7 @@ export async function POST(request: Request) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-notify-secret': process.env.CRON_SECRET || '__dev__',
+          'x-notify-secret': process.env.CRON_SECRET?.trim() || '__dev__',
         },
         body: JSON.stringify({ to: profile.phone, message: smsText }),
       })

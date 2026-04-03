@@ -78,7 +78,7 @@ export async function POST(request: Request) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-notify-secret': process.env.CRON_SECRET || '__dev__',
+              'x-notify-secret': process.env.CRON_SECRET?.trim() || '__dev__',
             },
             body: JSON.stringify({
               to: profile.phone,
