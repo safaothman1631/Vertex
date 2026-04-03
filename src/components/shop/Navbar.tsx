@@ -296,10 +296,10 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <>
-                <Link href="/login" className="btn-ghost" style={{ fontSize: '.88rem' }}>{t.nav.signIn}</Link>
-                <Link href="/register" className="btn-primary">{t.nav.signUpFree}</Link>
-              </>
+              <div className="nav-auth-btns">
+                <Link href="/login" className="nav-signin-btn">{t.nav.signIn}</Link>
+                <Link href="/register" className="nav-signup-btn">{t.nav.signUpFree}</Link>
+              </div>
             )}
 
             {/* Divider */}
