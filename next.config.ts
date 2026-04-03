@@ -17,7 +17,7 @@ const csp = [
   // XHR / fetch / WebSocket: Supabase REST + Realtime, Stripe API, Nominatim geocoding
   `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://api.stripe.com https://nominatim.openstreetmap.org`,
   // Stripe payment iframe + Google Maps
-  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://maps.googleapis.com https://www.google.com",
+  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://maps.googleapis.com https://maps.google.com https://www.google.com",
   // Never load plugins (Flash, etc.)
   "object-src 'none'",
   // Prevent base-tag hijacking
