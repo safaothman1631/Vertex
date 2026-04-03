@@ -4,12 +4,14 @@ import { useEffect } from 'react'
 import { useCartStore } from '@/store/cart'
 import Link from 'next/link'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import { ShoppingCart, X, Trash2, Package } from 'lucide-react'
 import Image from 'next/image'
 
 export default function CartSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore()
   const t = useT()
+  const { formatPrice } = usePreferences()
 
   useEffect(() => {
     if (!open) return
@@ -61,7 +63,7 @@ export default function CartSidebar({ open, onClose }: { open: boolean; onClose:
                 </div>
                 <div className="cart-item-info" style={{ flex: 1, minWidth: 0 }}>
                   <div className="cart-item-name">{product.name}</div>
-                  <div className="cart-item-price">${(product.price * quantity).toFixed(2)}</div>
+                  <div className="cart-item-price">{formatPrice(product.price * quantity)}</div>
                 </div>
                 <div className="cart-item-qty">
                   <button className="qty-btn" onClick={() => updateQuantity(product.id, quantity - 1)} aria-label="Decrease quantity">−</button>
@@ -84,7 +86,7 @@ export default function CartSidebar({ open, onClose }: { open: boolean; onClose:
           <div className="cart-footer">
             <div className="cart-total">
               <span>{t.cartSidebar.subtotal}</span>
-              <strong>${totalPrice().toFixed(2)}</strong>
+              <strong>{formatPrice(totalPrice())}</strong>
             </div>
             <Link
               href="/checkout"

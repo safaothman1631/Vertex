@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ShoppingBag, CreditCard, Truck, Lock, AlertCircle, Tag, Check } from 'lucide-react'
 import type { ShippingAddress } from '@/types'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 
 const EMPTY: ShippingAddress = { name: '', email: '', phone: '', address: '', city: '', country: '', zip: '' }
 type FieldKey = keyof ShippingAddress
@@ -15,6 +16,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function CheckoutPage() {
   const t = useT()
+  const { formatPrice } = usePreferences()
   const { items, totalPrice, clearCart } = useCartStore()
   const [form, setForm] = useState<ShippingAddress>(EMPTY)
   const [loading, setLoading] = useState(false)
@@ -254,7 +256,7 @@ export default function CheckoutPage() {
                       {product.name}
                       <span style={{ color: 'var(--text3)', marginLeft: 4 }}>{quantity}</span>
                     </span>
-                    <span style={{ fontWeight: 600, fontSize: '.88rem', flexShrink: 0 }}>${(product.price * quantity).toFixed(2)}</span>
+                    <span style={{ fontWeight: 600, fontSize: '.88rem', flexShrink: 0 }}>{formatPrice(product.price * quantity)}</span>
                   </div>
                 ))}
               </div>
@@ -306,7 +308,7 @@ export default function CheckoutPage() {
                   {couponApplied && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: '.78rem', color: '#22c55e', fontWeight: 600 }}>
                       <Check size={13} />
-                      {couponApplied.discount_type === 'percent' ? `${couponApplied.discount_value}%` : `$${couponApplied.discount_value.toFixed(2)}`} {t.checkout.applied}
+                      {couponApplied.discount_type === 'percent' ? `${couponApplied.discount_value}%` : formatPrice(couponApplied.discount_value)} {t.checkout.applied}
                     </div>
                   )}
                 </div>
@@ -316,18 +318,18 @@ export default function CheckoutPage() {
                 {discount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>{t.checkout.subtotalLabel}</span>
-                    <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>${subtotal.toFixed(2)}</span>
+                    <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>{formatPrice(subtotal)}</span>
                   </div>
                 )}
                 {discount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontSize: '.88rem', color: '#22c55e', fontWeight: 600 }}>{t.checkout.discountLabel}</span>
-                    <span style={{ fontSize: '.88rem', color: '#22c55e', fontWeight: 600 }}>-${discount.toFixed(2)}</span>
+                    <span style={{ fontSize: '.88rem', color: '#22c55e', fontWeight: 600 }}>-{formatPrice(discount)}</span>
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 800 }}>{t.cartPage.total}</span>
-                  <span style={{ fontWeight: 900, fontSize: '1.3rem', color: 'var(--primary)' }}>${finalTotal.toFixed(2)}</span>
+                  <span style={{ fontWeight: 900, fontSize: '1.3rem', color: 'var(--primary)' }}>{formatPrice(finalTotal)}</span>
                 </div>
                 <p style={{ color: 'var(--text3)', fontSize: '.75rem', marginTop: 4 }}>{t.checkout.taxNote}</p>
               </div>

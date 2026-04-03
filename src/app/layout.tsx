@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { LocaleProvider } from '@/contexts/locale'
+import { PreferencesProvider } from '@/contexts/preferences'
 import ScrollbarEffect from '@/components/ui/ScrollbarEffect'
 import { ToastProvider } from '@/components/ui/Toast'
 import { validateEnv } from '@/lib/env'
@@ -50,12 +51,14 @@ export default function RootLayout({
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <body>
-        <LocaleProvider>
-          <ToastProvider>
-            <ScrollbarEffect />
-            {children}
-          </ToastProvider>
-        </LocaleProvider>
+        <PreferencesProvider>
+          <LocaleProvider>
+            <ToastProvider>
+              <ScrollbarEffect />
+              {children}
+            </ToastProvider>
+          </LocaleProvider>
+        </PreferencesProvider>
       </body>
     </html>
   )

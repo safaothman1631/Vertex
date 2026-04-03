@@ -13,6 +13,7 @@ import {
   Sun, Moon, Monitor,
 } from 'lucide-react'
 import { useT, useLocale, type Locale } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import type { UserAddress, Notification } from '@/types'
 
 interface Props {
@@ -61,6 +62,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const router = useRouter()
   const t = useT()
   const { locale, setLocale } = useLocale()
+  const { setTheme: applyTheme, setCurrency: applyCurrency, setCompactMode: applyCompactMode } = usePreferences()
 
   // ── Profile state
   const [name, setName] = useState(profile?.full_name ?? '')
@@ -387,6 +389,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
       compact_mode: setCompactMode,
     }
     setters[key](value) // optimistic
+    if (key === 'compact_mode') applyCompactMode(value)
     const { error } = await supabase.from('profiles').update({ [key]: value }).eq('id', user.id)
     if (error) {
       setters[key](prev[key]) // revert on failure
@@ -396,8 +399,8 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
 
   async function updateTextPref(key: 'theme' | 'currency', value: string) {
     const prev = { theme, currency }
-    if (key === 'theme') setTheme(value)
-    else setCurrency(value)
+    if (key === 'theme') { setTheme(value); applyTheme(value) }
+    else { setCurrency(value); applyCurrency(value) }
     const { error } = await supabase.from('profiles').update({ [key]: value }).eq('id', user.id)
     if (error) {
       if (key === 'theme') setTheme(prev.theme)

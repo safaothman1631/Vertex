@@ -9,11 +9,13 @@ import { useCartStore } from '@/store/cart'
 import WishlistButton from './WishlistButton'
 import type { Product } from '@/types'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 
 const PER_PAGE = 10
 
 export default function ProductsGrid({ products }: { products: Product[] }) {
   const t = useT()
+  const { compactMode, formatPrice } = usePreferences()
   const searchParams = useSearchParams()
   const router = useRouter()
   const brandParam = searchParams.get('brand') ?? 'all'
@@ -383,7 +385,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
             <p style={{ color: 'var(--text3)', fontSize: '.85rem', marginTop: 6 }}>{t.productsSection.noProductsSub}</p>
           </div>
         ) : (
-          <div className="prods-grid">
+          <div className={compactMode ? 'prods-grid-compact' : 'prods-grid'}>
             {paginated.map(p => {
               const img = (p as { img?: string }).img ?? p.images?.[0]
               const isAdded = addedId === p.id
@@ -421,9 +423,9 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                       <span style={{ fontSize: '.68rem', color: 'var(--text3)', marginLeft: 3 }}>({p.review_count})</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                      <span style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)' }}>${p.price.toFixed(2)}</span>
+                      <span style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)' }}>{formatPrice(p.price)}</span>
                       {p.old_price && <>
-                        <span style={{ fontSize: '.75rem', textDecoration: 'line-through', color: 'var(--text3)' }}>${p.old_price.toFixed(2)}</span>
+                        <span style={{ fontSize: '.75rem', textDecoration: 'line-through', color: 'var(--text3)' }}>{formatPrice(p.old_price!)}</span>
                         <span style={{ fontSize: '.62rem', fontWeight: 800, background: 'rgba(16,185,129,.12)', color: '#10b981', borderRadius: 6, padding: '2px 6px' }}>-{Math.round((1 - p.price / p.old_price) * 100)}%</span>
                       </>}
                     </div>
