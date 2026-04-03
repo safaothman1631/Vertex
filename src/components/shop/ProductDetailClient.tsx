@@ -97,7 +97,8 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
   }
 
   return (
-    <div className="resp-page-padding container" style={{ maxWidth: 1100 }}>
+    <div className="resp-page-padding">
+    <div className="container" style={{ maxWidth: 1100 }}>
       {/* Breadcrumbs */}
       <Breadcrumbs items={[
         { label: t.nav.home, href: '/' },
@@ -561,6 +562,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
       )}
       {/* ── Recently Viewed ── */}
       <RecentlyViewed excludeId={product.id} />
+    </div>
     </div>
   )
 }
