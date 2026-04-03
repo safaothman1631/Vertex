@@ -1158,7 +1158,11 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                     </div>
                   ))}
                 </div>
-              )}7. PRIVACY & SECURITY ═══════════ */}
+              )}
+            </div>
+          </div>
+
+          {/* ═══════════ 7. PRIVACY & SECURITY ═══════════ */}
           <div id="privacy" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(<Shield size={16} style={{ color: 'var(--primary)' }} />, t.settings.sectionPrivacy)}
             <p style={{ color: 'var(--text3)', fontSize: '.8rem', marginBottom: 14, marginTop: -10 }}>{t.settings.privacyDesc}</p>
@@ -1211,7 +1215,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
               </div>
 
               {/* Account info */}
-              <div style={9
+              <div style={{
                 padding: '14px 16px', borderRadius: 10, background: 'var(--bg3)',
                 border: '1px solid var(--border)',
               }}>
