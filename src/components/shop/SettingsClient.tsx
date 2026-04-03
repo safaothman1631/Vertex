@@ -16,7 +16,7 @@ import { useT, useLocale, type Locale } from '@/contexts/locale'
 import type { UserAddress, Notification } from '@/types'
 
 interface Props {
-  user: { id: string; email?: string | null }
+  user: { id: string; email?: string | null; created_at?: string }
   profile: {
     full_name?: string | null
     phone?: string | null
@@ -1237,11 +1237,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             </div>
           </div>
 
-          {/* ═══════════ 8
-            </div>
-          </div>
-
-          {/* ═══════════ 6. RECENT ORDERS ═══════════ */}
+          {/* ═══════════ 8. RECENT ORDERS ═══════════ */}
           <div id="orders" className="settings-section resp-card-padding-lg" style={card}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
