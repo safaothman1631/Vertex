@@ -7,10 +7,12 @@ import { useRouter } from 'next/navigation'
 import { Search, X, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import type { Product } from '@/types'
 
 export default function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useT()
+  const { formatPrice } = usePreferences()
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
@@ -167,7 +169,7 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
                       <div style={{ fontSize: '.88rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
                     </div>
                     <div style={{ fontWeight: 900, fontSize: '.95rem', color: 'var(--primary)', flexShrink: 0 }}>
-                      ${p.price.toFixed(2)}
+                      {formatPrice(p.price)}
                     </div>
                   </button>
                 ))}

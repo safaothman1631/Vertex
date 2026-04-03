@@ -10,6 +10,7 @@ import ImageUploader from './ImageUploader'
 import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 
 interface BrandProduct {
   id: string
@@ -41,6 +42,7 @@ export default function AdminBrandsClient({
 }) {
   const router = useRouter()
   const t = useT()
+  const { formatPrice } = usePreferences()
   const [brands, setBrands] = useState<Brand[]>(initial)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partial<Brand>>({ name: '', logo: '', color1: '#6366f1', color2: '#4338ca', category_key: '' })
@@ -378,7 +380,7 @@ export default function AdminBrandsClient({
                         <div style={{ fontSize: '.75rem', color: 'var(--text2)', fontFamily: 'monospace' }}>{p.model}</div>
                       </div>
                       {/* Price */}
-                      <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '.92rem', flexShrink: 0 }}>${p.price.toFixed(2)}</span>
+                      <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '.92rem', flexShrink: 0 }}>{formatPrice(p.price)}</span>
                       {/* Badges */}
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                         {p.in_stock

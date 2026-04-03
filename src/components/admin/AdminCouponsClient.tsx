@@ -7,6 +7,7 @@ import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
 import type { Coupon } from '@/types'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 
 const EMPTY: Partial<Coupon> = {
   code: '', discount_type: 'percent', discount_value: 0,
@@ -15,6 +16,7 @@ const EMPTY: Partial<Coupon> = {
 
 export default function AdminCouponsClient({ coupons: initial }: { coupons: Coupon[] }) {
   const t = useT()
+  const { formatPrice } = usePreferences()
   const [coupons, setCoupons] = useState<Coupon[]>(initial)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partial<Coupon>>(EMPTY)
@@ -158,9 +160,9 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
                   </div>
                 </td>
                 <td style={{ fontWeight: 700 }}>
-                  {c.discount_type === 'percent' ? `${c.discount_value}%` : `$${c.discount_value.toFixed(2)}`}
+                  {c.discount_type === 'percent' ? `${c.discount_value}%` : formatPrice(c.discount_value)}
                 </td>
-                <td style={{ color: 'var(--text2)' }}>{c.min_order > 0 ? `$${c.min_order.toFixed(2)}` : '—'}</td>
+                <td style={{ color: 'var(--text2)' }}>{c.min_order > 0 ? formatPrice(c.min_order) : '—'}</td>
                 <td style={{ color: 'var(--text2)' }}>
                   {c.used_count}{c.max_uses != null ? ` / ${c.max_uses}` : ' / ∞'}
                 </td>
@@ -196,7 +198,7 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
               <div>
                 <code style={{ fontWeight: 700, fontSize: '.95rem', color: 'var(--primary)' }}>{c.code}</code>
                 <div style={{ fontSize: '.85rem', fontWeight: 700, marginTop: 4 }}>
-                  {c.discount_type === 'percent' ? `${c.discount_value}%` : `$${c.discount_value.toFixed(2)}`} off
+                  {c.discount_type === 'percent' ? `${c.discount_value}%` : `${formatPrice(c.discount_value)}`} off
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -207,7 +209,7 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
             <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
               {statusBadge(c)}
               <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>Used: {c.used_count}{c.max_uses != null ? `/${c.max_uses}` : ''}</span>
-              {c.min_order > 0 && <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>Min: ${c.min_order}</span>}
+              {c.min_order > 0 && <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>Min: {formatPrice(c.min_order)}</span>}
             </div>
           </div>
         ))}

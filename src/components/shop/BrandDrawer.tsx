@@ -7,6 +7,7 @@ import type { Product } from '@/types'
 import { useCartStore } from '@/store/cart'
 import QuickView from './QuickView'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 
 interface BrandCard {
   name: string
@@ -218,6 +219,7 @@ function BrandProductCard({
   brandC1: string
 }) {
   const t = useT()
+  const { formatPrice } = usePreferences()
   const [hovered, setHovered] = useState(false)
   const img = p.images?.[0]
 
@@ -286,7 +288,7 @@ function BrandProductCard({
           ))}
           <span style={{ fontSize: '.66rem', color: 'var(--text3)', marginLeft: 3 }}>({p.review_count})</span>
         </div>
-        <div style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)', marginTop: 4 }}>${p.price.toFixed(2)}</div>
+        <div style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)', marginTop: 4 }}>{formatPrice(p.price)}</div>
       </div>
 
       {/* add to cart */}

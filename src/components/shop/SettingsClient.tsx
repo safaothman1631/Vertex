@@ -62,7 +62,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const router = useRouter()
   const t = useT()
   const { locale, setLocale } = useLocale()
-  const { setTheme: applyTheme, setCurrency: applyCurrency, setCompactMode: applyCompactMode } = usePreferences()
+  const { setTheme: applyTheme, setCurrency: applyCurrency, setCompactMode: applyCompactMode, formatPrice } = usePreferences()
 
   // ── Profile state
   const [name, setName] = useState(profile?.full_name ?? '')
@@ -1308,7 +1308,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                       }}>
                         {(t.orders.status as Record<string, string>)[order.status] || order.status}
                       </span>
-                      <span style={{ fontWeight: 700, fontSize: '.85rem' }}>${order.total.toFixed(2)}</span>
+                      <span style={{ fontWeight: 700, fontSize: '.85rem' }}>{formatPrice(order.total)}</span>
                       <ChevronRight size={14} style={{ color: 'var(--text3)' }} />
                     </div>
                   </Link>

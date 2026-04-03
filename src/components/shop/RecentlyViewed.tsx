@@ -6,10 +6,12 @@ import Link from 'next/link'
 import { Star, Clock } from 'lucide-react'
 import { useRecentlyViewedStore } from '@/store/recently-viewed'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 
 export default function RecentlyViewed({ excludeId }: { excludeId?: string }) {
   const t = useT()
   const items = useRecentlyViewedStore((s) => s.items)
+  const { formatPrice } = usePreferences()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
@@ -63,7 +65,7 @@ export default function RecentlyViewed({ excludeId }: { excludeId?: string }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Star size={10} fill="#f59e0b" stroke="#f59e0b" />
                   <span style={{ fontSize: '.7rem', color: 'var(--text2)' }}>{p.rating.toFixed(1)}</span>
-                  <span style={{ fontWeight: 800, fontSize: '.85rem', color: 'var(--primary)', marginLeft: 'auto' }}>${p.price.toFixed(2)}</span>
+                  <span style={{ fontWeight: 800, fontSize: '.85rem', color: 'var(--primary)', marginLeft: 'auto' }}>{formatPrice(p.price)}</span>
                 </div>
               </div>
             </Link>

@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/Toast'
 import { ChevronLeft, ChevronRight, ShoppingCart, Mail, Phone, MapPin } from 'lucide-react'
 import PromoBar from '@/components/shop/PromoBar'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import { useCartStore } from '@/store/cart'
 import { createClient } from '@/lib/supabase-client'
 import type { Product, Promotion } from '@/types'
@@ -103,6 +104,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
   const [addedId, setAddedId] = useState<string | null>(null)
   const prodsTopRef = useRef<HTMLDivElement>(null)
   const t = useT()
+  const { formatPrice } = usePreferences()
   const addItem = useCartStore((s) => s.addItem)
   const toast = useToast()
   const supabase = createClient()
@@ -251,7 +253,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                         <div style={{ fontWeight: 600, fontSize: 13 }}>{item.name}</div>
                         <div className="pos-sku">{item.sku}</div>
                       </div>
-                      <div style={{ color: 'var(--primary)', fontWeight: 700 }}>${item.price.toFixed(2)}</div>
+                      <div style={{ color: 'var(--primary)', fontWeight: 700 }}>{formatPrice(item.price)}</div>
                     </div>
                   )) : (
                     <div style={{ padding: '12px 0', color: 'var(--text3)', fontSize: 12, textAlign: 'center' }}>No products</div>
@@ -259,7 +261,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                 </div>
                 <div className="pos-total">
                   <span>{t.hero.total}</span>
-                  <span>${heroData.terminalTotal.toFixed(2)}</span>
+                  <span>{formatPrice(heroData.terminalTotal)}</span>
                 </div>
                 <button className="pos-btn">{t.hero.processPayment}</button>
                 <div className="pos-pay-methods">
@@ -412,8 +414,8 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                         <span className="rcnt">({p.review_count.toLocaleString()})</span>
                       </div>
                       <div className="prod-price">
-                        <span className="pm">${p.price.toFixed(2)}</span>
-                        {p.old_price && <span className="po">${p.old_price.toFixed(2)}</span>}
+                        <span className="pm">{formatPrice(p.price)}</span>
+                        {p.old_price && <span className="po">{formatPrice(p.old_price)}</span>}
                       </div>
                     </div>
 

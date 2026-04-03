@@ -9,6 +9,7 @@ import ImageUploader from './ImageUploader'
 import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import type { Product } from '@/types'
 
 function toSlug(name: string) {
@@ -25,6 +26,7 @@ const EMPTY_PRODUCT: Partial<Product> = {
 export default function AdminProductsClient({ products: initial, dbCategories = [], dbBrands = [] }: { products: Product[]; dbCategories?: string[]; dbBrands?: string[] }) {
   const router = useRouter()
   const t = useT()
+  const { formatPrice } = usePreferences()
   const [products, setProducts] = useState<Product[]>(initial)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partial<Product>>(EMPTY_PRODUCT)
@@ -300,7 +302,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                 </td>
                 <td>{p.brand}</td>
                 <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
-                <td style={{ color: 'var(--primary)', fontWeight: 700 }}>${p.price.toFixed(2)}</td>
+                <td style={{ color: 'var(--primary)', fontWeight: 700 }}>{formatPrice(p.price)}</td>
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
                     <button onClick={() => handleToggle(p.id, 'in_stock', p.in_stock)} title={p.in_stock ? t.admin.markOutOfStock : t.admin.markInStock} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -360,7 +362,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '1rem' }}>${p.price.toFixed(2)}</span>
+              <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '1rem' }}>{formatPrice(p.price)}</span>
               <span style={{ fontSize: '.75rem', color: 'var(--text2)', textTransform: 'capitalize', background: 'var(--bg3)', borderRadius: 6, padding: '2px 8px' }}>{p.category}</span>
               <button onClick={() => handleToggle(p.id, 'in_stock', p.in_stock)} title={p.in_stock ? t.admin.markOutOfStock : t.admin.markInStock} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 {p.in_stock

@@ -1,5 +1,6 @@
 'use client'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import { Package, TrendingUp } from 'lucide-react'
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 
 export default function OrdersPageHeader({ totalOrders, totalSpent }: Props) {
   const t = useT()
+  const { formatPrice } = usePreferences()
   return (
     <div style={{ marginBottom: 40 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
@@ -36,7 +38,7 @@ export default function OrdersPageHeader({ totalOrders, totalSpent }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 20px' }}>
           <TrendingUp size={16} style={{ color: '#22c55e' }} />
           <div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#22c55e' }}>${totalSpent.toFixed(2)}</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#22c55e' }}>{formatPrice(totalSpent)}</div>
             <div style={{ fontSize: '.72rem', color: 'var(--text2)', marginTop: 1 }}>{t.orders.totalSpent ?? 'Total Spent'}</div>
           </div>
         </div>

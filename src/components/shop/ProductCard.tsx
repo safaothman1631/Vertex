@@ -5,6 +5,7 @@ import { useCartStore } from '@/store/cart'
 import type { ProductData } from '@/data/products'
 import QuickView from './QuickView'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 
 interface Props {
   product: ProductData
@@ -18,6 +19,7 @@ export default function ProductCard({ product: p }: Props) {
   const [hovered, setHovered] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const t = useT()
+  const { formatPrice } = usePreferences()
 
   useEffect(() => {
     if (hovered) {
@@ -85,7 +87,7 @@ export default function ProductCard({ product: p }: Props) {
           <div className={`prod-slide${slide === 2 ? ' active' : ''}`}>
             <div className="prod-art" style={artStyle}>
               <span className="prod-slide-label">{p.artType}</span>
-              <span className="prod-slide-price">{p.price}</span>
+              <span className="prod-slide-price">{formatPrice(p.priceNum)}</span>
               <span className="prod-art-brand">{p.brand}</span>
               <span className="prod-slide-stars">{'★'.repeat(Math.round(p.rating))} {p.rating}</span>
             </div>
@@ -120,7 +122,7 @@ export default function ProductCard({ product: p }: Props) {
           </div>
           <div className="prod-footer">
             <div className="prod-price">
-              <span className="pm">{p.price}</span>
+              <span className="pm">{formatPrice(p.priceNum)}</span>
             </div>
             <div className="prod-btns">
               <button className="btn-view" onClick={() => setQvOpen(true)}>{t.productCard.quickView}</button>

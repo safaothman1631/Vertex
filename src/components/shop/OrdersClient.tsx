@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import type { Order } from '@/types'
 import type { LucideIcon } from 'lucide-react'
 import { Package, X, MapPin, ShoppingBag, ChevronRight, Clock, Truck, CheckCircle2, XCircle, RefreshCw, FileText } from 'lucide-react'
@@ -37,6 +38,7 @@ const STATUS_ICONS: Record<string, LucideIcon> = {
 /* Detail Modal */
 function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose: () => void; onCancel: (id: string) => void }) {
   const t = useT()
+  const { formatPrice } = usePreferences()
   const [cancelling, setCancelling] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
 
@@ -112,7 +114,7 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
             </div>
             <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 16px', flex: 1 }}>
               <div style={{ fontSize: '.68rem', color: 'var(--text3)', marginBottom: 3, textTransform: 'uppercase' as const, letterSpacing: '.04em', fontWeight: 600 }}>{t.orders.total}</div>
-              <div style={{ fontWeight: 900, fontSize: '1rem', color: 'var(--primary)' }}>${order.total.toFixed(2)}</div>
+              <div style={{ fontWeight: 900, fontSize: '1rem', color: 'var(--primary)' }}>{formatPrice(order.total)}</div>
             </div>
           </div>
 
@@ -134,9 +136,9 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: '.88rem', whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.product?.name ?? 'Product'}</div>
-                    <div style={{ color: 'var(--text2)', fontSize: '.75rem', marginTop: 3 }}>{t.orders.qty}: {item.quantity} x ${item.price.toFixed(2)}</div>
+                    <div style={{ color: 'var(--text2)', fontSize: '.75rem', marginTop: 3 }}>{t.orders.qty}: {item.quantity} x {formatPrice(item.price)}</div>
                   </div>
-                  <div style={{ fontWeight: 900, fontSize: '.92rem', color: 'var(--primary)', flexShrink: 0 }}>${(item.price * item.quantity).toFixed(2)}</div>
+                  <div style={{ fontWeight: 900, fontSize: '.92rem', color: 'var(--primary)', flexShrink: 0 }}>{formatPrice(item.price * item.quantity)}</div>
                 </div>
               ))}
             </div>
@@ -204,7 +206,7 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
               if (!w) return
               const addr = order.shipping_address
               const itemsHtml = (order.items ?? []).map(item =>
-                `<tr><td style="padding:10px 12px;border-bottom:1px solid #eee">${item.product?.name ?? 'Product'}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center">${item.quantity}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right">$${item.price.toFixed(2)}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:700">$${(item.price * item.quantity).toFixed(2)}</td></tr>`
+                `<tr><td style="padding:10px 12px;border-bottom:1px solid #eee">${item.product?.name ?? 'Product'}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center">${item.quantity}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right">${formatPrice(item.price)}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:700">${formatPrice(item.price * item.quantity)}</td></tr>`
               ).join('')
               const subtotal = (order.items ?? []).reduce((s, i) => s + i.price * i.quantity, 0)
               const tax = order.total - subtotal
@@ -216,9 +218,9 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
                 ${addr ? `<div style="margin-bottom:30px;padding:16px;background:#f9f9f9;border-radius:8px"><p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#999;margin:0 0 6px;font-weight:700">Bill To</p><p style="margin:0;font-weight:700">${addr.name ?? ''}</p><p style="margin:2px 0;color:#666">${addr.address ?? ''}</p><p style="margin:2px 0;color:#666">${addr.city ?? ''}${addr.country ? ', ' + addr.country : ''}${addr.zip ? ' ' + addr.zip : ''}</p>${addr.email ? `<p style="margin:4px 0;color:#6366f1">${addr.email}</p>` : ''}</div>` : ''}
                 <table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemsHtml}</tbody></table>
                 <div style="margin-top:20px;text-align:right;padding-top:12px">
-                  <p style="margin:4px 0;font-size:.9rem"><span style="color:#666">Subtotal:</span> <strong>$${subtotal.toFixed(2)}</strong></p>
-                  ${tax > 0.01 ? `<p style="margin:4px 0;font-size:.9rem"><span style="color:#666">Tax:</span> <strong>$${tax.toFixed(2)}</strong></p>` : ''}
-                  <p style="margin:12px 0 0;font-size:1.3rem;font-weight:900;color:#6366f1">Total: $${order.total.toFixed(2)}</p>
+                  <p style="margin:4px 0;font-size:.9rem"><span style="color:#666">Subtotal:</span> <strong>${formatPrice(subtotal)}</strong></p>
+                  ${tax > 0.01 ? `<p style="margin:4px 0;font-size:.9rem"><span style="color:#666">Tax:</span> <strong>${formatPrice(tax)}</strong></p>` : ''}
+                  <p style="margin:12px 0 0;font-size:1.3rem;font-weight:900;color:#6366f1">Total: ${formatPrice(order.total)}</p>
                 </div>
                 <div style="margin-top:48px;text-align:center;color:#999;font-size:.8rem;border-top:1px solid #eee;padding-top:20px"><p>Thank you for your purchase!</p></div>
                 <button onclick="window.print()" style="position:fixed;bottom:20px;right:20px;padding:12px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:.9rem;box-shadow:0 4px 12px rgba(99,102,241,.3)">🖨 Print / Save PDF</button>
@@ -236,7 +238,7 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
           </button>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>{t.orders.total}</span>
-            <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)' }}>${order.total.toFixed(2)}</span>
+            <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)' }}>{formatPrice(order.total)}</span>
           </div>
         </div>
       </div>
@@ -248,6 +250,7 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
 /* Order Card */
 function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
   const t = useT()
+  const { formatPrice } = usePreferences()
   const [hovered, setHovered] = useState(false)
   const sc = STATUS_COLORS[order.status] ?? '#6366f1'
 
@@ -283,7 +286,7 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
             </div>
             <div>
               <div style={{ fontSize: '.65rem', color: 'var(--text3)', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.05em', marginBottom: 3 }}>{t.orders.total}</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: sc }}>${order.total.toFixed(2)}</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: sc }}>{formatPrice(order.total)}</div>
             </div>
             {order.items && <div>
               <div style={{ fontSize: '.65rem', color: 'var(--text3)', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.05em', marginBottom: 3 }}>Items</div>

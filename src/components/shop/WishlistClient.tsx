@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase-client'
 import { useCartStore } from '@/store/cart'
 import type { WishlistItem } from '@/types'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import EmptyState from '@/components/ui/EmptyState'
 
 export default function WishlistClient({
@@ -22,6 +23,7 @@ export default function WishlistClient({
   const addItem = useCartStore((s) => s.addItem)
   const supabase = createClient()
   const t = useT()
+  const { formatPrice } = usePreferences()
 
   async function removeItem(wishlistId: string) {
     setRemoving(wishlistId)
@@ -89,7 +91,7 @@ export default function WishlistClient({
                 </h3>
               </Link>
               <p style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)', marginTop: 6 }}>
-                ${item.product.price.toFixed(2)}
+                {formatPrice(item.product.price)}
               </p>
             </div>
 

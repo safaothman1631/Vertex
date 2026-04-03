@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Product } from '@/types'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 
 interface Props {
   product: Product
@@ -13,6 +14,7 @@ interface Props {
 export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
   const [mounted, setMounted] = useState(false)
   const t = useT()
+  const { formatPrice } = usePreferences()
   const img = p.images?.[0]
 
   useEffect(() => {
@@ -69,8 +71,8 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
             </div>
 
             <div className="prod-price" style={{ margin: '12px 0' }}>
-              <span className="pm" style={{ fontSize: '1.6rem' }}>${p.price.toFixed(2)}</span>
-              {p.old_price && <span className="po">${p.old_price.toFixed(2)}</span>}
+              <span className="pm" style={{ fontSize: '1.6rem' }}>{formatPrice(p.price)}</span>
+              {p.old_price && <span className="po">{formatPrice(p.old_price)}</span>}
             </div>
 
             {!p.in_stock && (

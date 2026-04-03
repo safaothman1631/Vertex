@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase-client'
 import { Eye, Trash2, X, Package, MapPin, ChevronDown } from 'lucide-react'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import type { Order, OrderItem, ShippingAddress } from '@/types'
 import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
@@ -34,6 +35,7 @@ type RawOrder = {
 
 export default function AdminOrdersClient({ orders: initial }: { orders: RawOrder[] }) {
   const t = useT()
+  const { formatPrice } = usePreferences()
   const STATUS_LABELS: Record<Status, string> = {
     pending: t.admin.pending,
     processing: t.admin.processing,
@@ -160,7 +162,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
                   <div style={{ fontSize: '11px', color: 'var(--text2)' }}>{o.user?.email}</div>
                 </td>
                 <td style={{ color: 'var(--text2)' }}>{o.items?.length ?? 0} {t.admin.itemCount}</td>
-                <td style={{ color: 'var(--primary)', fontWeight: 700 }}>${o.total.toFixed(2)}</td>
+                <td style={{ color: 'var(--primary)', fontWeight: 700 }}>{formatPrice(o.total)}</td>
                 <td>
                   <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <select
@@ -241,7 +243,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ color: 'var(--primary)', fontWeight: 800 }}>${o.total.toFixed(2)}</span>
+              <span style={{ color: 'var(--primary)', fontWeight: 800 }}>{formatPrice(o.total)}</span>
               <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>{o.items?.length ?? 0} {t.admin.itemCount}</span>
               <span style={{ fontSize: '.75rem', color: 'var(--text2)' }}>{new Date(o.created_at).toLocaleDateString()}</span>
               <select
@@ -342,7 +344,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
                       <div style={{ fontWeight: 600, fontSize: '.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product?.name ?? t.admin.unknown}</div>
                       <div style={{ fontSize: '.75rem', color: 'var(--text2)' }}>{t.admin.qty}: {item.quantity}</div>
                     </div>
-                    <div style={{ fontWeight: 700, color: 'var(--primary)', flexShrink: 0 }}>${(item.price * item.quantity).toFixed(2)}</div>
+                    <div style={{ fontWeight: 700, color: 'var(--primary)', flexShrink: 0 }}>{formatPrice(item.price * item.quantity)}</div>
                   </div>
                 ))}
               </div>
@@ -357,7 +359,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
                 {t.admin.deleteOrder}
               </button>
               <div style={{ fontSize: '1.1rem', fontWeight: 900 }}>
-                {t.admin.total}: <span style={{ color: 'var(--primary)' }}>${detail.total.toFixed(2)}</span>
+                {t.admin.total}: <span style={{ color: 'var(--primary)' }}>{formatPrice(detail.total)}</span>
               </div>
             </div>
           </div>

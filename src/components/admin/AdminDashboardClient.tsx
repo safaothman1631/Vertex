@@ -8,6 +8,7 @@ import {
   Layers, Star,
 } from 'lucide-react'
 import { useT, useLocale } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import type { Locale } from '@/contexts/locale'
 
 interface DashboardProps {
@@ -75,6 +76,7 @@ export default function AdminDashboardClient({
   topProducts,
 }: DashboardProps) {
   const t = useT()
+  const { formatPrice } = usePreferences()
   const { locale } = useLocale()
   const dateLocale = ({ en: 'en-US', ckb: 'ckb', ar: 'ar', tr: 'tr-TR' } as Record<Locale, string>)[locale] ?? 'en-US'
 
@@ -126,7 +128,7 @@ export default function AdminDashboardClient({
             </div>
           </div>
           <div>
-            <div className="admin-stat-val" style={{ fontSize: '1.9rem' }}>${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+            <div className="admin-stat-val" style={{ fontSize: '1.9rem' }}>{formatPrice(totalRevenue)}</div>
             <div className="admin-stat-label">{t.admin.fromOrders.replace('{count}', String(orderCount))}</div>
           </div>
         </div>
@@ -219,7 +221,7 @@ export default function AdminDashboardClient({
                   <tr key={o.id}>
                     <td><code style={{ fontSize: '.78rem', color: 'var(--text2)', background: 'var(--bg3)', padding: '2px 7px', borderRadius: 4 }}>{o.id.slice(0, 8)}…</code></td>
                     <td style={{ fontWeight: 600 }}>{o.userName ?? <span style={{ color: 'var(--text3)' }}>Guest</span>}</td>
-                    <td style={{ color: '#22c55e', fontWeight: 800 }}>${o.total.toFixed(2)}</td>
+                    <td style={{ color: '#22c55e', fontWeight: 800 }}>{formatPrice(o.total)}</td>
                     <td><span className={`admin-badge ${cfg.badge}`}>{cfg.label}</span></td>
                     <td style={{ color: 'var(--text2)', fontSize: '.8rem' }}>{new Date(o.created_at).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' })}</td>
                   </tr>
@@ -377,7 +379,7 @@ export default function AdminDashboardClient({
         <div className="admin-card" style={{ marginBottom: 0 }}>
           <div className="admin-card-head">
             <span className="admin-card-title">{t.admin.totalRevenue}</span>
-            <span style={{ fontSize: '.78rem', color: 'var(--text2)' }}>{t.admin.avgOrderValue}: ${avgOrderValue.toFixed(0)}</span>
+            <span style={{ fontSize: '.78rem', color: 'var(--text2)' }}>{t.admin.avgOrderValue}: {formatPrice(avgOrderValue)}</span>
           </div>
           <div style={{ padding: '16px 20px 20px', display: 'flex', alignItems: 'flex-end', gap: 8, height: 180 }}>
             {last7.map(day => {
@@ -388,14 +390,14 @@ export default function AdminDashboardClient({
               return (
                 <div key={day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: '.65rem', fontWeight: 700, color: rev > 0 ? '#22c55e' : 'var(--text3)' }}>
-                    {rev > 0 ? `$${rev >= 1000 ? (rev / 1000).toFixed(1) + 'k' : rev.toFixed(0)}` : '—'}
+                    {rev > 0 ? formatPrice(rev) : '—'}
                   </span>
                   <div style={{
                     width: '100%', maxWidth: 36, borderRadius: 6,
                     background: rev > 0 ? 'linear-gradient(to top, rgba(34,197,94,.7), rgba(34,197,94,.3))' : 'var(--bg3)',
                     height: `${pct}%`, minHeight: 4,
                     transition: 'height .4s ease',
-                  }} title={`${day}: $${rev.toFixed(2)} (${orders} ${t.admin.orders})`} />
+                  }} title={`${day}: ${formatPrice(rev)} (${orders} ${t.admin.orders})`} />
                   <span style={{ fontSize: '.65rem', color: 'var(--text3)', fontWeight: 600 }}>{dateLabel}</span>
                 </div>
               )
@@ -428,7 +430,7 @@ export default function AdminDashboardClient({
                     <div style={{ fontSize: '.82rem', fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
                     <div style={{ fontSize: '.72rem', color: 'var(--text2)' }}>{p.brand} · {p.qty} sold</div>
                   </div>
-                  <span style={{ fontSize: '.82rem', fontWeight: 800, color: '#22c55e', flexShrink: 0 }}>${p.revenue.toFixed(0)}</span>
+                  <span style={{ fontSize: '.82rem', fontWeight: 800, color: '#22c55e', flexShrink: 0 }}>{formatPrice(p.revenue)}</span>
                 </div>
               ))}
             </div>

@@ -5,11 +5,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Trash2, Plus, Minus, Package } from 'lucide-react'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
 import EmptyState from '@/components/ui/EmptyState'
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore()
   const t = useT()
+  const { formatPrice } = usePreferences()
 
   if (items.length === 0) {
     return (
@@ -57,7 +59,7 @@ export default function CartPage() {
                 </p>
                 <h3 className="font-semibold text-sm leading-tight truncate">{product.name}</h3>
                 <p className="text-sm font-bold mt-1" style={{ color: 'var(--accent)' }}>
-                  ${product.price.toFixed(2)}
+                  {formatPrice(product.price)}
                 </p>
               </div>
 
@@ -86,7 +88,7 @@ export default function CartPage() {
                     <Plus size={12} />
                   </button>
                 </div>
-                <p className="text-sm font-bold">${(product.price * quantity).toFixed(2)}</p>
+                <p className="text-sm font-bold">{formatPrice(product.price * quantity)}</p>
               </div>
             </div>
           ))}
@@ -101,7 +103,7 @@ export default function CartPage() {
             <h3 className="font-bold text-lg mb-4">{t.cartPage.subtotal}</h3>
             <div className="flex justify-between text-sm mb-2">
               <span style={{ color: 'var(--text-secondary)' }}>{t.cartPage.subtotal}</span>
-              <span>${totalPrice().toFixed(2)}</span>
+              <span>{formatPrice(totalPrice())}</span>
             </div>
             <div className="flex justify-between text-sm mb-4">
               <span style={{ color: 'var(--text-secondary)' }}>{t.cartPage.shipping}</span>
@@ -112,7 +114,7 @@ export default function CartPage() {
               style={{ borderTop: '1px solid var(--border)' }}
             >
               <span>{t.cartPage.total}</span>
-              <span style={{ color: 'var(--accent)' }}>${totalPrice().toFixed(2)}</span>
+              <span style={{ color: 'var(--accent)' }}>{formatPrice(totalPrice())}</span>
             </div>
             <Link
               href="/checkout"
