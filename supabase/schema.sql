@@ -231,34 +231,38 @@ alter table public.inventory_log   enable row level security;
 alter table public.user_addresses  enable row level security;
 alter table public.trash           enable row level security;
 
+-- Helper: SECURITY DEFINER function so admin checks don't recurse into profiles RLS
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+set search_path = ''
+as $$ select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin') $$;
+
 -- Profiles: users can read/update their own; admins can read all
 create policy "Users can read own profile"
   on public.profiles for select using (auth.uid() = id);
 create policy "Users can update own profile"
   on public.profiles for update using (auth.uid() = id);
 create policy "Admins can read all profiles"
-  on public.profiles for select
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.profiles for select using (public.is_admin());
 
 -- Brands: anyone can read; only admins can write
 create policy "Anyone can read brands"
   on public.brands for select using (true);
 create policy "Admins can manage brands"
-  on public.brands for all
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.brands for all using (public.is_admin());
 
 -- Products: anyone can read; only admins can write
 create policy "Anyone can read products"
   on public.products for select using (true);
 create policy "Admins can insert products"
-  on public.products for insert
-  with check ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.products for insert with check (public.is_admin());
 create policy "Admins can update products"
-  on public.products for update
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.products for update using (public.is_admin());
 create policy "Admins can delete products"
-  on public.products for delete
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.products for delete using (public.is_admin());
 
 -- Cart items
 create policy "Users manage own cart"
@@ -274,11 +278,11 @@ create policy "Users can read own orders"
 create policy "Service role can insert orders"
   on public.orders for insert with check (true);
 create policy "Admins can read all orders"
-  on public.orders for select
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.orders for select using (public.is_admin());
 create policy "Admins can update orders"
-  on public.orders for update
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.orders for update using (public.is_admin());
+create policy "Admins can delete orders"
+  on public.orders for delete using (public.is_admin());
 
 -- Order items
 create policy "Users can read own order items"
@@ -287,25 +291,25 @@ create policy "Users can read own order items"
 create policy "Service role can insert order items"
   on public.order_items for insert with check (true);
 create policy "Admins can read all order items"
-  on public.order_items for select
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.order_items for select using (public.is_admin());
+create policy "Admins can delete order items"
+  on public.order_items for delete using (public.is_admin());
 
 -- Contact messages: anyone can insert; only admins can read
 create policy "Anyone can insert contact messages"
   on public.contact_messages for insert with check (true);
 create policy "Admins can read contact messages"
-  on public.contact_messages for select
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.contact_messages for select using (public.is_admin());
 create policy "Admins can update contact messages"
-  on public.contact_messages for update
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.contact_messages for update using (public.is_admin());
+create policy "Admins can delete contact messages"
+  on public.contact_messages for delete using (public.is_admin());
 
 -- Categories: anyone can read; only admins can write
 create policy "Anyone can read categories"
   on public.categories for select using (true);
 create policy "Admins can manage categories"
-  on public.categories for all
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.categories for all using (public.is_admin());
 
 -- Reviews: anyone can read; users manage own; admins manage all
 create policy "Anyone can read reviews"
@@ -317,15 +321,13 @@ create policy "Users can update own review"
 create policy "Users can delete own review"
   on public.reviews for delete using (auth.uid() = user_id);
 create policy "Admins can manage reviews"
-  on public.reviews for all
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.reviews for all using (public.is_admin());
 
 -- Coupons: anyone can read active; only admins can manage
 create policy "Anyone can read active coupons"
   on public.coupons for select using (active = true);
 create policy "Admins can manage coupons"
-  on public.coupons for all
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.coupons for all using (public.is_admin());
 
 -- Notifications: users read/update/delete own; admins manage all
 create policy "Users can read own notifications"
@@ -335,33 +337,18 @@ create policy "Users can update own notifications"
 create policy "Users can delete own notifications"
   on public.notifications for delete using (auth.uid() = user_id);
 create policy "Admins can manage notifications"
-  on public.notifications for all
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.notifications for all using (public.is_admin());
 
 -- Inventory log: admins only
 create policy "Admins can read inventory log"
-  on public.inventory_log for select
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.inventory_log for select using (public.is_admin());
+create policy "Admins can insert inventory log"
+  on public.inventory_log for insert with check (public.is_admin());
 
 -- User addresses: users manage own
 create policy "Users manage own addresses"
   on public.user_addresses for all using (auth.uid() = user_id);
-create policy "Admins can insert inventory log"
-  on public.inventory_log for insert
-  with check ((select role from public.profiles where id = auth.uid()) = 'admin');
 
 -- Trash: only admins can manage
 create policy "Admins can manage trash"
-  on public.trash for all
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
-
--- Admin delete policies (missing in original schema)
-create policy "Admins can delete orders"
-  on public.orders for delete
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
-create policy "Admins can delete order items"
-  on public.order_items for delete
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
-create policy "Admins can delete contact messages"
-  on public.contact_messages for delete
-  using ((select role from public.profiles where id = auth.uid()) = 'admin');
+  on public.trash for all using (public.is_admin());
