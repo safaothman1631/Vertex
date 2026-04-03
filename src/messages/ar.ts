@@ -406,7 +406,7 @@ const ar = {
     signingIn: 'جارٍ تسجيل الدخول...',
     signIn: 'تسجيل الدخول',
     or: 'أو',
-    continueGoogle: '🔷 متابعة مع Google',
+    continueGoogle: 'المتابعة مع Google',
     continueApple: '🍎 متابعة مع Apple',
     noAccount: 'ليس لديك حساب؟',
     signUpFree: 'التسجيل مجانًا',

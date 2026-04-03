@@ -416,7 +416,7 @@ const en = {
     signingIn: 'Signing in...',
     signIn: 'Sign In',
     or: 'or',
-    continueGoogle: '🔷 Continue with Google',
+    continueGoogle: 'Continue with Google',
     continueApple: '🍎 Continue with Apple',
     noAccount: "Don't have an account?",
     signUpFree: 'Sign Up Free',

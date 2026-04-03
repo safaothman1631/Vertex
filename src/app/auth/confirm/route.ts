@@ -28,12 +28,30 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  // ── PKCE code exchange (triggered by Supabase email redirect) ──
+  // ── PKCE code exchange (triggered by Supabase email redirect OR OAuth) ──
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
       const isRecovery = type === 'recovery' || next.includes('reset-password')
-      return NextResponse.redirect(new URL(isRecovery ? next : '/login?verified=1', request.url))
+      if (isRecovery) return NextResponse.redirect(new URL(next, request.url))
+
+      // Email verification (next=/login) → show verified message
+      if (next.startsWith('/login')) {
+        return NextResponse.redirect(new URL('/login?verified=1', request.url))
+      }
+
+      // OAuth sign-in → role-based redirect
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .maybeSingle()
+        if (profile?.role === 'admin') {
+          return NextResponse.redirect(new URL('/admin', request.url))
+        }
+      }
+      return NextResponse.redirect(new URL(next || '/', request.url))
     }
   }
 

@@ -405,7 +405,7 @@ const ckb = {
     signingIn: 'داخل دەبووبەیت...',
     signIn: 'چوونەژوورەوە',
     or: 'یان',
-    continueGoogle: '🔷 بە Google بەردەوامبە',
+    continueGoogle: 'بە Google بەردەوامبە',
     continueApple: '🍎 بە Apple بەردەوامبە',
     noAccount: 'ئەکاونتت نییە؟',
     signUpFree: 'بەخۆڕایی تۆمارکردن',

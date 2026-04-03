@@ -410,7 +410,7 @@ const tr = {
     signingIn: 'Giriş yapılıyor...',
     signIn: 'Giriş Yap',
     or: 'veya',
-    continueGoogle: '🔷 Google ile Devam Et',
+    continueGoogle: 'Google ile Devam Et',
     continueApple: '🍎 Apple ile Devam Et',
     noAccount: 'Hesabın yok mu?',
     signUpFree: 'Ücretsiz Kaydol',
