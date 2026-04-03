@@ -85,6 +85,82 @@
 [data-theme="light"] .mobile-menu,
 [data-theme="auto"] .mobile-menu { background: rgba(244,245,251,0.98) !important; border-color: rgba(99,102,241,0.15) !important; }
 
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT THEME — Comprehensive hardcoded-color corrections
+   Fixes every rgba(255,255,255,…) & rgba(8,8,16,…) that would
+   look invisible or wrong on a light background.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Navbar: action buttons (icons) ── */
+[data-theme="light"] .nav-action-btn { color: var(--text2) }
+[data-theme="light"] .nav-action-btn:hover { color: var(--text); box-shadow: 0 4px 14px rgba(82,84,204,.12), 0 0 0 1px rgba(82,84,204,.1) }
+
+/* ── Navbar: badge / cart-count border (must match navbar bg, not hardcoded dark) ── */
+[data-theme="light"] .nav-action-badge,
+[data-theme="light"] .cart-count { border-color: var(--bg1) }
+
+/* ── Navbar: thin divider line ── */
+[data-theme="light"] .nav-divider { background: linear-gradient(180deg,transparent,rgba(82,84,204,.22),transparent) }
+
+/* ── Navbar: nav links & scroll buttons ── */
+[data-theme="light"] .nav-links a,
+[data-theme="light"] .nav-scroll-btn { color: var(--text2) }
+[data-theme="light"] .nav-links a:hover,
+[data-theme="light"] .nav-scroll-btn:hover { color: var(--text); background: rgba(99,102,241,.07) }
+[data-theme="light"] .nav-link-active { color: var(--primary)!important; background: rgba(99,102,241,.08)!important; border-color: rgba(82,84,204,.3)!important; box-shadow: 0 2px 8px rgba(82,84,204,.12)!important }
+
+/* ── Navbar: profile / avatar trigger ── */
+[data-theme="light"] .nav-avatar-trigger { background: rgba(82,84,204,.05); border-color: rgba(82,84,204,.18)!important }
+[data-theme="light"] .nav-avatar-trigger:hover { background: rgba(82,84,204,.1); border-color: rgba(82,84,204,.32)!important }
+
+/* ── Navbar: hamburger (mobile) ── */
+[data-theme="light"] .hamburger { color: var(--text) }
+[data-theme="light"] .hamburger:hover { background: rgba(99,102,241,.08) }
+[data-theme="light"] .hamburger.is-open { background: rgba(99,102,241,.1); border-color: rgba(99,102,241,.35)!important }
+
+/* ── Mobile nav dropdown (overrides the dark rgba(8,8,16,…) background) ── */
+@media(max-width:900px){
+  [data-theme="light"] .nav-links { background: rgba(244,245,251,.99)!important; border-color: rgba(99,102,241,.15)!important; box-shadow: 0 16px 48px rgba(82,84,204,.1)!important }
+  [data-theme="light"] .nav-links a,
+  [data-theme="light"] .nav-scroll-btn { color: var(--text2)!important }
+  [data-theme="light"] .nav-links a:hover,
+  [data-theme="light"] .nav-scroll-btn:hover { background: rgba(99,102,241,.07)!important; color: var(--text)!important }
+}
+
+/* ── Buttons: outline & ghost borders ── */
+[data-theme="light"] .btn-outline { border-color: rgba(82,84,204,.28) }
+[data-theme="light"] .btn-outline:hover { border-color: var(--primary) }
+[data-theme="light"] .btn-ghost { border-color: rgba(82,84,204,.18) }
+
+/* ── Hero badge ── */
+[data-theme="light"] .hero-badge { background: rgba(99,102,241,.07); border-color: rgba(99,102,241,.18) }
+
+/* ── Promo bar interactive arrows / close ── */
+[data-theme="light"] .promo-bar-arrow { background: rgba(99,102,241,.07) }
+[data-theme="light"] .promo-bar-close { background: rgba(99,102,241,.07) }
+
+/* ── Card hover shadows (use primary-tinted shadow instead of dark) ── */
+[data-theme="light"] .prod-card:hover { box-shadow: 0 12px 40px rgba(82,84,204,.13) }
+[data-theme="light"] .brand-card:hover { box-shadow: 0 16px 48px rgba(82,84,204,.13) }
+[data-theme="light"] .review-card:hover { box-shadow: 0 10px 36px rgba(82,84,204,.12) }
+
+/* ── Stats strip ── */
+[data-theme="light"] .stats-strip { background: linear-gradient(135deg,rgba(99,102,241,.06),rgba(129,140,248,.03)); border-color: rgba(99,102,241,.15) }
+
+/* ── Admin: table row hover ── */
+[data-theme="light"] .admin-table tr:hover td { background: rgba(99,102,241,.03) }
+
+/* ── Admin: sidebar & main bg ── */
+[data-theme="light"] .admin-sidebar { border-color: rgba(82,84,204,.12) }
+[data-theme="light"] .admin-nav-item:hover { background: var(--bg3) }
+
+/* ── Quick View close button ── */
+[data-theme="light"] .qv-close:hover { background: var(--bg4) }
+
+/* ── Cart + quick-view overlays: use semi-transparent dark so content is still visible ── */
+[data-theme="light"] .cart-overlay { background: rgba(0,0,0,.35) }
+[data-theme="light"] .qv-overlay { background: rgba(0,0,0,.4) }
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg0);color:var(--text);line-height:1.6;overflow-x:hidden}
@@ -177,6 +253,7 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 .nav-cart{position:relative}
 .cart-count{position:absolute;top:1px;right:1px;background:linear-gradient(135deg,#f87171,#ef4444);color:#fff;font-size:.58rem;font-weight:800;border-radius:99px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid rgba(8,8,16,.92);animation:badgePop .4s cubic-bezier(.34,1.56,.64,1) both;box-shadow:0 0 8px rgba(239,68,68,.4)}
 .nav-lang-btn{width:auto;gap:5px;padding:0 10px}
+.nav-currency-desktop{display:inline-flex;align-items:center}
 .nav-profile-name{transition:color .2s}
 .nav-avatar-trigger:hover .nav-profile-name{color:var(--primary)!important}
 /* ── Hamburger ── */
@@ -846,6 +923,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary) !important;b
   .nav-avatar-trigger{padding:2px}
   .nav-profile-wrap{order:99}
   .nav-lang-btn{width:34px!important;padding:0!important}
+  .nav-currency-desktop{display:none!important}
   .resp-grid-contact{grid-template-columns:1fr;gap:24px}
 }
 @media(max-width:640px){

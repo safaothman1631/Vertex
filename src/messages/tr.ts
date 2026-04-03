@@ -354,6 +354,7 @@ const tr = {
     notifyStockDesc: 'Tükenen ürünler tekrar stoğa girdiğinde bildirim alın',
     notifySms: 'SMS Bildirimleri',
     notifySmsDesc: 'Önemli güncellemeleri SMS ile alın',
+    smsPhoneRequired: 'SMS bildirimlerini etkinleştirmeden önce lütfen profil bölümüne telefon numaranızı ekleyin.',
     newsletter: 'Bülten',
     newsletterDesc: 'Yeni ürünler ve fırsatların haftalık özeti',
     // Privacy section
@@ -834,6 +835,8 @@ const tr = {
     signInToReview: 'yorum yazmak için.',
     signIn: 'Giriş yapın',
     clickToZoom: 'Yakınlaştırmak için tıkla',
+    notifyBackInStock: 'Stoka girince beni bilgilendir',
+    stockAlertSubscribed: 'Stoka girince bilgilendirileceksiniz',
   },
 
   // ── TESTIMONIALS

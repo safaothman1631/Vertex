@@ -375,7 +375,17 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   // ══════════════════════════════════════════════════════════
   type BoolPrefKey = 'notify_email' | 'notify_order' | 'notify_promo' | 'notify_wishlist' | 'notify_stock' | 'notify_sms' | 'newsletter' | 'login_alerts' | 'auto_apply_coupon' | 'compact_mode'
 
+  const [smsPhoneWarn, setSmsPhoneWarn] = useState(false)
+
   async function toggleNotification(key: BoolPrefKey, value: boolean) {
+    // Require phone number for SMS
+    if (key === 'notify_sms' && value && !phone.trim()) {
+      setSmsPhoneWarn(true)
+      setTimeout(() => setSmsPhoneWarn(false), 4000)
+      // Scroll to profile section so user can add phone
+      document.getElementById('profile')?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
     const prev: Record<BoolPrefKey, boolean> = {
       notify_email: notifyEmail, notify_order: notifyOrder, notify_promo: notifyPromo,
       notify_wishlist: notifyWishlist, notify_stock: notifyStock, notify_sms: notifySms,
@@ -990,6 +1000,20 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                 </div>
               ))}
             </div>
+
+            {/* SMS phone warning */}
+            {smsPhoneWarn && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px',
+                borderRadius: 10, background: 'rgba(245,158,11,.12)', border: '1px solid rgba(245,158,11,.3)',
+                marginBottom: 24, animation: 'fadeIn .2s',
+              }}>
+                <AlertTriangle size={16} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                <p style={{ fontSize: '.82rem', color: '#f59e0b', fontWeight: 600 }}>
+                  {t.settings.smsPhoneRequired ?? 'Please add your phone number in the Profile section before enabling SMS notifications.'}
+                </p>
+              </div>
+            )}
 
             {/* ── Notification Inbox ── */}
             <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>

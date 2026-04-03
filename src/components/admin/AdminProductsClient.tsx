@@ -121,9 +121,20 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
     if (!validateForm()) return
     setLoading(true)
     if (isEdit && editing.id) {
+      const prevProduct = products.find(p => p.id === editing.id)
       const { id, created_at, ...rest } = editing as Product
       const { data } = await supabase.from('products').update(rest).eq('id', id).select().single()
-      if (data) setProducts((prev) => prev.map((p) => (p.id === id ? data : p)))
+      if (data) {
+        setProducts((prev) => prev.map((p) => (p.id === id ? data : p)))
+        // Trigger back-in-stock notifications if restocked
+        if (!prevProduct?.in_stock && data.in_stock) {
+          fetch('/api/stock-alert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: id }),
+          }).catch(() => {})
+        }
+      }
     } else {
       const { created_at, id, ...rest } = editing as Product
       const { data } = await supabase.from('products').insert(rest).select().single()
@@ -156,6 +167,14 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
         change: current ? -1 : 1,
         reason: current ? 'Marked out of stock' : 'Marked in stock',
       })
+      // Trigger back-in-stock notifications when restocked
+      if (!current) {
+        fetch('/api/stock-alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId: id }),
+        }).catch(() => {})
+      }
     }
   }
 

@@ -351,6 +351,7 @@ const ar = {
     notifyStockDesc: 'تنبيه عند توفر المنتجات غير المتوفرة مجدداً',
     notifySms: 'إشعارات SMS',
     notifySmsDesc: 'تلقي التحديثات المهمة عبر الرسائل النصية',
+    smsPhoneRequired: 'يرجى إضافة رقم هاتفك في قسم الملف الشخصي قبل تفعيل إشعارات SMS.',
     newsletter: 'النشرة الإخبارية',
     newsletterDesc: 'ملخص أسبوعي للمنتجات والعروض الجديدة',
     // Privacy section
@@ -830,6 +831,8 @@ const ar = {
     signInToReview: 'لكتابة تقييم.',
     signIn: 'تسجيل الدخول',
     clickToZoom: 'انقر للتكبير',
+    notifyBackInStock: 'أخبرني عندما يتوفر',
+    stockAlertSubscribed: 'سيتم إشعارك عند التوفر',
   },
 
   // ── TESTIMONIALS

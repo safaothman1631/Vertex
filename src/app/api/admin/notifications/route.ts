@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
 import { createRateLimiter, getClientIP } from '@/lib/rate-limit'
+import { sendPromoEmail, sendNewsletterEmail } from '@/lib/email'
 
 // 5 broadcast notifications per hour
 const broadcastLimiter = createRateLimiter({ window: 60 * 60_000, max: 5 })
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
   const admin = createAdminClient()
 
   // Get target users
-  let query = admin.from('profiles').select('id')
+  let query = admin.from('profiles').select('id, email, notify_email, notify_promo')
   if (target === 'admins') {
     query = query.eq('role', 'admin')
   } else if (target === 'users') {
@@ -62,6 +63,20 @@ export async function POST(request: NextRequest) {
 
   const { error: insertErr } = await admin.from('notifications').insert(rows)
   if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 })
+
+  // Send emails to users with notify_email + notify_promo enabled
+  const emailRecipients = users.filter(u => u.email && u.notify_email && u.notify_promo)
+  // Fire-and-forget, don't block response
+  Promise.allSettled(
+    emailRecipients.map(u =>
+      nType === 'promo'
+        ? sendPromoEmail(u.email!, title.trim(), message.trim())
+        : sendNewsletterEmail(u.email!, title.trim(), message.trim())
+    )
+  ).then(results => {
+    const failed = results.filter(r => r.status === 'rejected').length
+    if (failed) console.warn(`[broadcast] ${failed}/${emailRecipients.length} emails failed`)
+  })
 
   // Log to system_logs
   await admin.from('system_logs').insert({

@@ -10,6 +10,7 @@ import SearchModal from './SearchModal'
 import { Heart, ShoppingBag, Search, User, LogOut, Settings, Package, ChevronDown, LayoutDashboard, Globe } from 'lucide-react'
 import { useLocale, useT, type Locale } from '@/contexts/locale'
 import NotificationsPanel from './NotificationsPanel'
+import CurrencySwitcher from '@/components/ui/CurrencySwitcher'
 
 const LANG_OPTIONS: { value: Locale; label: string; flag: string }[] = [
   { value: 'en', label: 'English', flag: '🇬🇧' },
@@ -346,6 +347,10 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+            {/* Currency switcher — desktop only */}
+            <span className="nav-currency-desktop">
+              <CurrencySwitcher variant="navbar" />
+            </span>
           </div>
         </div>
       </header>

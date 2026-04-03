@@ -73,15 +73,23 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o))
     if (detail?.id === id) setDetail(prev => prev ? { ...prev, status } : prev)
 
-    // Send notification to customer
+    // Send notification + email + SMS via server-side API
     const order = orders.find(o => o.id === id)
     if (order) {
-      await supabase.from('notifications').insert({
-        user_id: order.user_id,
-        title: `Order #${id.slice(0, 8)} ${STATUS_LABELS[status]}`,
-        body: `Your order status has been updated to ${STATUS_LABELS[status].toLowerCase()}.`,
-        type: 'order' as const,
-      })
+      fetch('/api/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-notify-secret': '__client__',
+        },
+        body: JSON.stringify({
+          userId: order.user_id,
+          type: 'order_status',
+          title: `Order #${id.slice(0, 8)} ${STATUS_LABELS[status]}`,
+          body: `Your order status has been updated to ${STATUS_LABELS[status].toLowerCase()}.`,
+          meta: { orderId: id, status },
+        }),
+      }).catch(() => {})
     }
 
     setUpdatingId(null)

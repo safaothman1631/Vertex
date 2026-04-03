@@ -351,8 +351,7 @@ const ckb = {
     notifyStock: 'گەڕانەوەی بەردەست',
     notifyStockDesc: 'ئاگادار بە کاتێک بەرهەمێکی نەماو دووبارە بەردەست دەبێتەوە',
     notifySms: 'ئاگاداری SMS',
-    notifySmsDesc: 'نوێکارییە گرنگەکان بە نامەی مۆبایل وەربگرە',
-    newsletter: 'هەفتانامە',
+    notifySmsDesc: 'نوێکارییە گرنگەکان بە نامەی مۆبایل وەربگرە',    smsPhoneRequired: 'تکایە ژمارەی مۆبایلت لە بەشی پرۆفایل زیاد بکە پێش ئەوەی چالاککردنی SMS.',    newsletter: 'هەفتانامە',
     newsletterDesc: 'پوختەی هەفتانەی بەرهەمە نوێکان و ئۆفەرەکان',
     // Privacy section
     sectionPrivacy: 'تایبەتمەندی و پاراستن',
@@ -831,6 +830,8 @@ const ckb = {
     signInToReview: 'بۆ نووسینی پێداچوونەوە.',
     signIn: 'چوونەژوورەوە',
     clickToZoom: 'کلیک بکە بۆ گەورەکردن',
+    notifyBackInStock: 'ئاگادارم بکەرەوە کاتێک بەردەست بوو',
+    stockAlertSubscribed: 'ئاگاداری دەنێردرێت کاتێک بەردەست بوو',
   },
 
   // ── TESTIMONIALS

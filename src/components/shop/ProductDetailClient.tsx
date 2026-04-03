@@ -3,18 +3,21 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star, CheckCircle, XCircle, ZoomIn, Minus, Plus, Send, Share2, Link2, Check } from 'lucide-react'
+import { Star, CheckCircle, XCircle, ZoomIn, Minus, Plus, Send, Share2, Link2, Check, Bell, BellOff, Loader2 } from 'lucide-react'
 import AddToCartButton from './AddToCartButton'
 import Lightbox from '@/components/ui/Lightbox'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import RecentlyViewed from './RecentlyViewed'
 import { useT } from '@/contexts/locale'
+import { usePreferences } from '@/contexts/preferences'
+import CurrencySwitcher from '@/components/ui/CurrencySwitcher'
 import { createClient } from '@/lib/supabase-client'
 import { useRecentlyViewedStore } from '@/store/recently-viewed'
 import type { Product, Review } from '@/types'
 
 export default function ProductDetailClient({ product, relatedProducts = [], reviews: initialReviews = [] }: { product: Product; relatedProducts?: Product[]; reviews?: Review[] }) {
   const t = useT()
+  const { formatPrice } = usePreferences()
   const [activeImg, setActiveImg] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [qty, setQty] = useState(1)
@@ -26,9 +29,14 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
   const [userId, setUserId] = useState<string | null>(null)
   const [hoverStar, setHoverStar] = useState(0)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [pageOrigin, setPageOrigin] = useState('')
 
   const supabase = createClient()
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
+
+  useEffect(() => {
+    setPageOrigin(window.location.origin)
+  }, [])
 
   useEffect(() => {
     addRecentlyViewed(product)
@@ -41,6 +49,31 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
   }, [])
 
   const alreadyReviewed = userId ? reviews.some(r => r.user_id === userId) : false
+
+  // ── Back-in-stock alert state
+  const [stockAlertLoading, setStockAlertLoading] = useState(false)
+  const [stockAlertSubscribed, setStockAlertSubscribed] = useState(false)
+
+  // Check if already subscribed to stock alert
+  useEffect(() => {
+    if (!userId || product.in_stock) return
+    supabase.from('stock_subscribers').select('id').eq('user_id', userId).eq('product_id', product.id).eq('notified', false).maybeSingle()
+      .then(({ data }) => { if (data) setStockAlertSubscribed(true) })
+  }, [userId, product.id, product.in_stock])
+
+  async function subscribeStockAlert() {
+    if (!userId) return
+    setStockAlertLoading(true)
+    try {
+      const res = await fetch('/api/stock-alert', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.id }),
+      })
+      if (res.ok) setStockAlertSubscribed(true)
+    } catch { /* ignore */ }
+    setStockAlertLoading(false)
+  }
 
   async function submitReview(e: React.FormEvent) {
     e.preventDefault()
@@ -172,20 +205,53 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
           </div>
 
           {/* Price */}
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 20 }}>
-            <span style={{ fontSize: 'clamp(1.8rem,3vw,2.4rem)', fontWeight: 900, color: 'var(--primary)' }}>
-              ${product.price.toFixed(2)}
-            </span>
-            {product.old_price && (
-              <>
-                <span style={{ fontSize: '1rem', textDecoration: 'line-through', color: 'var(--text3)' }}>
-                  ${product.old_price.toFixed(2)}
-                </span>
-                <span style={{ fontSize: '.78rem', fontWeight: 800, background: 'rgba(16,185,129,.12)', color: '#10b981', borderRadius: 6, padding: '3px 8px' }}>
-                  -{Math.round((1 - product.price / product.old_price) * 100)}%
-                </span>
-              </>
-            )}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 'clamp(1.8rem,3vw,2.4rem)', fontWeight: 900, color: 'var(--primary)' }}>
+                {formatPrice(product.price)}
+              </span>
+              {product.old_price && (
+                <>
+                
+
+          {/* Notify me when back in stock */}
+          {!product.in_stock && userId && (
+            <button
+              onClick={subscribeStockAlert}
+              disabled={stockAlertSubscribed || stockAlertLoading}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '10px 20px', borderRadius: 12,
+                border: stockAlertSubscribed ? '1px solid var(--primary)' : '1px solid var(--border)',
+                background: stockAlertSubscribed ? 'rgba(99,102,241,.1)' : 'var(--bg3)',
+                color: stockAlertSubscribed ? 'var(--primary)' : 'var(--text)',
+                cursor: stockAlertSubscribed ? 'default' : 'pointer',
+                fontSize: '.85rem', fontWeight: 600, marginBottom: 24,
+                transition: 'all .2s',
+                opacity: stockAlertLoading ? 0.6 : 1,
+              }}
+            >
+              {stockAlertLoading ? (
+                <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
+              ) : stockAlertSubscribed ? (
+                <BellOff size={15} />
+              ) : (
+                <Bell size={15} />
+              )}
+              {stockAlertSubscribed
+                ? (t.productDetail.stockAlertSubscribed ?? 'You\'ll be notified when back in stock')
+                : (t.productDetail.notifyBackInStock ?? 'Notify me when back in stock')}
+            </button>
+          )}  <span style={{ fontSize: '1rem', textDecoration: 'line-through', color: 'var(--text3)' }}>
+                    {formatPrice(product.old_price)}
+                  </span>
+                  <span style={{ fontSize: '.78rem', fontWeight: 800, background: 'rgba(16,185,129,.12)', color: '#10b981', borderRadius: 6, padding: '3px 8px' }}>
+                    -{Math.round((1 - product.price / product.old_price) * 100)}%
+                  </span>
+                </>
+              )}
+            </div>
+            <CurrencySwitcher variant="inline" previewAmount={product.price} />
           </div>
 
           {/* Stock */}
@@ -275,7 +341,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
               {linkCopied ? <><Check size={13} /> {t.productShare?.copied ?? 'Copied!'}</> : <><Link2 size={13} /> {t.productShare?.copyLink ?? 'Copy Link'}</>}
             </button>
             <a
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(product.name)}&url=${encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}`)}`}
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(product.name)}&url=${encodeURIComponent(`${pageOrigin}/products/${product.id}`)}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -287,7 +353,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
               𝕏
             </a>
             <a
-              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}`)}`}
+              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${pageOrigin}/products/${product.id}`)}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -299,7 +365,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
               Facebook
             </a>
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(`${product.name} - ${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`${product.name} - ${pageOrigin}/products/${product.id}`)}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -484,8 +550,8 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
                   <p style={{ fontSize: '.7rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '.06em' }}>{p.brand}</p>
                   <h3 style={{ fontSize: '.85rem', fontWeight: 700, lineHeight: 1.3, margin: '4px 0 8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.name}</h3>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontWeight: 900, color: 'var(--primary)' }}>${p.price.toFixed(2)}</span>
-                    {p.old_price && <span style={{ fontSize: '.78rem', textDecoration: 'line-through', color: 'var(--text3)' }}>${p.old_price.toFixed(2)}</span>}
+                    <span style={{ fontWeight: 900, color: 'var(--primary)' }}>{formatPrice(p.price)}</span>
+                    {p.old_price && <span style={{ fontSize: '.78rem', textDecoration: 'line-through', color: 'var(--text3)' }}>{formatPrice(p.old_price)}</span>}
                   </div>
                 </div>
               </Link>

@@ -359,6 +359,7 @@ const en = {
     notifyStockDesc: 'Alert when out-of-stock items are available again',
     notifySms: 'SMS Notifications',
     notifySmsDesc: 'Receive important updates via text message',
+    smsPhoneRequired: 'Please add your phone number in the Profile section before enabling SMS notifications.',
     newsletter: 'Newsletter',
     newsletterDesc: 'Weekly digest of new products and deals',
     // Privacy section
@@ -841,6 +842,8 @@ const en = {
     signInToReview: 'to write a review.',
     signIn: 'Sign in',
     clickToZoom: 'Click to zoom',
+    notifyBackInStock: 'Notify me when back in stock',
+    stockAlertSubscribed: 'You\'ll be notified when back in stock',
   },
 
   // ── TESTIMONIALS

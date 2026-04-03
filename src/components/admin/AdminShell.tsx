@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Package, ShoppingBag, Users, MessageSquare, FolderTree, Building2, Ticket, Trash2, Megaphone, Bell, Activity, HardDrive, ArrowLeft, Menu, X } from 'lucide-react'
 import { useT } from '@/contexts/locale'
+import CurrencySwitcher from '@/components/ui/CurrencySwitcher'
 
 type NavKey = 'dashboard' | 'products' | 'orders' | 'users' | 'messages' | 'categories' | 'brands' | 'coupons' | 'promotions' | 'notifications' | 'system' | 'backup' | 'trash'
 
@@ -95,7 +96,7 @@ export default function AdminShell({
             <Menu size={22} />
           </button>
           <div className="admin-topbar-brand">Ver<span style={{ color: 'var(--primary)' }}>tex</span> Admin</div>
-          <button className="admin-topbar-close-placeholder" aria-hidden />
+          <CurrencySwitcher variant="admin" />
         </div>
 
         {children}
