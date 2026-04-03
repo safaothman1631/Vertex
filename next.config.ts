@@ -54,6 +54,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  // Fix Vercel middleware tracing for Next.js 16 + Turbopack
+  outputFileTracingIncludes: {
+    '/middleware': ['./middleware.ts', './src/proxy.ts'],
+  },
   async headers() {
     return [
       {
