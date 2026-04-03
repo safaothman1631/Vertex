@@ -7,7 +7,7 @@ const SUPABASE_HOST = 'xlzcnxketisxbuznfipn.supabase.co'
 const csp = [
   "default-src 'self'",
   // Next.js needs unsafe-inline for its injected scripts; Stripe needs its CDN
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://maps.googleapis.com",
+  "script-src 'self' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com",
   // Inline styles used throughout the app
   "style-src 'self' 'unsafe-inline'",
   // Images: own origin, Supabase storage, base64 data URIs, blobs

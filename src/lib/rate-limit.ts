@@ -35,6 +35,11 @@ export function createRateLimiter(opts: RateLimiterOpts) {
         if (valid.length === 0) store.delete(key)
         else store.set(key, valid)
       }
+      // Cap max entries to prevent unbounded memory growth
+      if (store.size > 10_000) {
+        const entries = Array.from(store.keys())
+        for (let i = 0; i < entries.length - 10_000; i++) store.delete(entries[i])
+      }
     }, 5 * 60_000)
     // Don't prevent process exit in serverless
     if (typeof interval === 'object' && 'unref' in interval) interval.unref()

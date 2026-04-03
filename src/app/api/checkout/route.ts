@@ -15,11 +15,12 @@ function isValidShippingAddress(a: unknown): a is ShippingAddress {
   if (!a || typeof a !== 'object') return false
   const o = a as Record<string, unknown>
   return typeof o.name === 'string' && o.name.length > 0 && o.name.length <= 200
-    && typeof o.email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(o.email)
-    && typeof o.address === 'string' && o.address.length > 0
-    && typeof o.city === 'string' && o.city.length > 0
-    && typeof o.country === 'string' && o.country.length > 0
-    && typeof o.zip === 'string'
+    && typeof o.email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(o.email) && o.email.length <= 255
+    && typeof o.phone === 'string' && (o.phone === '' || /^[\d\s\-+()]{5,20}$/.test(o.phone))
+    && typeof o.address === 'string' && o.address.length > 0 && o.address.length <= 500
+    && typeof o.city === 'string' && o.city.length > 0 && o.city.length <= 100
+    && typeof o.country === 'string' && o.country.length > 0 && o.country.length <= 100
+    && typeof o.zip === 'string' && o.zip.length <= 20
 }
 
 export async function POST(request: Request) {

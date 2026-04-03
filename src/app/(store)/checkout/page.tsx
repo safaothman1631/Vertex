@@ -52,7 +52,12 @@ export default function CheckoutPage() {
 
   function handleBlur(field: FieldKey) {
     setTouched(prev => ({ ...prev, [field]: true }))
-    const err = validate(field, form[field] ?? '')
+    // Trim whitespace on blur
+    const trimmed = (form[field] ?? '').trim()
+    if (trimmed !== form[field]) {
+      setForm(prev => ({ ...prev, [field]: trimmed }))
+    }
+    const err = validate(field, trimmed)
     setFieldErrors(prev => ({ ...prev, [field]: err }))
   }
 
@@ -136,15 +141,15 @@ export default function CheckoutPage() {
   const inputStyle = (field: FieldKey): React.CSSProperties => ({
     width: '100%', padding: '11px 14px', borderRadius: 10,
     background: 'var(--bg3)',
-    border: `1px solid ${touched[field] && fieldErrors[field] ? '#ef4444' : 'var(--border)'}`,
+    border: `1px solid ${touched[field] && fieldErrors[field] ? 'var(--danger)' : 'var(--border)'}`,
     color: 'var(--text)', fontSize: '.92rem', outline: 'none',
-    transition: 'border-color .2s', boxSizing: 'border-box',
+    transition: 'border-color .2s, box-shadow .2s', boxSizing: 'border-box',
     fontFamily: 'inherit',
   })
 
   const fieldError = (field: FieldKey) =>
     touched[field] && fieldErrors[field] ? (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: '.75rem', color: '#ef4444' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: '.75rem', color: 'var(--danger)' }}>
         <AlertCircle size={12} />
         {fieldErrors[field]}
       </div>
@@ -297,13 +302,14 @@ export default function CheckoutPage() {
                         background: 'var(--gradient)', color: '#fff',
                         fontSize: '.82rem', fontWeight: 700, cursor: couponLoading ? 'not-allowed' : 'pointer',
                         opacity: couponLoading || !couponCode.trim() ? .6 : 1,
+                        transition: 'opacity .2s',
                       }}>
-                        {couponLoading ? '...' : t.checkout.apply}
+                        {couponLoading ? '⏳' : t.checkout.apply}
                       </button>
                     )}
                   </div>
                   {couponError && (
-                    <p style={{ fontSize: '.75rem', color: '#ef4444', marginTop: 4 }}>{couponError}</p>
+                    <p style={{ fontSize: '.75rem', color: 'var(--danger)', marginTop: 4 }}>{couponError}</p>
                   )}
                   {couponApplied && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: '.78rem', color: '#22c55e', fontWeight: 600 }}>
@@ -335,7 +341,7 @@ export default function CheckoutPage() {
               </div>
 
               {error && (
-                <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: '.85rem', color: '#f87171' }}>
+                <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: '.85rem', color: 'var(--danger)' }}>
                   {error}
                 </div>
               )}

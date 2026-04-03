@@ -74,16 +74,18 @@ export default function CartPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => updateQuantity(product.id, quantity - 1)}
+                    disabled={quantity <= 1}
                     className="w-6 h-6 rounded flex items-center justify-center"
-                    style={{ border: '1px solid var(--border)' }}
+                    style={{ border: '1px solid var(--border)', opacity: quantity <= 1 ? 0.35 : 1, cursor: quantity <= 1 ? 'not-allowed' : 'pointer', transition: 'opacity .2s' }}
                   >
                     <Minus size={12} />
                   </button>
                   <span className="text-sm font-semibold w-5 text-center">{quantity}</span>
                   <button
                     onClick={() => updateQuantity(product.id, quantity + 1)}
+                    disabled={quantity >= 99}
                     className="w-6 h-6 rounded flex items-center justify-center"
-                    style={{ border: '1px solid var(--border)' }}
+                    style={{ border: '1px solid var(--border)', opacity: quantity >= 99 ? 0.35 : 1, cursor: quantity >= 99 ? 'not-allowed' : 'pointer', transition: 'opacity .2s' }}
                   >
                     <Plus size={12} />
                   </button>

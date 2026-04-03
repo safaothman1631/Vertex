@@ -40,7 +40,7 @@ export async function POST(request: Request) {
           .select('quantity, price, product_id, products(name)')
           .eq('order_id', orderId)
 
-        const items = (orderItems ?? []).map((oi: any) => ({
+        const items = (orderItems ?? []).map((oi: { products?: { name: string } | { name: string }[] | null; quantity: number; price: number }) => ({
           name: Array.isArray(oi.products) ? oi.products[0]?.name ?? 'Product' : oi.products?.name ?? 'Product',
           quantity: oi.quantity,
           price: oi.price,

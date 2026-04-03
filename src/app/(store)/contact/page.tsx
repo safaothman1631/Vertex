@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { MapPin, Mail, Phone } from 'lucide-react'
 import { useT } from '@/contexts/locale'
@@ -13,6 +13,13 @@ export default function ContactPage() {
   const [error, setError] = useState('')
   const supabase = createClient()
   const t = useT()
+
+  // Auto-dismiss success message after 6s
+  useEffect(() => {
+    if (!success) return
+    const timer = setTimeout(() => setSuccess(false), 6000)
+    return () => clearTimeout(timer)
+  }, [success])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -30,7 +37,14 @@ export default function ContactPage() {
       setLoading(false)
       return
     }
-    const { error } = await supabase.from('contact_messages').insert(form)
+    // Sanitize inputs — strip HTML tags
+    const sanitized = {
+      name: form.name.replace(/<[^>]*>/g, '').trim(),
+      email: form.email.trim().toLowerCase(),
+      subject: form.subject.replace(/<[^>]*>/g, '').trim(),
+      message: form.message.replace(/<[^>]*>/g, '').trim(),
+    }
+    const { error } = await supabase.from('contact_messages').insert(sanitized)
     if (error) {
       setError('Failed to send message. Please try again.')
     } else {
