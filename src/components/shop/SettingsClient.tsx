@@ -7,10 +7,11 @@ import Link from 'next/link'
 import {
   User, Mail, Lock, Save, CheckCircle, MapPin, Globe, Bell,
   ShoppingBag, Trash2, Phone, Plus, Pencil, X, Star, ChevronRight,
-  Camera, Loader2, LocateFixed, Map,
+  Camera, Loader2, LocateFixed, Map, BellRing, Package, Tag, Info,
+  Settings, CheckCheck, Clock, Eye,
 } from 'lucide-react'
 import { useT, useLocale, type Locale } from '@/contexts/locale'
-import type { UserAddress } from '@/types'
+import type { UserAddress, Notification } from '@/types'
 
 interface Props {
   user: { id: string; email?: string | null }
@@ -26,6 +27,7 @@ interface Props {
   addresses: UserAddress[]
   recentOrders: { id: string; total: number; status: string; created_at: string }[]
   unreadNotifications: number
+  notifications: Notification[]
 }
 
 const LANG_OPTIONS: { code: Locale; label: string; flag: string }[] = [
@@ -43,7 +45,7 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: '#ef4444',
 }
 
-export default function SettingsClient({ user, profile, addresses: initAddresses, recentOrders, unreadNotifications }: Props) {
+export default function SettingsClient({ user, profile, addresses: initAddresses, recentOrders, unreadNotifications, notifications: initNotifications }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const t = useT()
@@ -134,6 +136,74 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const [notifyEmail, setNotifyEmail] = useState(profile?.notify_email ?? true)
   const [notifyOrder, setNotifyOrder] = useState(profile?.notify_order ?? true)
   const [notifyPromo, setNotifyPromo] = useState(profile?.notify_promo ?? false)
+  const [notifications, setNotifications] = useState<Notification[]>(initNotifications)
+  const [unreadCount, setUnreadCount] = useState(unreadNotifications)
+  const [notifFilter, setNotifFilter] = useState<'all' | 'unread'>('all')
+  const [markingAllRead, setMarkingAllRead] = useState(false)
+
+  const filteredNotifs = notifFilter === 'unread'
+    ? notifications.filter(n => !n.is_read)
+    : notifications
+
+  async function markNotifRead(id: string) {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
+    setUnreadCount(prev => Math.max(0, prev - 1))
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id)
+  }
+
+  async function markAllRead() {
+    setMarkingAllRead(true)
+    const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id)
+    if (unreadIds.length > 0) {
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+      setUnreadCount(0)
+      await supabase.from('notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false)
+    }
+    setMarkingAllRead(false)
+  }
+
+  async function deleteNotif(id: string) {
+    const wasUnread = notifications.find(n => n.id === id && !n.is_read)
+    setNotifications(prev => prev.filter(n => n.id !== id))
+    if (wasUnread) setUnreadCount(prev => Math.max(0, prev - 1))
+    await supabase.from('notifications').delete().eq('id', id)
+  }
+
+  async function clearAllNotifs() {
+    setNotifications([])
+    setUnreadCount(0)
+    await supabase.from('notifications').delete().eq('user_id', user.id)
+  }
+
+  function getNotifIcon(type: string) {
+    switch (type) {
+      case 'order': return <Package size={16} />
+      case 'promo': return <Tag size={16} />
+      case 'system': return <Settings size={16} />
+      default: return <Info size={16} />
+    }
+  }
+
+  function getNotifColor(type: string) {
+    switch (type) {
+      case 'order': return '#3b82f6'
+      case 'promo': return '#f59e0b'
+      case 'system': return '#8b5cf6'
+      default: return '#6366f1'
+    }
+  }
+
+  function timeAgo(dateStr: string) {
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1) return t.settings.justNow
+    if (mins < 60) return `${mins}${t.settings.minutesAgo}`
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return `${hours}${t.settings.hoursAgo}`
+    const days = Math.floor(hours / 24)
+    if (days < 30) return `${days}${t.settings.daysAgo}`
+    return new Date(dateStr).toLocaleDateString()
+  }
 
   // ── Delete account state
   const [deleting, setDeleting] = useState(false)
@@ -654,26 +724,34 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             {sectionHeader(
               <div style={{ position: 'relative' }}>
                 <Bell size={16} style={{ color: 'var(--primary)' }} />
-                {unreadNotifications > 0 && (
+                {unreadCount > 0 && (
                   <span style={{
                     position: 'absolute', top: -4, right: -6, width: 14, height: 14, borderRadius: '50%',
                     background: '#ef4444', color: '#fff', fontSize: '.6rem', fontWeight: 700,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
+                  }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
                 )}
               </div>,
               t.settings.notifications
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+            {/* ── Notification Preferences ── */}
+            <p style={{ fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '.5px' }}>
+              {t.settings.notifPreferences}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
               {([
-                { key: 'notify_email' as const, label: t.settings.notifyEmail, desc: t.settings.notifyEmailDesc, value: notifyEmail },
-                { key: 'notify_order' as const, label: t.settings.notifyOrder, desc: t.settings.notifyOrderDesc, value: notifyOrder },
-                { key: 'notify_promo' as const, label: t.settings.notifyPromo, desc: t.settings.notifyPromoDesc, value: notifyPromo },
+                { key: 'notify_email' as const, icon: <Mail size={15} />, label: t.settings.notifyEmail, desc: t.settings.notifyEmailDesc, value: notifyEmail },
+                { key: 'notify_order' as const, icon: <Package size={15} />, label: t.settings.notifyOrder, desc: t.settings.notifyOrderDesc, value: notifyOrder },
+                { key: 'notify_promo' as const, icon: <Tag size={15} />, label: t.settings.notifyPromo, desc: t.settings.notifyPromoDesc, value: notifyPromo },
               ]).map(n => (
                 <div key={n.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 10, background: 'var(--bg3)' }}>
-                  <div>
-                    <p style={{ fontWeight: 700, fontSize: '.85rem' }}>{n.label}</p>
-                    <p style={{ color: 'var(--text3)', fontSize: '.75rem', marginTop: 2 }}>{n.desc}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: 'var(--primary)', flexShrink: 0 }}>{n.icon}</span>
+                    <div>
+                      <p style={{ fontWeight: 700, fontSize: '.85rem' }}>{n.label}</p>
+                      <p style={{ color: 'var(--text3)', fontSize: '.73rem', marginTop: 2 }}>{n.desc}</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => toggleNotification(n.key, !n.value)}
@@ -689,6 +767,160 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                   </button>
                 </div>
               ))}
+            </div>
+
+            {/* ── Notification Inbox ── */}
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
+              {/* Header row */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <BellRing size={15} style={{ color: 'var(--primary)' }} />
+                  <p style={{ fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.5px' }}>
+                    {t.settings.notifInbox}
+                  </p>
+                  {unreadCount > 0 && (
+                    <span style={{
+                      background: 'rgba(99,102,241,.15)', color: 'var(--primary)', fontSize: '.68rem',
+                      fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                    }}>
+                      {unreadCount} {t.settings.unread}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {/* Filter tabs */}
+                  {(['all', 'unread'] as const).map(f => (
+                    <button key={f} onClick={() => setNotifFilter(f)} style={{
+                      padding: '4px 12px', borderRadius: 8, border: '1px solid',
+                      borderColor: notifFilter === f ? 'var(--primary)' : 'var(--border)',
+                      background: notifFilter === f ? 'rgba(99,102,241,.1)' : 'transparent',
+                      color: notifFilter === f ? 'var(--primary)' : 'var(--text3)',
+                      fontSize: '.72rem', fontWeight: 600, cursor: 'pointer', transition: 'all .15s',
+                    }}>
+                      {f === 'all' ? t.settings.allNotifs : t.settings.unreadNotifs}
+                    </button>
+                  ))}
+                  {/* Mark all read */}
+                  {unreadCount > 0 && (
+                    <button onClick={markAllRead} disabled={markingAllRead} style={{
+                      padding: '4px 10px', borderRadius: 8, border: '1px solid var(--border)',
+                      background: 'transparent', color: 'var(--primary)', fontSize: '.72rem',
+                      fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                      opacity: markingAllRead ? 0.5 : 1,
+                    }}>
+                      <CheckCheck size={12} />
+                      {t.settings.markAllRead}
+                    </button>
+                  )}
+                  {/* Clear all */}
+                  {notifications.length > 0 && (
+                    <button onClick={clearAllNotifs} style={{
+                      padding: '4px 10px', borderRadius: 8, border: '1px solid var(--border)',
+                      background: 'transparent', color: '#ef4444', fontSize: '.72rem',
+                      fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                    }}>
+                      <Trash2 size={12} />
+                      {t.settings.clearAll}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Notification list */}
+              {filteredNotifs.length === 0 ? (
+                <div style={{
+                  textAlign: 'center', padding: '36px 20px', color: 'var(--text3)',
+                }}>
+                  <Bell size={32} style={{ opacity: 0.3, margin: '0 auto 10px' }} />
+                  <p style={{ fontSize: '.85rem', fontWeight: 600 }}>
+                    {notifFilter === 'unread' ? t.settings.noUnread : t.settings.noNotifications}
+                  </p>
+                  <p style={{ fontSize: '.73rem', marginTop: 4, opacity: 0.7 }}>
+                    {t.settings.noNotifDesc}
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 420, overflowY: 'auto' }}>
+                  {filteredNotifs.map(n => (
+                    <div
+                      key={n.id}
+                      onClick={() => !n.is_read && markNotifRead(n.id)}
+                      style={{
+                        display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px',
+                        borderRadius: 10, background: n.is_read ? 'var(--bg3)' : 'rgba(99,102,241,.06)',
+                        border: n.is_read ? '1px solid transparent' : '1px solid rgba(99,102,241,.15)',
+                        cursor: n.is_read ? 'default' : 'pointer', transition: 'all .15s',
+                        position: 'relative',
+                      }}
+                    >
+                      {/* Unread dot */}
+                      {!n.is_read && (
+                        <span style={{
+                          position: 'absolute', top: 14, left: 6, width: 6, height: 6,
+                          borderRadius: '50%', background: 'var(--primary)',
+                        }} />
+                      )}
+                      {/* Type icon */}
+                      <span style={{
+                        width: 34, height: 34, borderRadius: 8, flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: `${getNotifColor(n.type)}15`, color: getNotifColor(n.type),
+                        marginLeft: !n.is_read ? 6 : 0,
+                      }}>
+                        {getNotifIcon(n.type)}
+                      </span>
+                      {/* Content */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                          <p style={{ fontWeight: n.is_read ? 600 : 800, fontSize: '.83rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {n.title}
+                          </p>
+                          <span style={{
+                            fontSize: '.58rem', fontWeight: 600, padding: '1px 6px', borderRadius: 6,
+                            background: `${getNotifColor(n.type)}20`, color: getNotifColor(n.type),
+                            flexShrink: 0, textTransform: 'capitalize',
+                          }}>
+                            {n.type}
+                          </span>
+                        </div>
+                        {n.body && (
+                          <p style={{
+                            color: 'var(--text3)', fontSize: '.75rem', lineHeight: 1.4,
+                            overflow: 'hidden', textOverflow: 'ellipsis',
+                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                          }}>
+                            {n.body}
+                          </p>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                          <Clock size={11} style={{ color: 'var(--text3)', opacity: 0.6 }} />
+                          <span style={{ fontSize: '.68rem', color: 'var(--text3)', opacity: 0.7 }}>
+                            {timeAgo(n.created_at)}
+                          </span>
+                          {!n.is_read && (
+                            <span style={{ fontSize: '.65rem', color: 'var(--primary)', fontWeight: 600 }}>
+                              • {t.settings.clickToRead}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {/* Delete button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteNotif(n.id) }}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+                          color: 'var(--text3)', opacity: 0.5, transition: 'all .15s', flexShrink: 0,
+                          borderRadius: 6,
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444' }}
+                        onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--text3)' }}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
