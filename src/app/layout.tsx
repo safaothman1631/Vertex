@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
 import './globals.css'
-import { LocaleProvider } from '@/contexts/locale'
+import { LocaleProvider, type Locale } from '@/contexts/locale'
 import { PreferencesProvider } from '@/contexts/preferences'
 import ScrollbarEffect from '@/components/ui/ScrollbarEffect'
 import { ToastProvider } from '@/components/ui/Toast'
@@ -45,13 +46,20 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Read locale cookie on server to prevent hydration mismatch
+  const cookieStore = await cookies()
+  const localeCookie = cookieStore.get('nexpos-locale')?.value
+  const validLocales: Locale[] = ['ckb', 'ar', 'tr', 'en']
+  const initialLocale: Locale = validLocales.includes(localeCookie as Locale) ? (localeCookie as Locale) : 'en'
+  const dir = initialLocale === 'ckb' || initialLocale === 'ar' ? 'rtl' : 'ltr'
+
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
+    <html lang={initialLocale} dir={dir} suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#080810" />
@@ -61,7 +69,7 @@ export default function RootLayout({
       </head>
       <body>
         <PreferencesProvider>
-          <LocaleProvider>
+          <LocaleProvider initialLocale={initialLocale}>
             <ToastProvider>
               <ScrollbarEffect />
               {children}

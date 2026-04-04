@@ -14,7 +14,7 @@ import {
   Sun, Moon, Monitor,
 } from 'lucide-react'
 import { useT, useLocale, type Locale } from '@/contexts/locale'
-import { usePreferences } from '@/contexts/preferences'
+import { usePreferences, SYMBOLS } from '@/contexts/preferences'
 import type { UserAddress, Notification } from '@/types'
 
 interface Props {
@@ -63,7 +63,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const router = useRouter()
   const t = useT()
   const { locale, setLocale } = useLocale()
-  const { setTheme: applyTheme, setCurrency: applyCurrency, setCompactMode: applyCompactMode, formatPrice } = usePreferences()
+  const { setTheme: applyTheme, setCurrency: applyCurrency, setCompactMode: applyCompactMode, formatPrice, effectiveRates, rates, customRates, setCustomRate: applyCustomRate } = usePreferences()
 
   // -- Profile state
   const [name, setName] = useState(profile?.full_name ?? '')
@@ -890,6 +890,67 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                   {cur.label}
                 </button>
               ))}
+            </div>
+
+            {/* Custom Exchange Rates */}
+            <p style={{ fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, marginTop: 20, textTransform: 'uppercase', letterSpacing: '.5px' }}>
+              {t.settings.customRateLabel ?? 'Custom Exchange Rates'}
+            </p>
+            <p style={{ fontSize: '.73rem', color: 'var(--text3)', marginBottom: 12 }}>
+              {t.settings.customRateDesc ?? 'Override API rates with your own market rates (e.g. Kurdistan parallel market)'}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {(['IQD', 'EUR', 'TRY'] as const).map(code => {
+                const apiRate = rates[code] ?? 0
+                const isCustom = code in customRates
+                const currentRate = effectiveRates[code] ?? apiRate
+                return (
+                  <div key={code} style={{
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                    borderRadius: 10, background: 'var(--bg3)', border: isCustom ? '1px solid #f59e0b33' : '1px solid transparent',
+                  }}>
+                    <span style={{ fontSize: '.8rem', fontWeight: 800, color: 'var(--text2)', minWidth: 36 }}>{code}</span>
+                    <span style={{ fontSize: '.75rem', color: 'var(--text3)', whiteSpace: 'nowrap' }}>1 USD =</span>
+                    <input
+                      type="number"
+                      dir="ltr"
+                      defaultValue={currentRate}
+                      onBlur={e => {
+                        const val = parseFloat(e.target.value)
+                        if (val > 0 && val !== apiRate) {
+                          applyCustomRate(code, val)
+                        } else if (val === apiRate || !e.target.value) {
+                          applyCustomRate(code, null)
+                        }
+                      }}
+                      onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                      style={{
+                        flex: 1, padding: '6px 10px', borderRadius: 8,
+                        border: '1px solid var(--border)', background: 'var(--bg)',
+                        color: 'var(--text)', fontFamily: 'inherit', fontWeight: 700,
+                        fontSize: '.85rem', minWidth: 0,
+                      }}
+                    />
+                    <span style={{ fontSize: '.75rem', color: 'var(--text3)' }}>{SYMBOLS[code]}</span>
+                    {isCustom && (
+                      <button
+                        onClick={() => applyCustomRate(code, null)}
+                        title="Reset"
+                        style={{
+                          padding: '4px 8px', borderRadius: 6, border: '1px solid var(--border)',
+                          background: 'var(--bg)', color: '#f59e0b', cursor: 'pointer',
+                          fontSize: '.65rem', fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Reset
+                      </button>
+                    )}
+                    {!isCustom && (
+                      <span style={{ fontSize: '.6rem', color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>API</span>
+                    )}
+                  </div>
+                )
+              })}
             </div>
 
             {/* Compact mode & Auto-apply coupons */}

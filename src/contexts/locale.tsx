@@ -45,14 +45,15 @@ function writeCookie(locale: Locale) {
   document.cookie = `${COOKIE}=${encodeURIComponent(locale)}; path=/; max-age=${maxAge}; SameSite=Lax`
 }
 
-export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('en')
+export function LocaleProvider({ children, initialLocale }: { children: React.ReactNode; initialLocale?: Locale }) {
+  const [locale, setLocaleState] = useState<Locale>(initialLocale ?? 'en')
 
-  // Load from cookie / localStorage on mount
+  // Load from cookie / localStorage on mount (only if no initialLocale was given from server)
   useEffect(() => {
+    if (initialLocale) return // Server already resolved the correct locale
     const saved = readCookie() || (localStorage.getItem(COOKIE) as Locale | null)
     if (saved) setLocaleState(saved)
-  }, [])
+  }, [initialLocale])
 
   // Apply dir + lang to <html> whenever locale changes
   useEffect(() => {

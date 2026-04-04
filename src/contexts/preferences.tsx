@@ -6,20 +6,23 @@ interface Preferences {
   theme: string
   currency: string
   compactMode: boolean
+  customRates: Record<string, number>
 }
 
 interface PreferencesContextValue extends Preferences {
   setTheme: (t: string) => void
   setCurrency: (c: string) => void
   setCompactMode: (v: boolean) => void
+  setCustomRate: (code: string, rate: number | null) => void
   formatPrice: (amount: number) => string
   rates: Record<string, number>
+  effectiveRates: Record<string, number>
   ratesLoading: boolean
   ratesFetched: boolean
 }
 
-// Fallback static rates (USD base) — used until live rates arrive
-const FALLBACK_RATES: Record<string, number> = { USD: 1, IQD: 1310, EUR: 0.93, TRY: 32.5 }
+// Fallback static rates (USD base) — used until live rates arrive from API
+const FALLBACK_RATES: Record<string, number> = { USD: 1, IQD: 1500, EUR: 0.92, TRY: 38 }
 export const SYMBOLS: Record<string, string> = { USD: '$', IQD: 'د.ع', EUR: '€', TRY: '₺' }
 export const CURRENCIES = [
   { code: 'USD', symbol: '$', label: 'US Dollar', flag: '🇺🇸' },
@@ -28,6 +31,7 @@ export const CURRENCIES = [
   { code: 'TRY', symbol: '₺', label: 'Turkish Lira', flag: '🇹🇷' },
 ]
 const STORAGE_KEY = 'vertex-prefs'
+const CUSTOM_RATES_KEY = 'vertex-custom-rates'
 const RATES_CACHE_KEY = 'vertex-rates'
 const RATES_TTL = 6 * 60 * 60 * 1000 // 6 hours
 
@@ -35,11 +39,14 @@ const PreferencesContext = createContext<PreferencesContextValue>({
   theme: 'dark',
   currency: 'USD',
   compactMode: false,
+  customRates: {},
   setTheme: () => {},
   setCurrency: () => {},
   setCompactMode: () => {},
+  setCustomRate: () => {},
   formatPrice: (n) => `$${n.toFixed(2)}`,
   rates: FALLBACK_RATES,
+  effectiveRates: FALLBACK_RATES,
   ratesLoading: false,
   ratesFetched: false,
 })
@@ -101,6 +108,7 @@ export function PreferencesProvider({
   const [currency, setCurrencyState] = useState(initialCurrency)
   const [compactMode, setCompactModeState] = useState(initialCompactMode)
   const [rates, setRates] = useState<Record<string, number>>(FALLBACK_RATES)
+  const [customRates, setCustomRates] = useState<Record<string, number>>({})
   const [ratesLoading, setRatesLoading] = useState(false)
   const [ratesFetched, setRatesFetched] = useState(false)
 
@@ -115,6 +123,11 @@ export function PreferencesProvider({
     setCompactModeState(resolvedCompact)
     applyTheme(resolvedTheme)
     saveToStorage({ theme: resolvedTheme, currency: resolvedCurrency, compactMode: resolvedCompact })
+    // Load custom rates
+    try {
+      const raw = localStorage.getItem(CUSTOM_RATES_KEY)
+      if (raw) setCustomRates(JSON.parse(raw))
+    } catch { /* ignore */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -174,17 +187,33 @@ export function PreferencesProvider({
     saveToStorage({ compactMode: v })
   }, [])
 
+  const setCustomRate = useCallback((code: string, rate: number | null) => {
+    setCustomRates(prev => {
+      const next = { ...prev }
+      if (rate == null || rate <= 0) {
+        delete next[code]
+      } else {
+        next[code] = rate
+      }
+      localStorage.setItem(CUSTOM_RATES_KEY, JSON.stringify(next))
+      return next
+    })
+  }, [])
+
+  // Effective rates = API rates merged with user custom overrides
+  const effectiveRates = { ...rates, ...customRates }
+
   const formatPrice = useCallback((amount: number) => {
-    const rate = rates[currency] ?? 1
+    const rate = effectiveRates[currency] ?? 1
     const symbol = SYMBOLS[currency] ?? currency
     const converted = amount * rate
     if (currency === 'IQD') return `${Math.round(converted).toLocaleString()} ${symbol}`
     if (currency === 'TRY') return `${symbol}${Math.round(converted).toLocaleString()}`
     return `${symbol}${converted.toFixed(2)}`
-  }, [currency, rates])
+  }, [currency, effectiveRates])
 
   return (
-    <PreferencesContext.Provider value={{ theme, currency, compactMode, setTheme, setCurrency, setCompactMode, formatPrice, rates, ratesLoading, ratesFetched }}>
+    <PreferencesContext.Provider value={{ theme, currency, compactMode, customRates, setTheme, setCurrency, setCompactMode, setCustomRate, formatPrice, rates, effectiveRates, ratesLoading, ratesFetched }}>
       {children}
     </PreferencesContext.Provider>
   )

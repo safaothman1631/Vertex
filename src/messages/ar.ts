@@ -339,6 +339,8 @@ const ar = {
     themeLight: 'فاتح',
     themeAuto: 'النظام',
     currencyLabel: 'العملة',
+    customRateLabel: 'أسعار صرف مخصصة',
+    customRateDesc: 'تجاوز أسعار API بأسعار السوق الخاصة بك',
     displayLabel: 'العرض',
     compactMode: 'الوضع المدمج',
     compactModeDesc: 'عرض المزيد من المنتجات في كل صف ببطاقات أصغر',

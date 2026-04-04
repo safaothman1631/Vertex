@@ -342,6 +342,8 @@ const tr = {
     themeLight: 'Aydınlık',
     themeAuto: 'Sistem',
     currencyLabel: 'Para Birimi',
+    customRateLabel: 'Özel Döviz Kurları',
+    customRateDesc: 'API kurlarını kendi piyasa kurlarınızla değiştirin',
     displayLabel: 'Görüntüleme',
     compactMode: 'Kompakt Mod',
     compactModeDesc: 'Daha küçük kartlarla her satırda daha fazla ürün gösterin',

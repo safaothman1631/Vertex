@@ -347,6 +347,8 @@ const en = {
     themeLight: 'Light',
     themeAuto: 'System',
     currencyLabel: 'Currency',
+    customRateLabel: 'Custom Exchange Rates',
+    customRateDesc: 'Override API rates with your own market rates (e.g. Kurdistan parallel market)',
     displayLabel: 'Display',
     compactMode: 'Compact Mode',
     compactModeDesc: 'Show more products per row with smaller cards',

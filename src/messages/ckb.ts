@@ -340,6 +340,8 @@ const ckb = {
     themeLight: 'ڕووناک',
     themeAuto: 'سیستەم',
     currencyLabel: 'دراو',
+    customRateLabel: 'ڕێژەی گۆڕینی تایبەت',
+    customRateDesc: 'ڕێژەی گۆڕینی خۆت دابنێ بۆ بازاڕی کوردستان',
     displayLabel: 'پیشاندان',
     compactMode: 'شێوەی کۆمپاکت',
     compactModeDesc: 'بەرهەمی زیاتر لە هەر ڕیزێکدا پیشان بدە بە کارتی بچووکتر',
