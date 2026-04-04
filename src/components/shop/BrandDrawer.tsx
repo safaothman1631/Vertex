@@ -286,7 +286,7 @@ function BrandProductCard({
           {[1,2,3,4,5].map(s => (
             <Star key={s} size={10} fill={s <= Math.round(p.rating) ? '#f59e0b' : 'none'} stroke={s <= Math.round(p.rating) ? '#f59e0b' : 'var(--border)'} />
           ))}
-          <span style={{ fontSize: '.66rem', color: 'var(--text3)', marginLeft: 3 }}>({p.review_count})</span>
+          <span style={{ fontSize: '.66rem', color: 'var(--text3)', marginInlineStart: 3 }}>({p.review_count})</span>
         </div>
         <div style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)', marginTop: 4 }}>{formatPrice(p.price)}</div>
       </div>

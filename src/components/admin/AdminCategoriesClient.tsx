@@ -11,6 +11,8 @@ import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
 import { useT } from '@/contexts/locale'
 import type { Category } from '@/types'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { useConfirm } from '@/hooks/useConfirm'
 
 interface CategoryProduct {
   id: string
@@ -50,6 +52,7 @@ export default function AdminCategoriesClient({
   const [perPage, setPerPage] = useState(25)
   const [dragId, setDragId] = useState<string | null>(null)
   const [dropTargetId, setDropTargetId] = useState<string | null>(null)
+  const { confirm, confirmProps } = useConfirm()
 
   const filtered = useMemo(() => {
     if (!searchQ.trim()) return categories
@@ -124,7 +127,8 @@ export default function AdminCategoriesClient({
       alert(t.admin.cantDeleteCategory)
       return
     }
-    if (!confirm(t.admin.moveCategoryToTrash)) return
+    const ok = await confirm({ message: t.admin.moveCategoryToTrash, title: t.admin.delete })
+    if (!ok) return
     const category = categories.find(c => c.id === id)
     if (category) {
       await supabase.from('trash').insert({ table_name: 'categories', record_id: id, record_data: category })
@@ -209,7 +213,7 @@ export default function AdminCategoriesClient({
                     <button onClick={() => openEdit(c)} title={t.admin.edit} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Pencil size={14} />
                     </button>
-                    <button onClick={() => handleDelete(c.id, c.name)} title={t.admin.delete} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => handleDelete(c.id, c.name)} title={t.admin.delete} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -243,7 +247,7 @@ export default function AdminCategoriesClient({
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => openEdit(c)} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Pencil size={15} /></button>
-                <button onClick={() => handleDelete(c.id, c.name)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
+                <button onClick={() => handleDelete(c.id, c.name)} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -379,6 +383,7 @@ export default function AdminCategoriesClient({
           </div>
         </div>
       )}
+      <ConfirmModal {...confirmProps} />
     </div>
   )
 }

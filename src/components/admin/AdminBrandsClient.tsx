@@ -11,6 +11,8 @@ import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
 import { useT } from '@/contexts/locale'
 import { usePreferences } from '@/contexts/preferences'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { useConfirm } from '@/hooks/useConfirm'
 
 interface BrandProduct {
   id: string
@@ -55,6 +57,7 @@ export default function AdminBrandsClient({
   const [searchQ, setSearchQ] = useState('')
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(25)
+  const { confirm, confirmProps } = useConfirm()
 
   const filtered = useMemo(() => {
     if (!searchQ.trim()) return brands
@@ -127,7 +130,8 @@ export default function AdminBrandsClient({
       alert(t.admin.cantDeleteBrand)
       return
     }
-    if (!confirm(t.admin.moveBrandToTrash)) return
+    const ok = await confirm({ message: t.admin.moveBrandToTrash, title: t.admin.delete })
+    if (!ok) return
     const brand = brands.find(b => b.id === id)
     if (brand) {
       await supabase.from('trash').insert({ table_name: 'brands', record_id: id, record_data: brand })
@@ -200,7 +204,7 @@ export default function AdminBrandsClient({
                     <button onClick={() => openEdit(b)} title={t.admin.edit} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Pencil size={14} />
                     </button>
-                    <button onClick={() => handleDelete(b.id, b.name)} title={t.admin.delete} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => handleDelete(b.id, b.name)} title={t.admin.delete} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -225,7 +229,7 @@ export default function AdminBrandsClient({
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => openEdit(b)} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Pencil size={15} /></button>
-                <button onClick={() => handleDelete(b.id, b.name)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
+                <button onClick={() => handleDelete(b.id, b.name)} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -400,6 +404,7 @@ export default function AdminBrandsClient({
           </div>
         </div>
       )}
+      <ConfirmModal {...confirmProps} />
     </div>
   )
 }

@@ -37,11 +37,11 @@ function layout(title: string, body: string) {
   .logo span{color:#6366f1}
   .card{background:#131426;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px 24px;margin-top:20px}
   h1{font-size:1.15rem;font-weight:800;margin:0 0 16px;color:#eef0f8}
-  p{color:#8891b8;font-size:.9rem;line-height:1.7;margin:0 0 12px}
+  p{color:#9ba3c8;font-size:.9rem;line-height:1.7;margin:0 0 12px}
   .btn{display:inline-block;background:linear-gradient(135deg,#6366f1,#818cf8);color:#fff!important;padding:12px 28px;border-radius:8px;font-weight:700;font-size:.9rem;text-decoration:none;margin-top:8px}
   .footer{margin-top:28px;font-size:.75rem;color:#525878;text-align:center}
   table.items{width:100%;border-collapse:collapse;margin:14px 0}
-  table.items td{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.85rem;color:#8891b8}
+  table.items td{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.85rem;color:#9ba3c8}
   table.items td.val{text-align:right;color:#eef0f8;font-weight:700}
   .badge{display:inline-block;padding:4px 12px;border-radius:100px;font-size:.75rem;font-weight:700;background:rgba(99,102,241,.15);color:#a5b4fc}
   .highlight{color:#6366f1;font-weight:700}

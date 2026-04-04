@@ -55,6 +55,8 @@ export async function POST(request: Request) {
     const items: { productId: string; quantity: number }[] = body.items
     const shippingAddress: unknown = body.shippingAddress
     const couponCode: string | undefined = typeof body.couponCode === 'string' ? body.couponCode.trim().toUpperCase() : undefined
+    const shippingMethod: string = typeof body.shippingMethod === 'string' ? body.shippingMethod : 'standard'
+    const shippingCost: number = typeof body.shippingCost === 'number' && body.shippingCost >= 0 && body.shippingCost <= 100 ? body.shippingCost : 0
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
@@ -138,7 +140,7 @@ export async function POST(request: Request) {
         }
       }
     }
-    const finalTotal = Math.max(0, total - discount)
+    const finalTotal = Math.max(0, total - discount + shippingCost)
 
     // Create order in DB first
     const { data: order, error: orderError } = await supabase
@@ -148,6 +150,8 @@ export async function POST(request: Request) {
         total: finalTotal,
         status: 'pending',
         shipping_address: shippingAddress,
+        shipping_method: shippingMethod,
+        shipping_cost: shippingCost,
       })
       .select()
       .single()
@@ -200,7 +204,17 @@ export async function POST(request: Request) {
 
       session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
-        line_items: lineItems,
+        line_items: [
+          ...lineItems,
+          ...(shippingCost > 0 ? [{
+            price_data: {
+              currency: 'usd',
+              product_data: { name: `Shipping (${shippingMethod})` },
+              unit_amount: Math.round(shippingCost * 100),
+            },
+            quantity: 1,
+          }] : []),
+        ],
         ...(discounts.length > 0 ? { discounts } : {}),
         mode: 'payment',
         customer_email: shippingAddress.email,

@@ -49,7 +49,7 @@ export default function NotificationsPanel({ userId }: { userId: string }) {
           .order('created_at', { ascending: false })
           .limit(20)
         if (data) setNotifications(data)
-      } catch {}
+      } catch (err) { console.error('[notifications] load:', err) }
     }
     load()
 

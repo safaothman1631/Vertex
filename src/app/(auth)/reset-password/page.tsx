@@ -25,8 +25,8 @@ function ResetPasswordForm() {
       }
     })
     // Also check if session already exists
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true)
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setReady(true)
     })
     return () => subscription.unsubscribe()
   }, [supabase])
@@ -84,6 +84,7 @@ function ResetPasswordForm() {
               <label>{t.auth.newPassword}</label>
               <input
                 type="password"
+                enterKeyHint="next"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -95,6 +96,7 @@ function ResetPasswordForm() {
               <label>{t.auth.confirmPassword}</label>
               <input
                 type="password"
+                enterKeyHint="done"
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 placeholder="••••••••"
@@ -102,7 +104,7 @@ function ResetPasswordForm() {
                 required
               />
             </div>
-            {error && <p className="auth-error-msg">{error}</p>}
+            {error && <p role="alert" className="auth-error-msg">{error}</p>}
             <button type="submit" disabled={loading} className="btn-primary btn-full btn-lg">
               {loading ? t.auth.updating : t.auth.updatePassword}
             </button>

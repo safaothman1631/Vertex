@@ -9,8 +9,12 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const type = searchParams.get('type') as EmailOtpType | null
   const nextParam = searchParams.get('next') ?? '/login'
-  // Prevent open redirect — only allow relative paths
-  const next = nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/login'
+  // Prevent open redirect — validate origin matches (CWE-601)
+  let next = '/login'
+  try {
+    const resolved = new URL(nextParam, request.url)
+    if (resolved.origin === new URL(request.url).origin) next = resolved.pathname + resolved.search
+  } catch { /* invalid URL → keep default */ }
 
   const cookieStore = await cookies()
   const supabase = createServerClient(

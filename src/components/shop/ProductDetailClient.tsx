@@ -14,6 +14,8 @@ import CurrencySwitcher from '@/components/ui/CurrencySwitcher'
 import { createClient } from '@/lib/supabase-client'
 import { useRecentlyViewedStore } from '@/store/recently-viewed'
 import type { Product, Review } from '@/types'
+import ProductVariantSelector from './ProductVariantSelector'
+import ProductQA from './ProductQA'
 
 export default function ProductDetailClient({ product, relatedProducts = [], reviews: initialReviews = [] }: { product: Product; relatedProducts?: Product[]; reviews?: Review[] }) {
   const t = useT()
@@ -30,6 +32,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
   const [hoverStar, setHoverStar] = useState(0)
   const [linkCopied, setLinkCopied] = useState(false)
   const [pageOrigin, setPageOrigin] = useState('')
+  const [variantPrice, setVariantPrice] = useState<number | null>(null)
 
   const supabase = createClient()
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
@@ -43,8 +46,8 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
   }, [product.id])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUserId(session?.user?.id ?? null)
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUserId(user?.id ?? null)
     })
   }, [])
 
@@ -84,7 +87,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
       user_id: userId,
       product_id: product.id,
       rating: reviewRating,
-      comment: reviewComment.trim(),
+      comment: reviewComment.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'),
     }).select('*, user:profiles(full_name)').single()
     if (error) {
       setReviewError('Failed to submit review')
@@ -109,7 +112,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
       <div className="resp-grid-2col" style={{ gap: 'clamp(24px, 4vw, 48px)', alignItems: 'start' }}>
 
         {/* ── Image gallery ── */}
-        <div>
+        <div style={{ animation: 'anim-fade-up .6s var(--ease-smooth) .1s both' }}>
           <div
             onClick={() => product.images?.length && setLightboxOpen(true)}
             style={{
@@ -173,7 +176,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
         </div>
 
         {/* ── Details ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0, animation: 'anim-fade-up .6s var(--ease-smooth) .25s both' }}>
 
           {/* Brand */}
           <p style={{ fontSize: '.78rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
@@ -200,7 +203,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
                 stroke={s <= Math.round(product.rating) ? '#f59e0b' : 'var(--border)'}
               />
             ))}
-            <span style={{ fontSize: '.82rem', color: 'var(--text2)', marginLeft: 4 }}>
+            <span style={{ fontSize: '.82rem', color: 'var(--text2)', marginInlineStart: 4 }}>
               {product.rating} ({product.review_count} {t.productDetail.reviews})
             </span>
           </div>
@@ -209,7 +212,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 12 }}>
               <span style={{ fontSize: 'clamp(1.8rem,3vw,2.4rem)', fontWeight: 900, color: 'var(--primary)' }}>
-                {formatPrice(product.price)}
+                {formatPrice(variantPrice ?? product.price)}
               </span>
               {product.old_price && (
                 <>
@@ -274,6 +277,13 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
           <p style={{ fontSize: '.9rem', lineHeight: 1.75, color: 'var(--text2)', marginBottom: 28 }}>
             {product.description}
           </p>
+
+          {/* Variant Selector */}
+          <ProductVariantSelector
+            productId={product.id}
+            basePrice={product.price}
+            onSelect={(_variant, finalPrice) => setVariantPrice(finalPrice)}
+          />
 
           {/* Quantity selector */}
           {product.in_stock && (
@@ -519,6 +529,9 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
           </div>
         )}
       </div>
+
+      {/* ── Q&A Section ── */}
+      <ProductQA productId={product.id} />
 
       {/* ── Related Products ── */}
       {relatedProducts.length > 0 && (

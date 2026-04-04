@@ -41,10 +41,12 @@ export async function POST(req: NextRequest) {
     const token = data?.properties?.hashed_token
     if (token) {
       const link = `${appUrl}/auth/confirm?token_hash=${token}&type=recovery&next=/reset-password`
-      console.log('\n' + '━'.repeat(60))
-      console.log('🔑  [DEV] Reset Password link (open in browser):')
-      console.log(link)
-      console.log('━'.repeat(60) + '\n')
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n' + '━'.repeat(60))
+        console.log('🔑  [DEV] Reset Password link (open in browser):')
+        console.log(link)
+        console.log('━'.repeat(60) + '\n')
+      }
     }
     return NextResponse.json({ ok: true })
   }

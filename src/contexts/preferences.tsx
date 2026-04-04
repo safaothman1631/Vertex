@@ -83,7 +83,7 @@ function saveToStorage(updates: Partial<Preferences>) {
   try {
     const current = readStorage()
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, ...updates }))
-  } catch {}
+  } catch (err) { console.error('[preferences] save:', err) }
 }
 
 export function PreferencesProvider({
@@ -132,7 +132,7 @@ export function PreferencesProvider({
             return
           }
         }
-      } catch {}
+      } catch (err) { console.error('[preferences] cache read:', err) }
 
       setRatesLoading(true)
       try {

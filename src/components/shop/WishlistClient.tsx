@@ -51,20 +51,22 @@ export default function WishlistClient({
           action={{ label: t.wishlist.browsePrducts, href: '/products' }}
         />
       )}
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
-      {items.map((item) => {
+    <div className="stagger-children" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
+      {items.map((item, idx) => {
         const img = imgFor(item)
         const isRemoving = removing === item.id
         return (
           <div
             key={item.id}
+            className="reveal reveal-up card-3d"
             style={{
+              '--stagger-i': idx,
               background: 'var(--bg2)', border: '1px solid var(--border)',
               borderRadius: 'var(--radius-xl)', overflow: 'hidden',
               display: 'flex', flexDirection: 'column',
               transition: 'transform .2s, box-shadow .2s',
               opacity: isRemoving ? 0.5 : 1,
-            }}
+            } as React.CSSProperties}
             onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 32px rgba(0,0,0,.3)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '' }}
           >

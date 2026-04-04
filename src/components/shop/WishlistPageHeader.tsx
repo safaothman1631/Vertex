@@ -19,7 +19,7 @@ export default function WishlistPageHeader({ count }: { count: number }) {
         </h1>
       </div>
       {count > 0 && (
-        <span style={{ marginLeft: 'auto', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 20, padding: '4px 14px', fontSize: '.82rem', color: 'var(--text2)', fontWeight: 600 }}>
+        <span style={{ marginInlineStart: 'auto', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 20, padding: '4px 14px', fontSize: '.82rem', color: 'var(--text2)', fontWeight: 600 }}>
           {count}
         </span>
       )}

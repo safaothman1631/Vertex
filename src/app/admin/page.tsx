@@ -4,6 +4,10 @@ import AdminDashboardClient from '@/components/admin/AdminDashboardClient'
 export default async function AdminDashboard() {
   const supabase = await createClient()
 
+  const analyticsFrom = new Date()
+  analyticsFrom.setDate(analyticsFrom.getDate() - 90)
+  const analyticsFromStr = analyticsFrom.toISOString()
+
   const [
     { count: productCount },
     { count: orderCount },
@@ -25,12 +29,12 @@ export default async function AdminDashboard() {
     supabase.from('contact_messages').select('*', { count: 'exact', head: true }).eq('is_read', false),
     supabase.from('products').select('*', { count: 'exact', head: true }).eq('in_stock', false),
     supabase.from('orders').select('id, total, status, created_at, user:profiles(full_name)').order('created_at', { ascending: false }).limit(6),
-    supabase.from('orders').select('total, status, created_at'),
+    supabase.from('orders').select('total, status, created_at').gte('created_at', analyticsFromStr),
     supabase.from('products').select('id, name, brand, model').eq('in_stock', false).limit(6),
     supabase.from('contact_messages').select('id, name, subject, created_at').eq('is_read', false).order('created_at', { ascending: false }).limit(4),
     supabase.from('brands').select('*', { count: 'exact', head: true }),
     supabase.from('categories').select('*', { count: 'exact', head: true }),
-    supabase.from('orders').select('total, status, created_at, items:order_items(quantity, price, product:products(name, brand))').order('created_at', { ascending: false }),
+    supabase.from('orders').select('total, status, created_at, items:order_items(quantity, price, product:products(name, brand))').gte('created_at', analyticsFromStr).order('created_at', { ascending: false }).limit(500),
     supabase.from('reviews').select('*', { count: 'exact', head: true }),
   ])
 

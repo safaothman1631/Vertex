@@ -420,6 +420,8 @@ const tr = {
     lastName: 'Soyad',
     businessEmail: 'İş E-postası',
     passwordMin: 'En az 8 karakter',
+    passwordUpper: 'Şifre en az bir büyük harf içermelidir',
+    passwordNumber: 'Şifre en az bir rakam içermelidir',
     businessType: 'İşletme Türü',
     selectBiz: '— Tür Seçin —',
     creating: 'Oluşturuluyor...',
@@ -881,6 +883,13 @@ const tr = {
     share: 'Paylaş',
     copyLink: 'Bağlantıyı Kopyala',
     copied: 'Kopyalandı!',
+  },
+
+  errorPage: {
+    title: 'Bir şeyler ters gitti',
+    desc: 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin veya ana sayfaya dönün.',
+    tryAgain: 'Tekrar Dene',
+    goHome: 'Ana Sayfa',
   },
 
   invoice: {

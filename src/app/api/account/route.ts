@@ -1,7 +1,16 @@
 import { createClient, createAdminClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
+import { createRateLimiter, getClientIP } from '@/lib/rate-limit'
+
+// 3 account deletions per hour per IP
+const accountLimiter = createRateLimiter({ window: 60 * 60_000, max: 3 })
 
 export async function DELETE(request: NextRequest) {
+  const ip = getClientIP(request)
+  if (!accountLimiter.check(ip)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

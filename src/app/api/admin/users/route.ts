@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
+import { createRateLimiter, getClientIP } from '@/lib/rate-limit'
+import { auditLog } from '@/lib/audit-log'
+
+// 30 requests per minute for admin users endpoint
+const usersLimiter = createRateLimiter({ window: 60_000, max: 30 })
 
 // PATCH /api/admin/users — toggle role for a user
 export async function PATCH(request: Request) {
+  const ip = getClientIP(request)
+  if (!usersLimiter.check(ip)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   // Verify requesting user is an admin
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -55,12 +65,24 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  await auditLog(adminClient, {
+    action: 'user.role_changed',
+    adminId: user.id,
+    targetId: userId,
+    details: { newRole: role },
+  })
+
   revalidatePath('/admin/users')
   return NextResponse.json({ success: true })
 }
 
 // DELETE /api/admin/users — delete a user account
 export async function DELETE(request: Request) {
+  const ip = getClientIP(request)
+  if (!usersLimiter.check(ip)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   // Verify requesting user is an admin
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -94,6 +116,12 @@ export async function DELETE(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  await auditLog(adminClient, {
+    action: 'user.deleted',
+    adminId: user.id,
+    targetId: userId,
+  })
 
   revalidatePath('/admin/users')
   return NextResponse.json({ success: true })

@@ -20,13 +20,13 @@ export default function WishlistButton({ productId, size = 16, style }: Props) {
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return
-      setUserId(session.user.id)
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      setUserId(user.id)
       const { data } = await supabase
         .from('wishlist')
         .select('id')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .eq('product_id', productId)
         .maybeSingle()
       if (data) {

@@ -51,10 +51,12 @@ export interface Product {
   rating: number
   review_count: number
   in_stock: boolean
+  stock_quantity: number
   is_new: boolean
   is_hot: boolean
   hidden: boolean
   created_at: string
+  variants?: ProductVariant[]
 }
 
 export interface CartItem {
@@ -79,6 +81,10 @@ export interface Order {
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
   stripe_session_id: string | null
   shipping_address: ShippingAddress
+  shipping_method: string
+  shipping_cost: number
+  tracking_number: string | null
+  carrier: string | null
   created_at: string
 }
 
@@ -126,6 +132,7 @@ export interface Review {
   product_id: string
   rating: number
   comment: string
+  images: string[]
   created_at: string
   user?: Profile
   product?: Product
@@ -197,3 +204,83 @@ export interface SystemLog {
   details: Record<string, unknown>
   created_at: string
 }
+
+// ── MVP Feature Types ─────────────────────────────────────────
+
+export interface ProductVariant {
+  id: string
+  product_id: string
+  name: string         // e.g. "Color", "Size", "Storage"
+  value: string        // e.g. "Red", "XL", "256GB"
+  price_modifier: number
+  stock_quantity: number
+  sku: string | null
+  image_url: string | null
+  sort_order: number
+  created_at: string
+}
+
+export interface ReturnRequest {
+  id: string
+  order_id: string
+  user_id: string
+  reason: string
+  description: string
+  images: string[]
+  status: 'pending' | 'approved' | 'rejected' | 'refunded'
+  admin_note: string | null
+  refund_amount: number | null
+  order?: Order
+  created_at: string
+}
+
+export interface ProductQuestion {
+  id: string
+  product_id: string
+  user_id: string
+  question: string
+  answer: string | null
+  answered_by: string | null
+  answered_at: string | null
+  is_public: boolean
+  created_at: string
+  user?: Profile
+  answerer?: Profile
+}
+
+export interface NewsletterSubscriber {
+  id: string
+  email: string
+  user_id: string | null
+  name: string | null
+  subscribed: boolean
+  created_at: string
+}
+
+export interface ShippingMethod {
+  id: string               // 'standard' | 'express' | 'overnight'
+  name: string
+  description: string
+  price: number
+  estimated_days: string
+  icon: string
+}
+
+export const SHIPPING_METHODS: ShippingMethod[] = [
+  { id: 'standard',  name: 'Standard Shipping',  description: 'Free delivery',        price: 0,     estimated_days: '5–7 Business Days', icon: '📦' },
+  { id: 'express',   name: 'Express Shipping',   description: 'Fast delivery',         price: 9.99,  estimated_days: '2–3 Business Days', icon: '🚀' },
+  { id: 'overnight', name: 'Overnight Shipping', description: 'Next business day',     price: 24.99, estimated_days: '1 Business Day',    icon: '⚡' },
+]
+
+export const RETURN_REASONS = [
+  'Defective / Not Working',
+  'Wrong Item Received',
+  'Item Not as Described',
+  'Changed My Mind',
+  'Better Price Found',
+  'Arrived Too Late',
+  'Damaged Packaging',
+  'Missing Parts / Accessories',
+  'Other',
+]
+

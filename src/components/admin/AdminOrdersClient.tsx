@@ -3,12 +3,15 @@
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase-client'
-import { Eye, Trash2, X, Package, MapPin, ChevronDown } from 'lucide-react'
+import { Eye, Trash2, X, Package, MapPin, ChevronDown, Download } from 'lucide-react'
+import { exportOrders } from '@/lib/csv-export'
 import { useT } from '@/contexts/locale'
 import { usePreferences } from '@/contexts/preferences'
 import type { Order, OrderItem, ShippingAddress } from '@/types'
 import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { useConfirm } from '@/hooks/useConfirm'
 
 const STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const
 type Status = typeof STATUSES[number]
@@ -51,6 +54,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(25)
   const supabase = createClient()
+  const { confirm, confirmProps } = useConfirm()
 
   const filtered = useMemo(() => {
     let list = orders
@@ -98,7 +102,8 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
   }
 
   async function handleDelete(id: string) {
-    if (!confirm(t.admin.moveToTrash)) return
+    const ok = await confirm({ message: t.admin.moveToTrash, title: t.admin.deleteOrder })
+    if (!ok) return
     const order = orders.find(o => o.id === id)
     if (order) {
       await supabase.from('trash').insert({ table_name: 'orders', record_id: id, record_data: order })
@@ -118,10 +123,13 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
           <h1 className="admin-page-title">{t.admin.orders}</h1>
           <p className="admin-page-sub">{filtered.length} {t.admin.total}</p>
         </div>
+        <button onClick={() => exportOrders(filtered as never)} className="admin-btn admin-btn-ghost" title="Export orders as CSV">
+          <Download size={15} /> CSV
+        </button>
       </div>
 
       {/* Search & Filter Toolbar */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
+      <div className="admin-filter-toolbar" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
         <AdminSearch value={searchQ} onChange={handleSearchChange} placeholder={`${t.admin.search} ${t.admin.orders}…`} />
         <select
           value={filterStatus}
@@ -182,7 +190,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
                           : STATUS_CLASS[o.status] === 'admin-badge-blue' ? '#38bdf8'
                           : STATUS_CLASS[o.status] === 'admin-badge-purple' ? '#a855f7'
                           : STATUS_CLASS[o.status] === 'admin-badge-green' ? '#22c55e'
-                          : '#ef4444',
+                          : 'var(--danger)',
                       }}
                     >
                       {STATUSES.map(s => (
@@ -207,7 +215,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
                     <button
                       onClick={() => handleDelete(o.id)}
                       title={t.admin.moveToTrash}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: '#ef4444' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: 'var(--danger)' }}
                     >
                       <Trash2 size={15} />
                     </button>
@@ -237,7 +245,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
                 <button onClick={() => setDetail(o)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--primary)' }}>
                   <Eye size={15} />
                 </button>
-                <button onClick={() => handleDelete(o.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#ef4444' }}>
+                <button onClick={() => handleDelete(o.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--danger)' }}>
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -271,7 +279,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 400, padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setDetail(null) }}
         >
-          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="admin-modal-inner" style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <div>
@@ -354,7 +362,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <button
                 onClick={() => handleDelete(detail.id)}
-                style={{ padding: '8px 18px', background: 'rgba(239,68,68,.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,.25)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: 700, fontSize: '.82rem' }}
+                style={{ padding: '8px 18px', background: 'rgba(239,68,68,.12)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,.25)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: 700, fontSize: '.82rem' }}
               >
                 {t.admin.deleteOrder}
               </button>
@@ -365,6 +373,7 @@ export default function AdminOrdersClient({ orders: initial }: { orders: RawOrde
           </div>
         </div>
       )}
+      <ConfirmModal {...confirmProps} />
     </div>
   )
 }

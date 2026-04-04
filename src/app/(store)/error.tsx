@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useT } from '@/contexts/locale'
 
 export default function StoreError({
   error,
@@ -9,6 +10,7 @@ export default function StoreError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const t = useT()
   return (
     <div style={{
       minHeight: 'calc(100vh - 64px)',
@@ -22,10 +24,10 @@ export default function StoreError({
     }}>
       <div style={{ fontSize: '4rem', marginBottom: 16 }}>⚠️</div>
       <h1 style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text)', marginBottom: 8 }}>
-        Something went wrong
+        {t.errorPage.title}
       </h1>
       <p style={{ color: 'var(--text2)', fontSize: '.92rem', maxWidth: 400, lineHeight: 1.7, marginBottom: 28 }}>
-        An unexpected error occurred. Please try again or go back to the homepage.
+        {t.errorPage.desc}
       </p>
       <div style={{ display: 'flex', gap: 12 }}>
         <button
@@ -42,7 +44,7 @@ export default function StoreError({
             boxShadow: '0 4px 16px rgba(99,102,241,.25)',
           }}
         >
-          Try Again
+          {t.errorPage.tryAgain}
         </button>
         <Link
           href="/"
@@ -56,7 +58,7 @@ export default function StoreError({
             border: '1px solid var(--border)',
           }}
         >
-          Go Home
+          {t.errorPage.goHome}
         </Link>
       </div>
     </div>

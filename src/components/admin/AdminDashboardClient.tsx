@@ -85,7 +85,7 @@ export default function AdminDashboardClient({
     processing: { label: t.admin.processing, color: '#3b82f6', badge: 'admin-badge-blue',   Icon: RefreshCw },
     shipped:    { label: t.admin.shipped,    color: '#6366f1', badge: 'admin-badge-purple', Icon: Truck },
     delivered:  { label: t.admin.delivered,  color: '#22c55e', badge: 'admin-badge-green',  Icon: CheckCircle },
-    cancelled:  { label: t.admin.cancelled,  color: '#ef4444', badge: 'admin-badge-red',    Icon: XCircle },
+    cancelled:  { label: t.admin.cancelled,  color: 'var(--danger)', badge: 'admin-badge-red',    Icon: XCircle },
   }
 
   const totalOrdersForBar = orderCount || 1
@@ -107,7 +107,7 @@ export default function AdminDashboardClient({
           {msgCount > 0 && (
             <Link href="/admin/messages" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', borderRadius: 10, color: '#f59e0b', textDecoration: 'none' }}>
               <Bell size={16} />
-              <span style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: '#fff', fontSize: '.6rem', fontWeight: 900, width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg1)' }}>
+              <span style={{ position: 'absolute', top: -6, right: -6, background: 'var(--danger)', color: '#fff', fontSize: '.6rem', fontWeight: 900, width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg1)' }}>
                 {msgCount}
               </span>
             </Link>
@@ -166,7 +166,7 @@ export default function AdminDashboardClient({
               <div className="admin-stat-val">{productCount}</div>
               <div className="admin-stat-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 {outOfStockCount > 0
-                  ? <><span style={{ color: '#ef4444', fontWeight: 700 }}>{outOfStockCount}</span> {t.admin.outOfStock}</>
+                  ? <><span style={{ color: 'var(--danger)', fontWeight: 700 }}>{outOfStockCount}</span> {t.admin.outOfStock}</>
                   : t.admin.allInStock}
               </div>
             </div>
@@ -297,10 +297,10 @@ export default function AdminDashboardClient({
         <div className="admin-card" style={{ marginBottom: 0 }}>
           <div className="admin-card-head">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <AlertTriangle size={15} style={{ color: '#ef4444' }} />
+              <AlertTriangle size={15} style={{ color: 'var(--danger)' }} />
               <span className="admin-card-title">{t.admin.outOfStockAlerts}</span>
               {outOfStockCount > 0 && (
-                <span style={{ background: 'rgba(239,68,68,.12)', color: '#ef4444', fontSize: '.7rem', fontWeight: 900, padding: '2px 8px', borderRadius: 99 }}>
+                <span style={{ background: 'rgba(239,68,68,.12)', color: 'var(--danger)', fontSize: '.7rem', fontWeight: 900, padding: '2px 8px', borderRadius: 99 }}>
                   {outOfStockCount}
                 </span>
               )}
@@ -322,7 +322,7 @@ export default function AdminDashboardClient({
                     <div style={{ fontSize: '.85rem', fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
                     <div style={{ fontSize: '.75rem', color: 'var(--text2)' }}>{p.brand} · {p.model}</div>
                   </div>
-                  <span className="admin-badge admin-badge-red" style={{ marginLeft: 12, flexShrink: 0 }}>{t.admin.outOfStock}</span>
+                  <span className="admin-badge admin-badge-red" style={{ marginInlineStart: 12, flexShrink: 0 }}>{t.admin.outOfStock}</span>
                 </div>
               ))}
             </div>
@@ -373,7 +373,7 @@ export default function AdminDashboardClient({
       </div>
 
       {/* ── Analytics Row ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 24, marginBottom: 24 }}>
+      <div className="admin-dash-grid-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 24, marginBottom: 24 }}>
 
         {/* Revenue Chart (last 7 days) */}
         <div className="admin-card" style={{ marginBottom: 0 }}>

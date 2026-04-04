@@ -14,10 +14,11 @@ export default async function ProductsPage() {
   const supabase = await createClient()
   const { data: products } = await supabase
     .from('products')
-    .select('*')
+    .select('id, name, brand, model, category, price, old_price, description, specs, images, rating, review_count, in_stock, is_new, is_hot, created_at')
+    .eq('hidden', false)
     .order('created_at', { ascending: false })
 
-  const visible = (products ?? []).filter((p: Product) => !p.hidden)
+  const visible = (products ?? []) as Product[]
 
   return (
     <Suspense fallback={<div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text2)' }}>Loading…</div>}>

@@ -185,7 +185,7 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
                     onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg2)')}
                   >
-                    {t.search?.viewAll ?? 'View all results'} <ArrowRight size={14} />
+                    {t.search?.viewAll ?? 'View all results'} <ArrowRight className="rtl-flip" size={14} />
                   </button>
                 )}
               </>

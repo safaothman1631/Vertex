@@ -1,9 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import Image from 'next/image'
 import type { Product } from '@/types'
 import { useT } from '@/contexts/locale'
 import { usePreferences } from '@/contexts/preferences'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface Props {
   product: Product
@@ -16,6 +18,7 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
   const t = useT()
   const { formatPrice } = usePreferences()
   const img = p.images?.[0]
+  const trapRef = useFocusTrap<HTMLDivElement>(mounted)
 
   useEffect(() => {
     setMounted(true)
@@ -32,17 +35,20 @@ export default function QuickView({ product: p, onClose, onAddToCart }: Props) {
 
   return createPortal(
     <div className="qv-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }} role="presentation">
-      <div className="qv-modal" role="dialog" aria-modal="true" aria-label={p.name}>
+      <div className="qv-modal" ref={trapRef} role="dialog" aria-modal="true" aria-label={p.name}>
         <button className="qv-close" onClick={onClose} aria-label="Close">✕</button>
 
         <div className="qv-inner">
           {/* Left — image */}
           <div className="qv-img-wrap">
             {img ? (
-              <img
+              <Image
                 src={img}
                 alt={p.name}
+                width={400}
+                height={400}
                 className="qv-prod-img"
+                style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
                 onError={(e) => {
                   const t = e.target as HTMLImageElement
                   t.style.display = 'none'

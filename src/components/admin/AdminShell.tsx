@@ -57,6 +57,14 @@ export default function AdminShell({
             <div className="admin-sidebar-title">Ver<span style={{ color: 'var(--primary)' }}>tex</span></div>
             <div className="admin-sidebar-sub">{t.admin.adminPanel}</div>
           </div>
+          {/* Close button — mobile only */}
+          <button
+            className="admin-sidebar-close"
+            onClick={() => setOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <div className="admin-sidebar-user">
@@ -95,7 +103,7 @@ export default function AdminShell({
           <button className="admin-topbar-menu" onClick={() => setOpen(true)} aria-label="Open menu">
             <Menu size={22} />
           </button>
-          <div className="admin-topbar-brand">Ver<span style={{ color: 'var(--primary)' }}>tex</span> Admin</div>
+          <div className="admin-topbar-brand">Ver<span style={{ color: 'var(--primary)' }}>tex</span></div>
           <CurrencySwitcher variant="admin" />
         </div>
 

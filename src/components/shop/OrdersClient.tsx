@@ -6,10 +6,11 @@ import { useT } from '@/contexts/locale'
 import { usePreferences } from '@/contexts/preferences'
 import type { Order } from '@/types'
 import type { LucideIcon } from 'lucide-react'
-import { Package, X, MapPin, ShoppingBag, ChevronRight, Clock, Truck, CheckCircle2, XCircle, RefreshCw, FileText } from 'lucide-react'
+import { Package, X, MapPin, ShoppingBag, ChevronRight, Clock, Truck, CheckCircle2, XCircle, RefreshCw, FileText, RotateCcw, ExternalLink } from 'lucide-react'
 import EmptyState from '@/components/ui/EmptyState'
 import OrdersPageHeader from '@/components/shop/OrdersPageHeader'
 import { createClient } from '@/lib/supabase-client'
+import ReturnRequestModal from '@/components/shop/ReturnRequestModal'
 
 const STATUS_COLORS: Record<string, string> = {
   pending: '#f59e0b',
@@ -41,6 +42,7 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
   const { formatPrice } = usePreferences()
   const [cancelling, setCancelling] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [returnOpen, setReturnOpen] = useState(false)
 
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -55,7 +57,7 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
   const stepIdx = STATUS_STEPS.indexOf(order.status)
   const isCancelled = order.status === 'cancelled'
 
-  return createPortal(
+  const modal = createPortal(
     <div
       style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={onClose}
@@ -158,10 +160,66 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
               </div>
             </div>
           )}
+
+          {/* Tracking Info */}
+          {(order.tracking_number || order.shipping_method) && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Truck size={14} style={{ color: 'var(--primary)' }} />
+                <span style={{ fontWeight: 800, fontSize: '.85rem' }}>Shipping & Tracking</span>
+              </div>
+              <div style={{ padding: '14px 16px', borderRadius: 14, background: 'var(--bg2)', border: '1px solid var(--border)', fontSize: '.85rem', lineHeight: 1.8, color: 'var(--text2)' }}>
+                {order.shipping_method && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span>Method</span>
+                    <span style={{ fontWeight: 700, color: 'var(--text)', textTransform: 'capitalize' }}>{order.shipping_method}</span>
+                  </div>
+                )}
+                {order.shipping_cost != null && order.shipping_cost > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span>Shipping Cost</span>
+                    <span style={{ fontWeight: 700, color: 'var(--text)' }}>{formatPrice(order.shipping_cost)}</span>
+                  </div>
+                )}
+                {order.carrier && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span>Carrier</span>
+                    <span style={{ fontWeight: 700, color: 'var(--text)' }}>{order.carrier}</span>
+                  </div>
+                )}
+                {order.tracking_number && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+                    <span>Tracking #</span>
+                    <a
+                      href={`https://www.google.com/search?q=${encodeURIComponent((order.carrier ?? '') + ' ' + order.tracking_number + ' tracking')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ fontWeight: 800, color: 'var(--primary)', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 4 }}
+                    >
+                      {order.tracking_number}
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderTop: '1px solid var(--border)', background: 'var(--bg2)', flexShrink: 0, gap: 12 }}>
+          {order.status === 'delivered' && (
+            <button
+              onClick={() => setReturnOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+                fontSize: '.8rem', fontWeight: 700, cursor: 'pointer',
+                background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.3)',
+                color: '#f59e0b', fontFamily: 'inherit',
+              }}
+            >
+              <RotateCcw size={13} /> Request Return
+            </button>
+          )}
           {order.status === 'pending' && !confirmCancel && (
             <button onClick={() => setConfirmCancel(true)} style={{
               padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(239,68,68,.3)',
@@ -171,7 +229,7 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,.15)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,.08)')}
             >
-              <XCircle size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />
+              <XCircle size={13} style={{ display: 'inline', verticalAlign: 'middle', marginInlineEnd: 5 }} />
               {(t.orders as Record<string, unknown>).cancelOrder as string ?? 'Cancel Order'}
             </button>
           )}
@@ -205,17 +263,18 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
               const w = window.open('', '_blank')
               if (!w) return
               const addr = order.shipping_address
+              const escHtml = (s: string) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
               const itemsHtml = (order.items ?? []).map(item =>
-                `<tr><td style="padding:10px 12px;border-bottom:1px solid #eee">${item.product?.name ?? 'Product'}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center">${item.quantity}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right">${formatPrice(item.price)}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:700">${formatPrice(item.price * item.quantity)}</td></tr>`
+                `<tr><td style="padding:10px 12px;border-bottom:1px solid #eee">${escHtml(item.product?.name ?? 'Product')}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center">${item.quantity}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right">${formatPrice(item.price)}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:700">${formatPrice(item.price * item.quantity)}</td></tr>`
               ).join('')
               const subtotal = (order.items ?? []).reduce((s, i) => s + i.price * i.quantity, 0)
               const tax = order.total - subtotal
-              w.document.write(`<!DOCTYPE html><html><head><title>Invoice #${order.id.slice(0,8)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:700px;margin:40px auto;padding:20px;color:#1a1a1a}table{width:100%;border-collapse:collapse}th{background:#f5f5f5;padding:10px 12px;text-align:left;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:#666;border-bottom:2px solid #ddd}@media print{button{display:none!important}}</style></head><body>
+              const html = `<!DOCTYPE html><html><head><title>Invoice #${order.id.slice(0,8)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:700px;margin:40px auto;padding:20px;color:#1a1a1a}table{width:100%;border-collapse:collapse}th{background:#f5f5f5;padding:10px 12px;text-align:left;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:#666;border-bottom:2px solid #ddd}@media print{button{display:none!important}}</style></head><body>
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px">
                   <div><h1 style="margin:0;font-size:1.8rem">INVOICE</h1><p style="color:#666;margin:4px 0">Vertex POS Store</p></div>
-                  <div style="text-align:right"><p style="font-size:.85rem;color:#666;margin:2px 0"><strong>Invoice #</strong> ${order.id.slice(0,8).toUpperCase()}</p><p style="font-size:.85rem;color:#666;margin:2px 0"><strong>Date:</strong> ${new Date(order.created_at).toLocaleDateString()}</p><p style="font-size:.85rem;color:#666;margin:2px 0"><strong>Status:</strong> ${order.status}</p></div>
+                  <div style="text-align:right"><p style="font-size:.85rem;color:#666;margin:2px 0"><strong>Invoice #</strong> ${order.id.slice(0,8).toUpperCase()}</p><p style="font-size:.85rem;color:#666;margin:2px 0"><strong>Date:</strong> ${new Date(order.created_at).toLocaleDateString()}</p><p style="font-size:.85rem;color:#666;margin:2px 0"><strong>Status:</strong> ${escHtml(order.status)}</p></div>
                 </div>
-                ${addr ? `<div style="margin-bottom:30px;padding:16px;background:#f9f9f9;border-radius:8px"><p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#999;margin:0 0 6px;font-weight:700">Bill To</p><p style="margin:0;font-weight:700">${addr.name ?? ''}</p><p style="margin:2px 0;color:#666">${addr.address ?? ''}</p><p style="margin:2px 0;color:#666">${addr.city ?? ''}${addr.country ? ', ' + addr.country : ''}${addr.zip ? ' ' + addr.zip : ''}</p>${addr.email ? `<p style="margin:4px 0;color:#6366f1">${addr.email}</p>` : ''}</div>` : ''}
+                ${addr ? `<div style="margin-bottom:30px;padding:16px;background:#f9f9f9;border-radius:8px"><p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#999;margin:0 0 6px;font-weight:700">Bill To</p><p style="margin:0;font-weight:700">${escHtml(addr.name ?? '')}</p><p style="margin:2px 0;color:#666">${escHtml(addr.address ?? '')}</p><p style="margin:2px 0;color:#666">${escHtml(addr.city ?? '')}${addr.country ? ', ' + escHtml(addr.country) : ''}${addr.zip ? ' ' + escHtml(addr.zip) : ''}</p>${addr.email ? `<p style="margin:4px 0;color:#6366f1">${escHtml(addr.email)}</p>` : ''}</div>` : ''}
                 <table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemsHtml}</tbody></table>
                 <div style="margin-top:20px;text-align:right;padding-top:12px">
                   <p style="margin:4px 0;font-size:.9rem"><span style="color:#666">Subtotal:</span> <strong>${formatPrice(subtotal)}</strong></p>
@@ -224,7 +283,9 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
                 </div>
                 <div style="margin-top:48px;text-align:center;color:#999;font-size:.8rem;border-top:1px solid #eee;padding-top:20px"><p>Thank you for your purchase!</p></div>
                 <button onclick="window.print()" style="position:fixed;bottom:20px;right:20px;padding:12px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:.9rem;box-shadow:0 4px 12px rgba(99,102,241,.3)">🖨 Print / Save PDF</button>
-              </body></html>`)
+              </body></html>`
+              w.document.open()
+              w.document.write(html)
               w.document.close()
             }}
             style={{
@@ -236,7 +297,7 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
           >
             <FileText size={13} /> {(t.invoice as Record<string, string> | undefined)?.download ?? 'Download Invoice'}
           </button>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <div style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>{t.orders.total}</span>
             <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)' }}>{formatPrice(order.total)}</span>
           </div>
@@ -244,6 +305,19 @@ function OrderDetailModal({ order, onClose, onCancel }: { order: Order; onClose:
       </div>
     </div>,
     document.body
+  )
+
+  return (
+    <>
+      {modal}
+      {returnOpen && (
+        <ReturnRequestModal
+          orderId={order.id}
+          orderNumber={order.id.substring(0, 8).toUpperCase()}
+          onClose={() => setReturnOpen(false)}
+        />
+      )}
+    </>
   )
 }
 
@@ -275,7 +349,7 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
                 <span style={{ width: 5, height: 5, borderRadius: '50%', background: sc, display: 'inline-block', boxShadow: '0 0 5px ' + sc }} />
                 {t.orders.status[order.status as keyof typeof t.orders.status] ?? order.status}
               </span>
-              <ChevronRight size={15} style={{ color: hovered ? sc : 'var(--text3)', transition: 'all .2s', transform: hovered ? 'translateX(2px)' : 'none' }} />
+              <ChevronRight className="rtl-flip" size={15} style={{ color: hovered ? sc : 'var(--text3)', transition: 'all .2s', transform: hovered ? 'translateX(2px)' : 'none' }} />
             </div>
           </div>
 
@@ -383,7 +457,7 @@ export default function OrdersClient({ orders: initialOrders, userId }: { orders
                 {s === 'all'
                   ? ((t.orders as Record<string, unknown>).all as string ?? 'All')
                   : (t.orders.status[s as keyof typeof t.orders.status] ?? s)}
-                <span style={{ marginLeft: 5, opacity: 0.7 }}>({statusCounts[s] ?? 0})</span>
+                <span style={{ marginInlineStart: 5, opacity: 0.7 }}>({statusCounts[s] ?? 0})</span>
               </button>
             )
           })}

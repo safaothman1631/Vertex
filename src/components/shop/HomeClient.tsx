@@ -6,12 +6,14 @@ import BrandDrawer from '@/components/shop/BrandDrawer'
 import WishlistButton from '@/components/shop/WishlistButton'
 import FadeIn from '@/components/ui/FadeIn'
 import { useToast } from '@/components/ui/Toast'
-import { ChevronLeft, ChevronRight, ShoppingCart, Mail, Phone, MapPin } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
 import PromoBar from '@/components/shop/PromoBar'
+import HeroSection from '@/components/shop/home/HeroSection'
+import TestimonialsSection from '@/components/shop/home/TestimonialsSection'
+import ContactSection from '@/components/shop/home/ContactSection'
 import { useT } from '@/contexts/locale'
 import { usePreferences } from '@/contexts/preferences'
 import { useCartStore } from '@/store/cart'
-import { createClient } from '@/lib/supabase-client'
 import type { Product, Promotion } from '@/types'
 
 const PER_PAGE = 10
@@ -41,16 +43,8 @@ interface BrandCard {
   c2: string
 }
 
-export interface HomeReview {
-  id: string
-  rating: number
-  comment: string
-  created_at: string
-  reviewer_name: string
-  avatar_url: string | null
-  product_name: string
-  product_brand: string
-}
+import type { HomeReview } from '@/components/shop/home/TestimonialsSection'
+export type { HomeReview }
 
 interface StatsData {
   customers: string
@@ -61,17 +55,6 @@ interface StatsData {
 }
 
 const DEFAULT_STATS: StatsData = { customers: '—', products: '—', brands: '—', orders: '—', support: '24/7' }
-
-const DEMO_REVIEWS: HomeReview[] = [
-  { id: 'd1', rating: 5, comment: 'Excellent POS terminal, fast and reliable. Our checkout speed improved dramatically after switching to this system.', created_at: '2025-03-10T10:00:00Z', reviewer_name: 'Ahmed Al-Rashidi', avatar_url: null, product_name: 'Verifone P400', product_brand: 'Verifone' },
-  { id: 'd2', rating: 5, comment: 'The barcode scanner works flawlessly with all our product labels. Great build quality and very responsive support team.', created_at: '2025-03-08T14:30:00Z', reviewer_name: 'Sara Mahmoud', avatar_url: null, product_name: 'Honeywell Voyager 1250g', product_brand: 'Honeywell' },
-  { id: 'd3', rating: 4, comment: 'Solid receipt printer, quiet and quick. Delivery was prompt and packaging was secure. Highly recommend for retail use.', created_at: '2025-03-05T09:15:00Z', reviewer_name: 'Omar Khalil', avatar_url: null, product_name: 'Epson TM-T88VI', product_brand: 'Epson' },
-  { id: 'd4', rating: 5, comment: 'Best label printer I have used. Crystal clear prints and the rolls last a long time. Setup was extremely easy too.', created_at: '2025-03-02T11:45:00Z', reviewer_name: 'Lina Hassan', avatar_url: null, product_name: 'Zebra ZD421', product_brand: 'Zebra' },
-  { id: 'd5', rating: 5, comment: 'This payment terminal is very secure and customers trust it. Integration with our existing system took less than an hour.', created_at: '2025-02-28T16:00:00Z', reviewer_name: 'Karwan Saleh', avatar_url: null, product_name: 'Ingenico Move 5000', product_brand: 'Ingenico' },
-  { id: 'd6', rating: 4, comment: 'The cash drawer is sturdy and opens reliably every time. Exactly what a busy retail store needs. Very good value.', created_at: '2025-02-25T08:30:00Z', reviewer_name: 'Nadia Ibrahim', avatar_url: null, product_name: 'Star Micronics CD3-1616', product_brand: 'Star Micronics' },
-  { id: 'd7', rating: 5, comment: 'PAX smart terminal exceeded our expectations. Contactless payments work perfectly and the screen is crisp and bright.', created_at: '2025-02-20T13:00:00Z', reviewer_name: 'Firas Aziz', avatar_url: null, product_name: 'PAX A920 Pro', product_brand: 'PAX Technology' },
-  { id: 'd8', rating: 5, comment: 'Very happy with my purchase. The product arrived quickly, well packaged, and works exactly as described on the website.', created_at: '2025-02-15T10:20:00Z', reviewer_name: 'Rania Yousef', avatar_url: null, product_name: 'Square Terminal', product_brand: 'Square' },
-]
 
 interface HeroData {
   todayRevenue: number
@@ -107,14 +90,21 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
   const { formatPrice } = usePreferences()
   const addItem = useCartStore((s) => s.addItem)
   const toast = useToast()
-  const supabase = createClient()
-  const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' })
-  const [contactHp, setContactHp] = useState('')
-  const [contactLoading, setContactLoading] = useState(false)
-  const [contactSuccess, setContactSuccess] = useState(false)
-  const [contactError, setContactError] = useState('')
 
   useEffect(() => { setPage(1) }, [activeCat, activeBrand, search, sort])
+
+  // Trigger stagger reveal for product cards on page/filter change
+  useEffect(() => {
+    const grid = prodsTopRef.current?.querySelector('.prods-grid')
+    if (!grid) return
+    const cards = grid.querySelectorAll('.reveal')
+    // Reset then re-trigger with a micro-delay for CSS transition
+    cards.forEach(c => c.classList.remove('is-visible'))
+    const raf = requestAnimationFrame(() => {
+      cards.forEach(c => c.classList.add('is-visible'))
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [page, activeCat, activeBrand, search, sort])
 
   // Derive category list from real DB products
   const CATS = useMemo(() => {
@@ -172,31 +162,6 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
     setTimeout(() => setAddedId(null), 1400)
   }
 
-  async function handleContactSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (contactHp) return
-    setContactLoading(true)
-    setContactError('')
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactForm.email)) {
-      setContactError('Please enter a valid email address')
-      setContactLoading(false)
-      return
-    }
-    if (contactForm.name.length > 200 || contactForm.subject.length > 300 || contactForm.message.length > 5000) {
-      setContactError('Please shorten your input')
-      setContactLoading(false)
-      return
-    }
-    const { error } = await supabase.from('contact_messages').insert(contactForm)
-    if (error) {
-      setContactError('Failed to send message. Please try again.')
-    } else {
-      setContactSuccess(true)
-      setContactForm({ name: '', email: '', subject: '', message: '' })
-    }
-    setContactLoading(false)
-  }
-
   const drawerProducts = useMemo(() =>
     selectedBrand ? products.filter(p => p.brand.toLowerCase() === selectedBrand.name.toLowerCase()) : []
   , [products, selectedBrand])
@@ -207,88 +172,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
       <PromoBar promotions={promotions} />
 
       {/* ── HERO ── */}
-      <section id="hero" className="hero">
-        <div className="hero-glow" />
-        <div className="container">
-          <div className="hero-inner">
-            {/* Left */}
-            <div className="hero-content">
-              <div className="hero-badge">
-                <span className="pulse-dot" />
-                {t.hero.badge}
-              </div>
-              <h1 className="hero-title">
-                {t.hero.titleLine1}<br />
-                {t.hero.titleLine2}<br />
-                <span className="gradient-text">{t.hero.titleHighlight}</span>
-              </h1>
-              <p className="hero-desc">
-                {t.hero.desc}
-              </p>
-              <div className="hero-actions">
-                <Link href="/products" className="btn btn-primary">{t.hero.shopNow}</Link>
-                <Link href="#brands" className="btn btn-ghost">{t.hero.browseBrands}</Link>
-              </div>
-              <div className="hero-stats">
-                {STATS_KEYS.slice(0, 3).map((key) => (
-                  <div key={key} className="hero-stat">
-                    <strong>{statsData[key]}</strong>
-                    <span>{t.stats[key as keyof typeof t.stats]}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right — POS Screen mockup */}
-            <div className="hero-visual">
-              <div className="pos-screen">
-                <div className="pos-header">
-                  <span>Vertex Terminal</span>
-                  <span style={{ color: 'var(--green)', fontSize: 11 }}>{t.hero.terminalLive}</span>
-                </div>
-                <div className="pos-items">
-                  {heroData.terminalItems.length > 0 ? heroData.terminalItems.map((item) => (
-                    <div key={item.sku} className="pos-item">
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>{item.name}</div>
-                        <div className="pos-sku">{item.sku}</div>
-                      </div>
-                      <div style={{ color: 'var(--primary)', fontWeight: 700 }}>{formatPrice(item.price)}</div>
-                    </div>
-                  )) : (
-                    <div style={{ padding: '12px 0', color: 'var(--text3)', fontSize: 12, textAlign: 'center' }}>No products</div>
-                  )}
-                </div>
-                <div className="pos-total">
-                  <span>{t.hero.total}</span>
-                  <span>{formatPrice(heroData.terminalTotal)}</span>
-                </div>
-                <button className="pos-btn">{t.hero.processPayment}</button>
-                <div className="pos-pay-methods">
-                  <span>{t.hero.payCard}</span>
-                  <span>{t.hero.payNfc}</span>
-                  <span>{t.hero.payCash}</span>
-                </div>
-              </div>
-
-              <div className="float-card fc1">
-                <div style={{ color: 'var(--green)', fontWeight: 800, fontSize: 20 }}>
-                  {heroData.todayRevenue > 0 ? `+$${heroData.todayRevenue.toLocaleString('en-US', { maximumFractionDigits: 0 })}` : '$0'}
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>{t.hero.todaySales}</div>
-                <div style={{ fontSize: 11, marginTop: 2, color: heroData.revPctChange >= 0 ? 'var(--green)' : '#ef4444' }}>
-                  {heroData.revPctChange >= 0 ? '▲' : '▼'} {Math.abs(heroData.revPctChange)}% vs Yesterday
-                </div>
-              </div>
-              <div className="float-card fc2">
-                <div style={{ fontWeight: 800, fontSize: 18 }}>★ {heroData.avgRating}/5</div>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>{t.hero.customerRating}</div>
-                <div style={{ fontSize: 11, marginTop: 2, opacity: 0.6 }}>{heroData.reviewCount} {t.hero.reviews}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSection statsData={statsData} heroData={heroData} />
 
       {/* ── BRANDS TICKER ── */}
       <div className="brands-ticker">
@@ -378,12 +262,12 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
               <p style={{ marginTop: 8 }}>{t.productsSection.noProductsSub}</p>
             </div>
           ) : (
-            <div className="prods-grid">
-              {paginated.map((p) => {
+            <div className="prods-grid stagger-children">
+              {paginated.map((p, pIdx) => {
                 const img = p.images?.[0]
                 const isAdded = addedId === p.id
                 return (
-                  <div key={p.id} className="prod-card">
+                  <div key={p.id} className="prod-card card-3d reveal reveal-up" style={{ '--stagger-i': pIdx } as React.CSSProperties}>
                     {/* Badges */}
                     <div className="prod-badges">
                       {p.is_hot && <span className="badge-hot">{t.productCard.hot}</span>}
@@ -440,7 +324,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                           ? t.common.outOfStock
                           : isAdded
                           ? t.productCard.added
-                          : <><ShoppingCart size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />{t.productCard.addToCart}</>
+                          : <><ShoppingCart size={13} style={{ display: 'inline', verticalAlign: 'middle', marginInlineEnd: 5 }} />{t.productCard.addToCart}</>
                         }
                       </button>
                     </div>
@@ -453,7 +337,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
           {/* ── PAGINATION ── */}
           {totalPages > 1 && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 48 }}>
-              <span style={{ fontSize: '.8rem', color: 'var(--text2)', marginRight: 4 }}>
+              <span style={{ fontSize: '.8rem', color: 'var(--text2)', marginInlineEnd: 4 }}>
                 {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} {t.productsSection.of} {filtered.length}
               </span>
               <button onClick={() => goToPage(page - 1)} disabled={page === 1}
@@ -494,11 +378,11 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
             <p className="section-sub">{t.brands.sectionSub}</p>
           </div>
           </FadeIn>
-          <div className="brands-grid">
+          <div className="brands-grid stagger-children">
             {brandCards.map((b, i) => (
               <FadeIn key={b.name} delay={i * 80}>
               <div
-                className="brand-card"
+                className="brand-card card-3d"
                 onClick={() => setSelectedBrand(b)}
                 onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), setSelectedBrand(b))}
                 role="button"
@@ -507,8 +391,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
                 style={{ cursor: 'pointer' }}
               >
                 <div className="brand-banner" style={{ background: `linear-gradient(135deg, ${b.c1}, ${b.c2})` }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={b.logo?.startsWith('http') ? b.logo : `/images/brands/${b.logo}`} alt={b.name} className="brand-logo-img" />
+                  <Image src={b.logo?.startsWith('http') ? b.logo : `/images/brands/${b.logo}`} alt={b.name} className="brand-logo-img" width={80} height={40} style={{ objectFit: 'contain' }} />
                   <div className="brand-banner-shine" />
                 </div>
                 <div className="brand-card-body">
@@ -538,251 +421,8 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
       />
 
       {/* ── REVIEWS / TESTIMONIALS SECTION ── */}
-      {(() => {
-        // Merge real reviews first, then fill with demo (exclude demo ids that match real)
-        const realIds = new Set(reviews.map(r => r.id))
-        const demoFill = DEMO_REVIEWS.filter(r => !realIds.has(r.id))
-        const merged = [...reviews, ...demoFill]
-        const displayReviews = merged.length >= 3 ? merged : DEMO_REVIEWS
-        const mid = Math.ceil(displayReviews.length / 2)
-        const row1 = [...displayReviews.slice(0, mid), ...displayReviews.slice(0, mid), ...displayReviews.slice(0, mid)]
-        const half2 = displayReviews.length > mid ? displayReviews.slice(mid) : displayReviews.slice(0, mid)
-        const row2 = [...half2, ...half2, ...half2]
-        return (
-          <section className="reviews-section">
-            <div className="container">
-              <FadeIn>
-                <div className="section-header">
-                  <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '.85rem', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12 }}>{t.testimonials.label}</p>
-                  <h2 className="section-title">{t.testimonials.title} <span className="gradient-text">{t.testimonials.titleHighlight}</span></h2>
-                  <p className="section-sub">{t.testimonials.sub}</p>
-                </div>
-              </FadeIn>
-            </div>
-            <div className="reviews-marquee-wrap">
-              <div className="reviews-row">
-                {row1.map((r, i) => <ReviewCard key={`r1-${r.id}-${i}`} r={r} verifiedLabel={t.testimonials.verifiedBuyer} />)}
-              </div>
-              <div className="reviews-row reviews-row-rtl">
-                {row2.map((r, i) => <ReviewCard key={`r2-${r.id}-${i}`} r={r} verifiedLabel={t.testimonials.verifiedBuyer} />)}
-              </div>
-            </div>
-          </section>
-        )
-      })()}
-      <section id="contact" className="section" style={{ background: 'var(--bg0)' }}>
-        <div className="container" style={{ maxWidth: 1100 }}>
-          <FadeIn>
-            <div className="section-header">
-              <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '.85rem', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12 }}>Support</p>
-              <h2 className="section-title">{t.contact.title.split(' ')[0]} <span className="gradient-text">{t.contact.title.split(' ').slice(1).join(' ')}</span></h2>
-              <p className="section-sub">Have a question about our products? Our team is ready to help you find the perfect POS solution.</p>
-            </div>
-          </FadeIn>
-
-          <div className="resp-grid-contact" style={{ display: 'grid', alignItems: 'start' }}>
-            {/* Left — contact info */}
-            <FadeIn>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                {[
-                  { icon: Mail, label: 'Email', value: 'safaothman1631@gmail.com', sub: 'We reply within 24 hours' },
-                  { icon: Phone, label: 'Phone', value: '+964 750 529 9118 / +964 750 870 6750', sub: 'Mon-Fri, 9am-6pm' },
-                  { icon: MapPin, label: 'Address', value: 'سوڵتان مزەفەر فەرعی جیهانی کامیرە بینای ئیپسۆن', sub: 'Visit us anytime' },
-                ].map(({ icon: Icon, label, value, sub }) => (
-                  <div key={label} style={{
-                    background: 'var(--bg2)', border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-lg)', padding: '20px 24px',
-                    display: 'flex', alignItems: 'flex-start', gap: 16,
-                  }}>
-                    <div style={{
-                      width: 42, height: 42, borderRadius: 10, flexShrink: 0,
-                      background: 'rgba(99,102,241,.12)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <Icon size={18} style={{ color: 'var(--primary)' }} />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '.9rem', marginBottom: 2 }}>{label}</div>
-                      <div style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '.9rem', marginBottom: 2 }}>{value}</div>
-                      <div style={{ color: 'var(--text2)', fontSize: '.82rem' }}>{sub}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </FadeIn>
-
-            {/* Right — form */}
-            <FadeIn delay={100}>
-              <div style={{
-                background: 'var(--bg2)', border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-xl)', padding: '36px 40px',
-              }} className="resp-card-padding-lg">
-                {contactSuccess ? (
-                  <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: 16 }}>✅</div>
-                    <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: 8 }}>{t.contact.sent}</h3>
-                    <p style={{ color: 'var(--text2)' }}>{t.contact.sub}</p>
-                  </div>
-                ) : (
-                  <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: 4 }}>{t.contact.title}</h3>
-
-                    {/* Honeypot */}
-                    <div style={{ position: 'absolute', left: -9999, opacity: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
-                      <input tabIndex={-1} autoComplete="off" value={contactHp} onChange={e => setContactHp(e.target.value)} />
-                    </div>
-
-                    <div className="resp-grid-2col" style={{ display: 'grid', gap: 16 }}>
-                      {(['name', 'email'] as const).map((key) => (
-                        <div key={key}>
-                          <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{key === 'name' ? t.contact.name : t.contact.email}</label>
-                          <input
-                            type={key === 'email' ? 'email' : 'text'}
-                            required
-                            placeholder={key === 'name' ? t.contact.namePlaceholder : t.contact.emailPlaceholder}
-                            value={contactForm[key]}
-                            onChange={(e) => setContactForm({ ...contactForm, [key]: e.target.value })}
-                            style={{
-                              width: '100%', padding: '10px 14px', borderRadius: 10,
-                              background: 'var(--bg3)', border: '1px solid var(--border)',
-                              color: 'var(--text)', fontSize: '.9rem', outline: 'none',
-                              boxSizing: 'border-box',
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{t.contact.message}</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder={t.contact.messagePlaceholder}
-                        value={contactForm.subject}
-                        onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                        style={{
-                          width: '100%', padding: '10px 14px', borderRadius: 10,
-                          background: 'var(--bg3)', border: '1px solid var(--border)',
-                          color: 'var(--text)', fontSize: '.9rem', outline: 'none',
-                          boxSizing: 'border-box',
-                        }}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{t.contact.message}</label>
-                      <textarea
-                        required
-                        rows={5}
-                        placeholder={t.contact.messagePlaceholder}
-                        value={contactForm.message}
-                        onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                        style={{
-                          width: '100%', padding: '10px 14px', borderRadius: 10,
-                          background: 'var(--bg3)', border: '1px solid var(--border)',
-                          color: 'var(--text)', fontSize: '.9rem', outline: 'none',
-                          resize: 'vertical', fontFamily: 'inherit',
-                          boxSizing: 'border-box',
-                        }}
-                      />
-                    </div>
-
-                    {contactError && <p style={{ color: 'var(--danger)', fontSize: '.85rem' }}>{contactError}</p>}
-
-                    <button
-                      type="submit"
-                      disabled={contactLoading}
-                      style={{
-                        padding: '14px', borderRadius: 12, fontWeight: 800,
-                        fontSize: '1rem', background: 'var(--gradient)',
-                        color: '#fff', border: 'none',
-                        cursor: contactLoading ? 'not-allowed' : 'pointer',
-                        opacity: contactLoading ? 0.6 : 1, transition: 'opacity .2s',
-                      }}
-                    >
-                      {contactLoading ? t.contact.sending : t.contact.send + ' ✉'}
-                    </button>
-                  </form>
-                )}
-              </div>
-            </FadeIn>
-          </div>
-
-          {/* Map */}
-          <FadeIn delay={200}>
-            <div style={{
-              marginTop: 40,
-              background: 'var(--bg2)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-xl)',
-              overflow: 'hidden',
-            }}>
-              {/* Map header */}
-              <div style={{
-                padding: '18px 24px',
-                borderBottom: '1px solid var(--border)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                background: 'var(--bg3)',
-              }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 9,
-                  background: 'rgba(99,102,241,.15)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
-                  <MapPin size={16} style={{ color: 'var(--primary)' }} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '.92rem' }}>Vertex — هەولێر</div>
-                  <div style={{ color: 'var(--text2)', fontSize: '.78rem', marginTop: 2 }}>سوڵتان مزەفەر · فەرعی جیهانی کامیرە · بینای ئیپسۆن</div>
-                </div>
-                <a
-                  href="https://maps.app.goo.gl/cs2VCTksetkwhKt19"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    marginLeft: 'auto',
-                    padding: '7px 14px',
-                    borderRadius: 8,
-                    background: 'rgba(99,102,241,.12)',
-                    border: '1px solid rgba(99,102,241,.2)',
-                    color: 'var(--primary)',
-                    fontSize: '.78rem',
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <MapPin size={12} />
-                  Google Maps بکەرەوە
-                </a>
-              </div>
-              {/* Iframe */}
-              <div style={{ position: 'relative', width: '100%', height: 380 }}>
-                <iframe
-                  src="https://maps.google.com/maps?q=36.191161,44.0035543&z=18&output=embed"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0, display: 'block', filter: 'brightness(.88) contrast(1.05) saturate(.8)' }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Vertex Location"
-                />
-                <div style={{
-                  position: 'absolute', inset: 0, pointerEvents: 'none',
-                  background: 'linear-gradient(180deg,rgba(6,6,14,.08) 0%,transparent 30%,transparent 70%,rgba(6,6,14,.1) 100%)',
-                }} />
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
+      <TestimonialsSection reviews={reviews} />
+      <ContactSection />
 
       {/* ── STATS STRIP ── */}
       <section className="stats-strip">
@@ -800,48 +440,5 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
         </div>
       </section>
     </main>
-  )
-}
-
-/* ─────────────────────────────────────────────────────────────
-   ReviewCard — used in the testimonials marquee
-───────────────────────────────────────────────────────────── */
-const AVATAR_GRADIENTS = [
-  ['#6366f1', '#8b5cf6'], ['#ef4444', '#f97316'], ['#f59e0b', '#eab308'],
-  ['#10b981', '#06b6d4'], ['#3b82f6', '#6366f1'], ['#ec4899', '#a855f7'],
-]
-
-function ReviewCard({ r, verifiedLabel }: { r: HomeReview; verifiedLabel: string }) {
-  const [c1, c2] = AVATAR_GRADIENTS[(r.reviewer_name.charCodeAt(0) || 65) % AVATAR_GRADIENTS.length]
-  const initial = (r.reviewer_name[0] || '?').toUpperCase()
-  const date = new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-
-  return (
-    <div className="review-card">
-      <div className="rv-header">
-        {r.avatar_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={r.avatar_url} alt={r.reviewer_name} className="rv-avatar" style={{ objectFit: 'cover' }} />
-        ) : (
-          <div className="rv-avatar" style={{ background: `linear-gradient(135deg,${c1},${c2})` }}>{initial}</div>
-        )}
-        <div className="rv-meta">
-          <div className="rv-name">{r.reviewer_name}</div>
-          <div className="rv-date">{date} · {verifiedLabel}</div>
-        </div>
-        <div className="rv-stars">
-          {[1, 2, 3, 4, 5].map(s => (
-            <span key={s} style={{ color: s <= r.rating ? '#f59e0b' : 'var(--border)', fontSize: '.82rem' }}>★</span>
-          ))}
-        </div>
-      </div>
-      <p className="rv-comment">&#8220;{r.comment}&#8221;</p>
-      {r.product_name && (
-        <div className="rv-product">
-          <span>📦</span>
-          <span>{r.product_name}</span>
-        </div>
-      )}
-    </div>
   )
 }

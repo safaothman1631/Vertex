@@ -37,7 +37,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastCtx.Provider value={toast}>
       {children}
       {mounted && createPortal(
-        <div style={{
+        <div role="status" aria-live="polite" style={{
           position: 'fixed', bottom: 24, right: 24, zIndex: 99999,
           display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 380,
           pointerEvents: 'none',

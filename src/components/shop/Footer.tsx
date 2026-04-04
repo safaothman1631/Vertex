@@ -1,12 +1,18 @@
 'use client'
 import Link from 'next/link'
 import { useT } from '@/contexts/locale'
+import NewsletterBox from './NewsletterBox'
 
 export default function Footer() {
   const t = useT()
   return (
     <footer className="footer">
       <div className="container">
+        {/* Newsletter */}
+        <div className="footer-newsletter">
+          <NewsletterBox />
+        </div>
+
         <div className="footer-inner">
           <div className="footer-brand">
             <div className="logo" style={{ fontSize: '1.4rem' }}>

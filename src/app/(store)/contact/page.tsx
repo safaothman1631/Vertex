@@ -1,7 +1,6 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase-client'
 import { MapPin, Mail, Phone } from 'lucide-react'
 import { useT } from '@/contexts/locale'
 
@@ -11,7 +10,6 @@ export default function ContactPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
-  const supabase = createClient()
   const t = useT()
 
   // Auto-dismiss success message after 6s
@@ -37,19 +35,21 @@ export default function ContactPage() {
       setLoading(false)
       return
     }
-    // Sanitize inputs — strip HTML tags
-    const sanitized = {
-      name: form.name.replace(/<[^>]*>/g, '').trim(),
-      email: form.email.trim().toLowerCase(),
-      subject: form.subject.replace(/<[^>]*>/g, '').trim(),
-      message: form.message.replace(/<[^>]*>/g, '').trim(),
-    }
-    const { error } = await supabase.from('contact_messages').insert(sanitized)
-    if (error) {
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, hp }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to send message. Please try again.')
+      } else {
+        setSuccess(true)
+        setForm({ name: '', email: '', subject: '', message: '' })
+      }
+    } catch {
       setError('Failed to send message. Please try again.')
-    } else {
-      setSuccess(true)
-      setForm({ name: '', email: '', subject: '', message: '' })
     }
     setLoading(false)
   }
@@ -57,7 +57,7 @@ export default function ContactPage() {
   const CONTACTS = [
     { icon: Mail, label: 'Email', value: 'safaothman1631@gmail.com', sub: 'We reply within 24 hours' },
     { icon: Phone, label: 'Phone', value: '+964 750 529 9118 / +964 750 870 6750', sub: 'Mon-Fri, 9am-6pm' },
-    { icon: MapPin, label: 'Address', value: 'سوڵتان مزەفەر فەرعی جیهانی کامیرە بینای ئیپسۆن', sub: 'Visit us anytime' },
+    { icon: MapPin, label: 'Address', value: '?????? ?????? ????? ?????? ?????? ????? ??????', sub: 'Visit us anytime' },
   ]
 
   return (
@@ -65,7 +65,7 @@ export default function ContactPage() {
       <div className="container" style={{ maxWidth: 1100 }}>
 
         {/* Header */}
-        <div style={{ marginBottom: 56 }}>
+        <div style={{ marginBottom: 56, animation: 'anim-fade-up .6s var(--ease-smooth) both' }}>
           <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '.85rem', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12 }}>Support</p>
           <h1 style={{ fontSize: 'clamp(2rem,5vw,3rem)', fontWeight: 900, lineHeight: 1.1, marginBottom: 16 }}>{t.contact.title}</h1>
           <p style={{ color: 'var(--text2)', fontSize: '1.05rem', maxWidth: 480 }}>
@@ -76,9 +76,10 @@ export default function ContactPage() {
         <div className="resp-grid-contact">
 
           {/* Left  contact info */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {CONTACTS.map(({ icon: Icon, label, value, sub }) => (
-              <div key={label} style={{
+          <div className="stagger-children" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {CONTACTS.map(({ icon: Icon, label, value, sub }, idx) => (
+              <div key={label} className="reveal reveal-up" style={{
+                '--stagger-i': idx,
                 background: 'var(--bg2)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-lg)',
@@ -86,7 +87,7 @@ export default function ContactPage() {
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: 16,
-              }}>
+              } as React.CSSProperties}>
                 <div style={{
                   width: 42, height: 42, borderRadius: 10,
                   background: 'rgba(99,102,241,.12)',
@@ -110,7 +111,7 @@ export default function ContactPage() {
             borderRadius: 'var(--radius-xl)',
           }}>
             {success ? (
-              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '40px 0' }}>
                 <div style={{ fontSize: '3rem', marginBottom: 16 }}></div>
                 <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: 8 }}>{t.contact.sent}</h3>
                 <p style={{ color: 'var(--text2)' }}>{t.contact.sub}</p>
@@ -130,6 +131,8 @@ export default function ContactPage() {
                       <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{key === 'name' ? t.contact.name : t.contact.email}</label>
                       <input
                         type={key === 'email' ? 'email' : 'text'}
+                        inputMode={key === 'email' ? 'email' : undefined}
+                        enterKeyHint="next"
                         required
                         placeholder={key === 'name' ? t.contact.namePlaceholder : t.contact.emailPlaceholder}
                         value={form[key]}
@@ -149,6 +152,7 @@ export default function ContactPage() {
                   <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{t.contact.message}</label>
                   <input
                     type="text"
+                    enterKeyHint="next"
                     required
                     placeholder={t.contact.messagePlaceholder}
                     value={form.subject}
@@ -180,7 +184,7 @@ export default function ContactPage() {
                   />
                 </div>
 
-                {error && <p style={{ color: 'var(--danger)', fontSize: '.85rem' }}>{error}</p>}
+                {error && <p role="alert" style={{ color: 'var(--danger)', fontSize: '.85rem' }}>{error}</p>}
 
                 <button
                   type="submit"
@@ -192,7 +196,7 @@ export default function ContactPage() {
                     opacity: loading ? 0.6 : 1, transition: 'opacity .2s',
                   }}
                 >
-                  {loading ? t.contact.sending : t.contact.send + ' ✉'}
+                  {loading ? t.contact.sending : t.contact.send + ' ?'}
                 </button>
               </form>
             )}
@@ -224,9 +228,9 @@ export default function ContactPage() {
                 <MapPin size={18} style={{ color: 'var(--primary)' }} />
               </div>
               <div>
-                <div style={{ fontWeight: 800, fontSize: '.95rem' }}>Vertex — هەولێر</div>
+                <div style={{ fontWeight: 800, fontSize: '.95rem' }}>Vertex — ??????</div>
                 <div style={{ color: 'var(--text2)', fontSize: '.8rem', marginTop: 2 }}>
-                  سوڵتان مزەفەر · فەرعی جیهانی کامیرە · بینای ئیپسۆن
+                  ?????? ?????? · ????? ?????? ?????? · ????? ??????
                 </div>
               </div>
               <a
@@ -234,7 +238,7 @@ export default function ContactPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
-                  marginLeft: 'auto',
+                  marginInlineStart: 'auto',
                   padding: '8px 16px',
                   borderRadius: 9,
                   background: 'rgba(99,102,241,.12)',
@@ -253,7 +257,7 @@ export default function ContactPage() {
                 onMouseLeave={e => (e.currentTarget.style.background = 'rgba(99,102,241,.12)')}
               >
                 <MapPin size={13} />
-                Google Maps بکەرەوە
+                Google Maps ???????
               </a>
             </div>
 

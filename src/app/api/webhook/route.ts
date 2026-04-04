@@ -34,6 +34,13 @@ export async function POST(request: Request) {
         .single()
 
       if (updatedOrder) {
+        // Decrement stock via inventory log + mark out-of-stock if applicable
+        try {
+          await supabase.rpc('decrement_stock_for_order', { p_order_id: orderId })
+        } catch (e) {
+          console.error('[webhook] stock decrement failed:', e)
+        }
+
         // Fetch order items with product names
         const { data: orderItems } = await supabase
           .from('order_items')
@@ -78,7 +85,7 @@ export async function POST(request: Request) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-notify-secret': process.env.CRON_SECRET?.trim() || '__dev__',
+              'x-notify-secret': process.env.CRON_SECRET?.trim() || '',
             },
             body: JSON.stringify({
               to: profile.phone,

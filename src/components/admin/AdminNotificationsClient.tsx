@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Send, Bell, Users, Shield, Globe, CheckCircle, Clock } from 'lucide-react'
 import { useT } from '@/contexts/locale'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { useConfirm } from '@/hooks/useConfirm'
 
 interface Broadcast {
   title: string
@@ -30,10 +32,12 @@ export default function AdminNotificationsClient({ broadcasts, totalUsers }: { b
   const [target, setTarget] = useState('all')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ success: boolean; sent?: number; error?: string } | null>(null)
+  const { confirm, confirmProps } = useConfirm()
 
   async function handleSend() {
     if (!title.trim() || !message.trim()) return
-    if (!confirm(`Send this notification to ${target === 'all' ? 'all users' : target}?`)) return
+    const ok = await confirm({ message: `Send this notification to ${target === 'all' ? 'all users' : target}?`, title: 'Send Notification' })
+    if (!ok) return
     setLoading(true)
     setResult(null)
     try {
@@ -171,6 +175,7 @@ export default function AdminNotificationsClient({ broadcasts, totalUsers }: { b
           </div>
         )}
       </div>
+      <ConfirmModal {...confirmProps} />
     </div>
   )
 }

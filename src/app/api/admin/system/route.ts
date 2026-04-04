@@ -1,7 +1,16 @@
 import { NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
+import { createRateLimiter, getClientIP } from '@/lib/rate-limit'
 
-export async function GET() {
+// 30 requests per minute for admin system endpoint
+const systemLimiter = createRateLimiter({ window: 60_000, max: 30 })
+
+export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  if (!systemLimiter.check(ip)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

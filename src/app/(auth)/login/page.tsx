@@ -100,7 +100,7 @@ function LoginForm() {
 
   return (
     <div className="auth-page-wrap">
-      <div className="auth-modal-card">
+      <div className="auth-modal-card" style={{ animation: 'anim-scale-up .5s var(--ease-smooth) both' }}>
 
         <div className="auth-logo">Ver<span style={{ color: 'var(--primary)' }}>tex</span></div>
 
@@ -117,9 +117,9 @@ function LoginForm() {
               <form onSubmit={handleForgotPassword} className="auth-form">
                 <div className="input-group">
                   <label>{t.auth.email}</label>
-                  <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} placeholder="you@business.com" required />
+                  <input type="email" inputMode="email" enterKeyHint="send" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} placeholder="you@business.com" required />
                 </div>
-                {forgotError && <p className="auth-error-msg">{forgotError}</p>}
+                {forgotError && <p role="alert" className="auth-error-msg">{forgotError}</p>}
                 <button type="submit" disabled={forgotLoading} className="btn-primary btn-full btn-lg">
                   {forgotLoading ? t.auth.sendingLink : t.auth.sendResetLink}
                 </button>
@@ -164,14 +164,14 @@ function LoginForm() {
         <form onSubmit={handleLogin} className="auth-form">
           <div className="input-group">
             <label>{t.auth.email}</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@business.com" required />
+            <input type="email" inputMode="email" enterKeyHint="next" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@business.com" required />
           </div>
           <div className="input-group">
             <label>{t.auth.password}</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
+            <input type="password" enterKeyHint="done" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
             <button type="button" className="forgot-link" onClick={() => { setForgotMode(true); setForgotEmail(email) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>{t.auth.forgotPassword}</button>
           </div>
-          {error && <p className="auth-error-msg">{error}</p>}
+          {error && <p role="alert" className="auth-error-msg">{error}</p>}
           <button type="submit" disabled={loading} className="btn-primary btn-full btn-lg">
             {loading ? t.auth.signingIn : t.auth.signIn}
           </button>

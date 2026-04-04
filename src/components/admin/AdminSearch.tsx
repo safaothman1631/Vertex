@@ -28,7 +28,7 @@ export default function AdminSearch({ value, onChange, placeholder = 'Search…'
   }
 
   return (
-    <div style={{ position: 'relative', flex: 1, minWidth: 200, maxWidth: 360 }}>
+    <div className="admin-search-wrap" style={{ position: 'relative', flex: 1, minWidth: 200, maxWidth: 360 }}>
       <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
       <input
         type="text"

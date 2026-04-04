@@ -3,7 +3,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
-import { Plus, Pencil, Trash2, X, Eye, EyeOff, ImageOff } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Eye, EyeOff, ImageOff, Download } from 'lucide-react'
+import { exportProducts } from '@/lib/csv-export'
 import Image from 'next/image'
 import ImageUploader from './ImageUploader'
 import AdminSearch from './AdminSearch'
@@ -11,6 +12,8 @@ import AdminPagination from './AdminPagination'
 import { useT } from '@/contexts/locale'
 import { usePreferences } from '@/contexts/preferences'
 import type { Product } from '@/types'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { useConfirm } from '@/hooks/useConfirm'
 
 function toSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -27,6 +30,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
   const router = useRouter()
   const t = useT()
   const { formatPrice } = usePreferences()
+  const { confirm, confirmProps } = useConfirm()
   const [products, setProducts] = useState<Product[]>(initial)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partial<Product>>(EMPTY_PRODUCT)
@@ -148,7 +152,8 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Move this product to trash?')) return
+    const ok = await confirm({ message: 'Move this product to trash?', title: 'Delete Product' })
+    if (!ok) return
     const product = products.find(p => p.id === id)
     if (product) {
       await supabase.from('trash').insert({ table_name: 'products', record_id: id, record_data: product })
@@ -194,7 +199,8 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
   }
 
   async function bulkDelete() {
-    if (!confirm(`Move ${selectedIds.size} product(s) to trash?`)) return
+    const ok = await confirm({ message: `Move ${selectedIds.size} product(s) to trash?`, title: 'Bulk Delete' })
+    if (!ok) return
     setBulkLoading(true)
     const ids = Array.from(selectedIds)
     const toTrash = products.filter(p => ids.includes(p.id))
@@ -221,7 +227,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
   return (
     <div>
       {/* Search & Filter Toolbar */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14 }}>
+      <div className="admin-filter-toolbar" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14 }}>
         <AdminSearch value={searchQ} onChange={setSearchQ} placeholder={t.admin.search + '...'} />
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: '.82rem', padding: '7px 10px' }}>
           <option value="">{t.admin.category}: {t.admin.filter}</option>
@@ -244,7 +250,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
         {selectedIds.size > 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, flexWrap: 'wrap' }}>
             <span style={{ fontSize: '.82rem', fontWeight: 700, color: 'var(--primary)' }}>{selectedIds.size} {t.admin.selected}</span>
-            <button onClick={bulkDelete} disabled={bulkLoading} className="admin-btn" style={{ fontSize: '.78rem', padding: '6px 14px', background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', color: '#ef4444' }}>
+            <button onClick={bulkDelete} disabled={bulkLoading} className="admin-btn" style={{ fontSize: '.78rem', padding: '6px 14px', background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', color: 'var(--danger)' }}>
               <Trash2 size={13} /> {t.admin.delete}
             </button>
             <button onClick={() => bulkToggle('hidden', true)} disabled={bulkLoading} className="admin-btn" style={{ fontSize: '.78rem', padding: '6px 14px', background: 'rgba(168,85,247,.1)', border: '1px solid rgba(168,85,247,.3)', color: '#a855f7' }}>
@@ -259,9 +265,14 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
             <button onClick={() => setSelectedIds(new Set())} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 4 }}><X size={16} /></button>
           </div>
         ) : <div />}
-        <button onClick={openNew} className="admin-btn admin-btn-primary">
-          <Plus size={15} /> {t.admin.addProductBtn}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => exportProducts(filtered)} className="admin-btn admin-btn-ghost" title="Export CSV">
+            <Download size={15} /> CSV
+          </button>
+          <button onClick={openNew} className="admin-btn admin-btn-primary">
+            <Plus size={15} /> {t.admin.addProductBtn}
+          </button>
+        </div>
       </div>
 
       {/* Desktop Table */}
@@ -322,7 +333,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                     <button onClick={() => openEdit(p)} title={t.admin.edit} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
                       <Pencil size={14} />
                     </button>
-                    <button onClick={() => handleDelete(p.id)} title={t.admin.delete} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
+                    <button onClick={() => handleDelete(p.id)} title={t.admin.delete} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -358,7 +369,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                   {p.hidden ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
                 <button onClick={() => openEdit(p)} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Pencil size={15} /></button>
-                <button onClick={() => handleDelete(p.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
+                <button onClick={() => handleDelete(p.id)} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -382,7 +393,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
       {/* Modal */}
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: '16px' }}>
-          <div ref={modalRef} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div ref={modalRef} className="admin-modal-inner" style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <h2 style={{ fontWeight: 900, fontSize: '1.1rem' }}>{isEdit ? t.admin.editProduct : t.admin.newProduct}</h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)' }}><X size={20} /></button>
@@ -416,7 +427,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                       />
                     )}
                     {(key === 'name' || key === 'price') && formErrors[key] && (
-                      <div style={{ color: '#ef4444', fontSize: '.75rem', marginTop: 4 }}>{formErrors[key]}</div>
+                      <div style={{ color: 'var(--danger)', fontSize: '.75rem', marginTop: 4 }}>{formErrors[key]}</div>
                     )}
                   </div>
                 )
@@ -437,7 +448,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
               {/* Brand dropdown */}
               <div>
                 <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '5px' }}>{t.admin.brand}</label>
-                {formErrors.brand && <div style={{ color: '#ef4444', fontSize: '.75rem', marginBottom: 4 }}>{formErrors.brand}</div>}
+                {formErrors.brand && <div style={{ color: 'var(--danger)', fontSize: '.75rem', marginBottom: 4 }}>{formErrors.brand}</div>}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <select
                     value={editing.brand ?? ''}
@@ -492,7 +503,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
               {/* Category dropdown */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '5px' }}>{t.admin.category}</label>
-                {formErrors.category && <div style={{ color: '#ef4444', fontSize: '.75rem', marginBottom: 4 }}>{formErrors.category}</div>}
+                {formErrors.category && <div style={{ color: 'var(--danger)', fontSize: '.75rem', marginBottom: 4 }}>{formErrors.category}</div>}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <select
                     value={editing.category ?? ''}
@@ -585,6 +596,7 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
           </div>
         </div>
       )}
+      <ConfirmModal {...confirmProps} />
     </div>
   )
 }

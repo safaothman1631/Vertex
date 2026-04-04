@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
 import Image from 'next/image'
@@ -128,6 +128,18 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
 
+  // Re-trigger stagger reveal when page or filters change
+  const gridRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const grid = gridRef.current
+    if (!grid) return
+    const cards = grid.querySelectorAll('.reveal')
+    cards.forEach(c => c.classList.remove('is-visible'))
+    requestAnimationFrame(() => {
+      cards.forEach(c => c.classList.add('is-visible'))
+    })
+  }, [page, search, sort, activeCat, activeBrand, priceMin, priceMax, minRating, inStockOnly])
+
   function goToPage(p: number) {
     setPage(p)
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -151,7 +163,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
     <div className="resp-page-padding" style={{ minHeight: '100vh', background: 'var(--bg0)' }}>
       <div className="container" ref={topRef}>
 
-        {/* ── COMPACT TOOLBAR ── */}
+        {/* -- COMPACT TOOLBAR -- */}
         <div style={{ marginBottom: 28 }}>
 
           {/* Row 1: title + count */}
@@ -233,7 +245,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
             </button>
           </div>
 
-          {/* ── ADVANCED FILTERS PANEL ── */}
+          {/* -- ADVANCED FILTERS PANEL -- */}
           {showFilters && (
             <div style={{
               display: 'flex', flexWrap: 'wrap', gap: 16, padding: '16px 20px',
@@ -289,7 +301,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                     </button>
                   ))}
                   {minRating > 0 && (
-                    <span style={{ fontSize: '.75rem', color: 'var(--text2)', marginLeft: 4 }}>{minRating}+</span>
+                    <span style={{ fontSize: '.75rem', color: 'var(--text2)', marginInlineStart: 4 }}>{minRating}+</span>
                   )}
                 </div>
               </div>
@@ -385,13 +397,14 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
             <p style={{ color: 'var(--text3)', fontSize: '.85rem', marginTop: 6 }}>{t.productsSection.noProductsSub}</p>
           </div>
         ) : (
-          <div className={compactMode ? 'prods-grid-compact' : 'prods-grid'}>
-            {paginated.map(p => {
+          <div ref={gridRef} className={`${compactMode ? 'prods-grid-compact' : 'prods-grid'} stagger-children`}>
+            {paginated.map((p, pIdx) => {
               const img = (p as { img?: string }).img ?? p.images?.[0]
               const isAdded = addedId === p.id
               return (
                 <div key={p.id}
-                  style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .22s cubic-bezier(.22,1,.36,1), box-shadow .22s, border-color .22s', opacity: p.in_stock ? 1 : 0.7 }}
+                  className="reveal reveal-up card-3d"
+                  style={{ '--stagger-i': pIdx, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .22s cubic-bezier(.22,1,.36,1), box-shadow .22s, border-color .22s', opacity: p.in_stock ? 1 : 0.7 } as React.CSSProperties}
                   onMouseEnter={e => { if (!p.in_stock) return; const el = e.currentTarget as HTMLDivElement; el.style.transform = 'translateY(-6px)'; el.style.boxShadow = '0 16px 40px rgba(0,0,0,.35)'; el.style.borderColor = 'rgba(99,102,241,.3)' }}
                   onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = ''; el.style.boxShadow = ''; el.style.borderColor = 'var(--border)' }}
                 >
@@ -420,7 +433,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                     </Link>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                       {[1,2,3,4,5].map(s => <Star key={s} size={11} fill={s <= Math.round(p.rating) ? '#f59e0b' : 'none'} stroke={s <= Math.round(p.rating) ? '#f59e0b' : 'var(--border)'} />)}
-                      <span style={{ fontSize: '.68rem', color: 'var(--text3)', marginLeft: 3 }}>({p.review_count})</span>
+                      <span style={{ fontSize: '.68rem', color: 'var(--text3)', marginInlineStart: 3 }}>({p.review_count})</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                       <span style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)' }}>{formatPrice(p.price)}</span>
@@ -453,7 +466,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
         {/* Pagination */}
         {totalPages > 1 && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 48 }}>
-            <span style={{ fontSize: '.8rem', color: 'var(--text3)', marginRight: 4 }}>
+            <span style={{ fontSize: '.8rem', color: 'var(--text3)', marginInlineEnd: 4 }}>
               {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} {t.productsSection.of} {filtered.length}
             </span>
             <button onClick={() => goToPage(page - 1)} disabled={page === 1}

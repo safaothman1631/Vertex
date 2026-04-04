@@ -14,7 +14,7 @@ import { NextResponse } from 'next/server'
  */
 export async function POST(request: Request) {
   const secret = request.headers.get('x-notify-secret')
-  if (secret !== (process.env.CRON_SECRET?.trim() || '__dev__')) {
+  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET.trim()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       }
 
       const data = await res.json()
-      console.log('[sms] Sent via Twilio:', data.sid)
+      if (process.env.NODE_ENV === 'development') console.log('[sms] Sent via Twilio:', data.sid)
       return NextResponse.json({ ok: true, provider: 'twilio', sid: data.sid })
     } catch (err) {
       console.error('[sms] Twilio exception:', err)
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   }
 
   // Fallback: log SMS (dev mode / no provider configured)
-  console.log(`[sms] 📱 TO: ${phone} | MSG: ${message}`)
+  if (process.env.NODE_ENV === 'development') console.log(`[sms] 📱 TO: ${phone} | MSG: ${message}`)
   return NextResponse.json({
     ok: true,
     provider: 'log',

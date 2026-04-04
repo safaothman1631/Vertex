@@ -8,6 +8,8 @@ import AdminPagination from './AdminPagination'
 import type { Coupon } from '@/types'
 import { useT } from '@/contexts/locale'
 import { usePreferences } from '@/contexts/preferences'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { useConfirm } from '@/hooks/useConfirm'
 
 const EMPTY: Partial<Coupon> = {
   code: '', discount_type: 'percent', discount_value: 0,
@@ -28,6 +30,7 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
   const [searchQ, setSearchQ] = useState('')
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(25)
+  const { confirm, confirmProps } = useConfirm()
 
   const filtered = useMemo(() => {
     if (!searchQ.trim()) return coupons
@@ -88,7 +91,8 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Move this coupon to trash?')) return
+    const ok = await confirm({ message: 'Move this coupon to trash?', title: 'Delete Coupon' })
+    if (!ok) return
     const coupon = coupons.find(c => c.id === id)
     if (coupon) {
       await supabase.from('trash').insert({ table_name: 'coupons', record_id: id, record_data: coupon })
@@ -173,13 +177,13 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
                 <td>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                     <button onClick={() => toggleActive(c)} title={c.active ? t.admin.deactivate : t.admin.activate}
-                      style={{ fontSize: '.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', background: c.active ? 'rgba(239,68,68,.1)' : 'rgba(34,197,94,.1)', color: c.active ? '#ef4444' : '#22c55e' }}>
+                      style={{ fontSize: '.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', background: c.active ? 'rgba(239,68,68,.1)' : 'rgba(34,197,94,.1)', color: c.active ? 'var(--danger)' : '#22c55e' }}>
                       {c.active ? t.admin.off : t.admin.on}
                     </button>
                     <button onClick={() => openEdit(c)} title={t.admin.edit} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Pencil size={14} />
                     </button>
-                    <button onClick={() => handleDelete(c.id)} title={t.admin.delete} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => handleDelete(c.id)} title={t.admin.delete} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -203,7 +207,7 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => openEdit(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text2)' }}><Pencil size={15} /></button>
-                <button onClick={() => handleDelete(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#ef4444' }}><Trash2 size={15} /></button>
+                <button onClick={() => handleDelete(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--danger)' }}><Trash2 size={15} /></button>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
@@ -312,6 +316,7 @@ export default function AdminCouponsClient({ coupons: initial }: { coupons: Coup
           </div>
         </div>
       )}
+      <ConfirmModal {...confirmProps} />
     </div>
   )
 }

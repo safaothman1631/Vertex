@@ -426,6 +426,8 @@ const en = {
     lastName: 'Last Name',
     businessEmail: 'Business Email',
     passwordMin: 'Minimum 8 characters',
+    passwordUpper: 'Password must contain at least one uppercase letter',
+    passwordNumber: 'Password must contain at least one number',
     businessType: 'Business Type',
     selectBiz: '— Select a type —',
     creating: 'Creating...',
@@ -890,6 +892,14 @@ const en = {
     share: 'Share',
     copyLink: 'Copy Link',
     copied: 'Copied!',
+  },
+
+  // ── ERROR PAGE
+  errorPage: {
+    title: 'Something went wrong',
+    desc: 'An unexpected error occurred. Please try again or go back to the homepage.',
+    tryAgain: 'Try Again',
+    goHome: 'Go Home',
   },
 
   // ── INVOICE

@@ -39,12 +39,12 @@ export default function RegisterPage() {
       return
     }
     if (!/[A-Z]/.test(password)) {
-      setError('Password must contain at least one uppercase letter')
+      setError(t.auth.passwordUpper)
       setLoading(false)
       return
     }
     if (!/[0-9]/.test(password)) {
-      setError('Password must contain at least one number')
+      setError(t.auth.passwordNumber)
       setLoading(false)
       return
     }
@@ -70,7 +70,7 @@ export default function RegisterPage() {
   if (success) {
     return (
       <div className="auth-page-wrap">
-        <div className="auth-modal-card" style={{ textAlign: 'center' }}>
+        <div className="auth-modal-card" style={{ textAlign: 'center', animation: 'anim-scale-up .5s var(--ease-smooth) both' }}>
           <div style={{ fontSize: '3.5rem', marginBottom: 16 }}>📧</div>
           <h2>{t.auth.accountCreated}</h2>
           <p className="auth-sub" style={{ marginBottom: 12 }}>{t.auth.checkEmail}</p>
@@ -86,7 +86,7 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-page-wrap">
-      <div className="auth-modal-card">
+      <div className="auth-modal-card" style={{ animation: 'anim-scale-up .5s var(--ease-smooth) both' }}>
 
         <div className="auth-logo">Ver<span style={{ color: 'var(--primary)' }}>tex</span></div>
         <h2>{t.auth.createAccount}</h2>
@@ -96,20 +96,20 @@ export default function RegisterPage() {
           <div className="form-row">
             <div className="input-group">
               <label>{t.auth.firstName}</label>
-              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John" required />
+              <input type="text" enterKeyHint="next" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John" required />
             </div>
             <div className="input-group">
               <label>{t.auth.lastName}</label>
-              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Smith" required />
+              <input type="text" enterKeyHint="next" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Smith" required />
             </div>
           </div>
           <div className="input-group">
             <label>{t.auth.businessEmail}</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@business.com" required />
+            <input type="email" inputMode="email" enterKeyHint="next" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@business.com" required />
           </div>
           <div className="input-group">
             <label>{t.auth.password}</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t.auth.passwordMin} minLength={8} required />
+            <input type="password" enterKeyHint="next" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t.auth.passwordMin} minLength={8} required />
           </div>
           <div className="input-group">
             <label>{t.auth.businessType}</label>
@@ -123,7 +123,7 @@ export default function RegisterPage() {
               <option value="other">{t.auth.bizTypes.other}</option>
             </select>
           </div>
-          {error && <p className="auth-error-msg">{error}</p>}
+          {error && <p role="alert" className="auth-error-msg">{error}</p>}
           <button type="submit" disabled={loading} className="btn-primary btn-full btn-lg">
             {loading ? t.auth.creating : t.auth.createAccount + ' →'}
           </button>

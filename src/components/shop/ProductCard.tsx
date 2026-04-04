@@ -6,6 +6,7 @@ import type { ProductData } from '@/data/products'
 import QuickView from './QuickView'
 import { useT } from '@/contexts/locale'
 import { usePreferences } from '@/contexts/preferences'
+import { useCompareStore } from '@/store/compare'
 
 interface Props {
   product: ProductData
@@ -13,16 +14,31 @@ interface Props {
 
 export default function ProductCard({ product: p }: Props) {
   const addItem = useCartStore((s) => s.addItem)
+  const { add: addCompare, remove: removeCompare, has: hasCompare } = useCompareStore()
   const [slide, setSlide] = useState(0)
   const [qvOpen, setQvOpen] = useState(false)
   const [added, setAdded] = useState(false)
   const [hovered, setHovered] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
   const t = useT()
   const { formatPrice } = usePreferences()
 
+  // Only run auto-slide when card is visible in viewport
   useEffect(() => {
-    if (hovered) {
+    const el = cardRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (hovered || !isVisible) {
       if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
       return
     }
@@ -30,7 +46,7 @@ export default function ProductCard({ product: p }: Props) {
       setSlide((s) => (s + 1) % 3)
     }, 3000)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [hovered])
+  }, [hovered, isVisible])
 
   function handleAddToCart() {
     addItem({
@@ -40,6 +56,7 @@ export default function ProductCard({ product: p }: Props) {
       images: p.img ? [p.img] : [],
       rating: p.rating, review_count: p.reviews,
       in_stock: true, is_new: p.isNew, is_hot: p.isHot, hidden: false, created_at: '',
+      stock_quantity: 0,
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
@@ -49,7 +66,7 @@ export default function ProductCard({ product: p }: Props) {
 
   return (
     <>
-      <div className="prod-card" data-cat={p.cat} data-brand={p.brandKey} data-price={p.priceNum}
+      <div ref={cardRef} className="prod-card" data-cat={p.cat} data-brand={p.brandKey} data-price={p.priceNum}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
@@ -128,6 +145,24 @@ export default function ProductCard({ product: p }: Props) {
               <button className="btn-view" onClick={() => setQvOpen(true)}>{t.productCard.quickView}</button>
               <button className="btn-cart" onClick={handleAddToCart}>
                 {added ? t.productCard.added : t.productCard.addToCart}
+              </button>
+              <button
+                className={`btn-compare${hasCompare(p.id) ? ' active' : ''}`}
+                onClick={() => {
+                  const product = {
+                    id: p.id, name: p.name, brand: p.brand, model: p.model,
+                    category: p.category, price: p.priceNum, old_price: null,
+                    description: p.desc, specs: p.specs,
+                    images: p.img ? [p.img] : [],
+                    rating: p.rating, review_count: p.reviews,
+                    in_stock: true, is_new: p.isNew, is_hot: p.isHot, hidden: false, created_at: '',
+                    stock_quantity: 0,
+                  }
+                  hasCompare(p.id) ? removeCompare(p.id) : addCompare(product)
+                }}
+                title={hasCompare(p.id) ? 'Remove from compare' : 'Add to compare'}
+              >
+                {hasCompare(p.id) ? '✓' : '⇄'}
               </button>
             </div>
           </div>

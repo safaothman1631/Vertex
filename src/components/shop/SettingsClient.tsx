@@ -1,9 +1,10 @@
-﻿'use client'
+'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   User, Mail, Lock, Save, CheckCircle, MapPin, Globe, Bell,
   ShoppingBag, Trash2, Phone, Plus, Pencil, X, Star, ChevronRight,
@@ -43,10 +44,10 @@ interface Props {
 }
 
 const LANG_OPTIONS: { code: Locale; label: string; flag: string }[] = [
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'ckb', label: 'کوردی', flag: '🇮🇶' },
-  { code: 'ar', label: 'العربية', flag: '🇸🇦' },
-  { code: 'tr', label: 'Türkçe', flag: '🇹🇷' },
+  { code: 'en', label: 'English', flag: '????' },
+  { code: 'ckb', label: '?????', flag: '????' },
+  { code: 'ar', label: '???????', flag: '????' },
+  { code: 'tr', label: 'T�rk�e', flag: '????' },
 ]
 
 const STATUS_COLORS: Record<string, string> = {
@@ -64,7 +65,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const { locale, setLocale } = useLocale()
   const { setTheme: applyTheme, setCurrency: applyCurrency, setCompactMode: applyCompactMode, formatPrice } = usePreferences()
 
-  // ── Profile state
+  // -- Profile state
   const [name, setName] = useState(profile?.full_name ?? '')
   const [phone, setPhone] = useState(profile?.phone ?? '')
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? '')
@@ -72,13 +73,13 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  // ── Password state
+  // -- Password state
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
   const [changingPw, setChangingPw] = useState(false)
   const [pwMsg, setPwMsg] = useState('')
   const [pwErr, setPwErr] = useState(false)
 
-  // ── Addresses state
+  // -- Addresses state
   const [addresses, setAddresses] = useState<UserAddress[]>(initAddresses)
   const [editingAddr, setEditingAddr] = useState<Partial<UserAddress> | null>(null)
   const [savingAddr, setSavingAddr] = useState(false)
@@ -87,7 +88,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   const [pickedLatLng, setPickedLatLng] = useState<{ lat: number; lng: number } | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
-  // ── IntersectionObserver: track active section for sidebar
+  // -- IntersectionObserver: track active section for sidebar
   useEffect(() => {
     const ids = ['profile', 'password', 'addresses', 'appearance', 'language', 'notifications', 'privacy', 'orders', 'danger']
     const observer = new IntersectionObserver(
@@ -100,7 +101,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     return () => observer.disconnect()
   }, [])
 
-  // ── Supabase realtime: new notification arrives → prepend to inbox
+  // -- Supabase realtime: new notification arrives ? prepend to inbox
   useEffect(() => {
     const channel = supabase
       .channel(`notif-${user.id}`)
@@ -145,7 +146,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
         zip: a.postcode || '',
       }))
       setMapPickerOpen(false)
-    } catch {}
+    } catch (err) { console.error('[settings] geocode:', err) }
     setGeocoding(false)
   }
 
@@ -155,7 +156,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     setGeocoding(true)
     setGeoError('')
     if (!navigator.geolocation) {
-      setGeoError('براوزەرەکەت لۆکەیشن پشتگیری ناکات')
+      setGeoError('??????????? ??????? ??????? ?????')
       setGeocoding(false)
       return
     }
@@ -166,14 +167,14 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
         reverseGeocode(lat, lng)
       },
       () => {
-        setGeoError('تکایە ڕێگەپێدان بدە بە لۆکەیشن — لە بار ئادرەس کلیک بکە لەسەر ئایکۆنی 🔒 و Location بگۆڕە بۆ Allow')
+        setGeoError('????? ????????? ??? ?? ??????? � ?? ??? ?????? ???? ??? ????? ??????? ?? ? Location ????? ?? Allow')
         setGeocoding(false)
       },
       { enableHighAccuracy: true, timeout: 10000 }
     )
   }
 
-  // ── Notifications state
+  // -- Notifications state
   const [showPw, setShowPw] = useState({ current: false, next: false, confirm: false })
   const [activeSection, setActiveSection] = useState('profile')
   const [clearConfirm, setClearConfirm] = useState(false)
@@ -258,12 +259,12 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     return new Date(dateStr).toLocaleDateString()
   }
 
-  // ── Delete account state
+  // -- Delete account state
   const [deleting, setDeleting] = useState(false)
   const [deleteStep, setDeleteStep] = useState<'idle' | 'confirm'>('idle')
   const [deletePassword, setDeletePassword] = useState('')
 
-  // ── Styles
+  // -- Styles
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '11px 14px', borderRadius: 10,
     background: 'var(--bg3)', border: '1px solid var(--border)',
@@ -291,9 +292,9 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     borderRadius: 10, fontWeight: 700, fontSize: '.85rem', cursor: 'pointer',
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   // 1. SAVE PROFILE
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
@@ -303,9 +304,9 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     setTimeout(() => setSaved(false), 2500)
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   // 2. CHANGE PASSWORD
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   async function savePassword(e: React.FormEvent) {
     e.preventDefault()
     setPwMsg('')
@@ -322,9 +323,9 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     else { setPwErr(false); setPwMsg(t.settings.pwUpdated); setPwForm({ current: '', next: '', confirm: '' }) }
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   // 3. ADDRESSES CRUD
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   function startNewAddress() {
     setEditingAddr({ label: 'Home', name: '', phone: '', address: '', city: '', country: '', zip: '' })
   }
@@ -362,17 +363,17 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     setAddresses(prev => prev.map(a => ({ ...a, is_default: a.id === id })))
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   // 4. LANGUAGE
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   const changeLanguage = useCallback(async (code: Locale) => {
     setLocale(code)
     await supabase.from('profiles').update({ preferred_locale: code }).eq('id', user.id)
   }, [setLocale, supabase, user.id])
 
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   // 5. NOTIFICATIONS
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   type BoolPrefKey = 'notify_email' | 'notify_order' | 'notify_promo' | 'notify_wishlist' | 'notify_stock' | 'notify_sms' | 'newsletter' | 'login_alerts' | 'auto_apply_coupon' | 'compact_mode'
 
   const [smsPhoneWarn, setSmsPhoneWarn] = useState(false)
@@ -419,9 +420,9 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     }
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   // 6. DELETE ACCOUNT
-  // ══════════════════════════════════════════════════════════
+  // ----------------------------------------------------------
   async function handleDeleteAccount() {
     if (deleteStep === 'idle') {
       setDeleteStep('confirm')
@@ -450,7 +451,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     }
   }
 
-  // ── Sections list for sidebar nav
+  // -- Sections list for sidebar nav
   const SECTIONS = [
     { id: 'profile',       icon: <User size={14} />,         label: t.settings.sectionProfile },
     { id: 'password',      icon: <Lock size={14} />,         label: t.settings.sectionPassword },
@@ -463,7 +464,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
     { id: 'danger',        icon: <AlertTriangle size={14} />,label: t.settings.dangerZone },
   ]
 
-  // ── Initials avatar
+  // -- Initials avatar
   const initials = (name || user.email || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -488,17 +489,17 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
   return (
     <div className="resp-page-padding" style={{ minHeight: '100vh', background: 'var(--bg0)' }}>
       <div className="container" style={{ maxWidth: 980 }}>
-        {/* ── Header */}
+        {/* -- Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 36 }}>
           <div style={{ position: 'relative' }}>
             <div style={{
-              width: 56, height: 56, borderRadius: 16, background: avatarUrl ? 'transparent' : 'var(--gradient)',
+              position: 'relative', width: 56, height: 56, borderRadius: 16, background: avatarUrl ? 'transparent' : 'var(--gradient)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: '#fff', fontWeight: 900, fontSize: '1.1rem', letterSpacing: '.03em',
               overflow: 'hidden', border: avatarUrl ? '2px solid var(--border)' : 'none',
             }}>
               {avatarUrl ? (
-                <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <Image src={avatarUrl} alt="" fill style={{ objectFit: 'cover' }} sizes="56px" />
               ) : initials}
             </div>
             <label style={{
@@ -514,7 +515,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
           </div>
           <div>
             <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '.75rem', textTransform: 'uppercase', letterSpacing: '.1em' }}>
-              {t.settings.title.replace('⚙ ', '')}
+              {t.settings.title.replace('? ', '')}
             </p>
             <h1 style={{ fontSize: '1.7rem', fontWeight: 900, letterSpacing: '-.02em' }}>{t.settings.title}</h1>
           </div>
@@ -522,7 +523,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
 
         <div className="settings-layout">
 
-          {/* ── Sidebar nav ── */}
+          {/* -- Sidebar nav -- */}
           <aside className="settings-sidebar">
             {SECTIONS.map(s => (
               <button
@@ -537,12 +538,12 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             ))}
           </aside>
 
-          {/* ── Main content ── */}
+          {/* -- Main content -- */}
           <div className="settings-main">
 
-          {/* ═══════════ 1. PROFILE ═══════════ */}
+          {/* ----------- 1. PROFILE ----------- */}
           <div id="profile" className="settings-section resp-card-padding-lg" style={card}>
-            {sectionHeader(<User size={16} style={{ color: 'var(--primary)' }} />, t.settings.fullName.split(' ')[0] + ' — ' + t.settings.email)}
+            {sectionHeader(<User size={16} style={{ color: 'var(--primary)' }} />, t.settings.fullName.split(' ')[0] + ' � ' + t.settings.email)}
             <form onSubmit={saveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={labelStyle}>{t.settings.fullName}</label>
@@ -552,7 +553,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                 <label style={labelStyle}>{t.settings.email}</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
-                  <input value={user.email ?? ''} disabled style={{ ...inputStyle, paddingLeft: 34, opacity: .6, cursor: 'not-allowed' }} />
+                  <input value={user.email ?? ''} disabled style={{ ...inputStyle, paddingInlineStart: 34, opacity: .6, cursor: 'not-allowed' }} />
                 </div>
                 <p style={{ fontSize: '.72rem', color: 'var(--text3)', marginTop: 5 }}>{t.settings.emailNote}</p>
               </div>
@@ -560,7 +561,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                 <label style={labelStyle}>{t.settings.phone}</label>
                 <div style={{ position: 'relative' }}>
                   <Phone size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
-                  <input value={phone} onChange={e => setPhone(e.target.value)} style={{ ...inputStyle, paddingLeft: 34 }} placeholder={t.settings.phonePlaceholder} />
+                  <input value={phone} onChange={e => setPhone(e.target.value)} style={{ ...inputStyle, paddingInlineStart: 34 }} placeholder={t.settings.phonePlaceholder} />
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -577,7 +578,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             </form>
           </div>
 
-          {/* ═══════════ 2. PASSWORD ═══════════ */}
+          {/* ----------- 2. PASSWORD ----------- */}
           <div id="password" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(<Lock size={16} style={{ color: 'var(--primary)' }} />, t.settings.changePassword)}
             <form onSubmit={savePassword} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -594,7 +595,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                       required
                       value={pwForm[key]}
                       onChange={e => setPwForm(p => ({ ...p, [key]: e.target.value }))}
-                      style={{ ...inputStyle, paddingRight: 42 }}
+                      style={{ ...inputStyle, paddingInlineEnd: 42 }}
                     />
                     <button
                       type="button"
@@ -624,7 +625,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             </form>
           </div>
 
-          {/* ═══════════ 3. ADDRESSES ═══════════ */}
+          {/* ----------- 3. ADDRESSES ----------- */}
           <div id="addresses" className="settings-section resp-card-padding-lg" style={card}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -656,7 +657,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,.08)' }}
                   >
                     <Map size={15} />
-                    لەسەر ماپ دیاری بکە
+                    ????? ??? ????? ???
                   </button>
                   <button
                     type="button"
@@ -674,7 +675,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                     onMouseLeave={e => { if (!geocoding) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(16,185,129,.08)' }}
                   >
                     {geocoding ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <LocateFixed size={15} />}
-                    {geocoding ? 'چاوەڕوانبە...' : 'شوێنم بنووسەرەوە'}
+                    {geocoding ? '??????????...' : '????? ??????????'}
                   </button>
                 </div>
 
@@ -714,7 +715,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <MapPin size={16} style={{ color: 'var(--primary)' }} />
-                          <span style={{ fontWeight: 800, fontSize: '.95rem' }}>شوێنەکەت لەسەر ماپ دیاری بکە</span>
+                          <span style={{ fontWeight: 800, fontSize: '.95rem' }}>???????? ????? ??? ????? ???</span>
                         </div>
                         <button
                           type="button"
@@ -726,7 +727,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                       </div>
                       {/* Hint */}
                       <div style={{ padding: '10px 20px', background: 'rgba(99,102,241,.05)', borderBottom: '1px solid var(--border)', fontSize: '.8rem', color: 'var(--text2)' }}>
-                        📍 لەسەر ماپ کلیک بکە تا شوێنەکەت دیاری بکەیت، خۆی هەموو زانیاریەکان دەخاتەوە
+                        ?? ????? ??? ???? ??? ?? ???????? ????? ?????? ??? ????? ??????????? ????????
                       </div>
                       {/* Map iframe */}
                       <iframe
@@ -742,7 +743,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                           color: 'var(--primary)', fontSize: '.82rem', borderTop: '1px solid var(--border)',
                         }}>
                           <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                          ئادرەس دەخوێنرێتەوە...
+                          ?????? ????????????...
                         </div>
                       )}
                     </div>
@@ -812,7 +813,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                       )}
                     </div>
                     <p style={{ fontSize: '.8rem', color: 'var(--text2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {addr.name} — {addr.address}, {addr.city} {addr.zip}
+                      {addr.name} � {addr.address}, {addr.city} {addr.zip}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
@@ -836,7 +837,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             </div>
           </div>
 
-          {/* ═══════════ 4. APPEARANCE ═══════════ */}
+          {/* ----------- 4. APPEARANCE ----------- */}
           <div id="appearance" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(<Palette size={16} style={{ color: 'var(--primary)' }} />, t.settings.sectionAppearance)}
 
@@ -872,9 +873,9 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10, marginBottom: 20 }}>
               {([
                 { code: 'USD', symbol: '$', label: 'USD' },
-                { code: 'IQD', symbol: 'د.ع', label: 'IQD' },
-                { code: 'EUR', symbol: '€', label: 'EUR' },
-                { code: 'TRY', symbol: '₺', label: 'TRY' },
+                { code: 'IQD', symbol: '?.?', label: 'IQD' },
+                { code: 'EUR', symbol: '�', label: 'EUR' },
+                { code: 'TRY', symbol: '?', label: 'TRY' },
               ]).map(cur => (
                 <button key={cur.code} onClick={() => updateTextPref('currency', cur.code)}
                   style={{
@@ -925,7 +926,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             </div>
           </div>
 
-          {/* ═══════════ 5. LANGUAGE ═══════════ */}
+          {/* ----------- 5. LANGUAGE ----------- */}
           <div id="language" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(<Globe size={16} style={{ color: 'var(--primary)' }} />, t.settings.language)}
             <p style={{ color: 'var(--text3)', fontSize: '.8rem', marginBottom: 14, marginTop: -10 }}>{t.settings.languageDesc}</p>
@@ -947,7 +948,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             </div>
           </div>
 
-          {/* ═══════════ 6. NOTIFICATIONS ═══════════ */}
+          {/* ----------- 6. NOTIFICATIONS ----------- */}
           <div id="notifications" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(
               <div style={{ position: 'relative' }}>
@@ -963,7 +964,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
               t.settings.notifications
             )}
 
-            {/* ── Notification Preferences ── */}
+            {/* -- Notification Preferences -- */}
             <p style={{ fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '.5px' }}>
               {t.settings.notifPreferences}
             </p>
@@ -1015,7 +1016,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
               </div>
             )}
 
-            {/* ── Notification Inbox ── */}
+            {/* -- Notification Inbox -- */}
             <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
               {/* Header row */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
@@ -1130,7 +1131,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                         width: 34, height: 34, borderRadius: 8, flexShrink: 0,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         background: `${getNotifColor(n.type)}15`, color: getNotifColor(n.type),
-                        marginLeft: !n.is_read ? 6 : 0,
+                        marginInlineStart: !n.is_read ? 6 : 0,
                       }}>
                         {getNotifIcon(n.type)}
                       </span>
@@ -1164,7 +1165,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                           </span>
                           {!n.is_read && (
                             <span style={{ fontSize: '.65rem', color: 'var(--primary)', fontWeight: 600 }}>
-                              • {t.settings.clickToRead}
+                              � {t.settings.clickToRead}
                             </span>
                           )}
                         </div>
@@ -1189,7 +1190,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             </div>
           </div>
 
-          {/* ═══════════ 7. PRIVACY & SECURITY ═══════════ */}
+          {/* ----------- 7. PRIVACY & SECURITY ----------- */}
           <div id="privacy" className="settings-section resp-card-padding-lg" style={card}>
             {sectionHeader(<Shield size={16} style={{ color: 'var(--primary)' }} />, t.settings.sectionPrivacy)}
             <p style={{ color: 'var(--text3)', fontSize: '.8rem', marginBottom: 14, marginTop: -10 }}>{t.settings.privacyDesc}</p>
@@ -1253,7 +1254,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   <div style={{ padding: '10px 12px', borderRadius: 8, background: 'var(--bg2)' }}>
                     <p style={{ fontSize: '.68rem', color: 'var(--text3)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>{t.settings.accountId}</p>
-                    <p style={{ fontSize: '.75rem', fontWeight: 600, fontFamily: 'monospace', opacity: 0.8 }}>{user.id.slice(0, 12)}…</p>
+                    <p style={{ fontSize: '.75rem', fontWeight: 600, fontFamily: 'monospace', opacity: 0.8 }}>{user.id.slice(0, 12)}�</p>
                   </div>
                   <div style={{ padding: '10px 12px', borderRadius: 8, background: 'var(--bg2)' }}>
                     <p style={{ fontSize: '.68rem', color: 'var(--text3)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>{t.settings.memberSince}</p>
@@ -1264,7 +1265,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             </div>
           </div>
 
-          {/* ═══════════ 8. RECENT ORDERS ═══════════ */}
+          {/* ----------- 8. RECENT ORDERS ----------- */}
           <div id="orders" className="settings-section resp-card-padding-lg" style={card}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1309,7 +1310,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                         {(t.orders.status as Record<string, string>)[order.status] || order.status}
                       </span>
                       <span style={{ fontWeight: 700, fontSize: '.85rem' }}>{formatPrice(order.total)}</span>
-                      <ChevronRight size={14} style={{ color: 'var(--text3)' }} />
+                      <ChevronRight className="rtl-flip" size={14} style={{ color: 'var(--text3)' }} />
                     </div>
                   </Link>
                 ))}
@@ -1317,7 +1318,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
             )}
           </div>
 
-          {/* ═══════════ 7. DANGER ZONE ═══════════ */}
+          {/* ----------- 7. DANGER ZONE ----------- */}
           <div id="danger" className="settings-section resp-card-padding-lg" style={{ ...card, border: '1px solid rgba(239,68,68,.25)' }}>
             {sectionHeader(<Trash2 size={16} style={{ color: '#ef4444' }} />, t.settings.dangerZone)}
             <p style={{ color: 'var(--text3)', fontSize: '.82rem', marginBottom: 16, marginTop: -10 }}>

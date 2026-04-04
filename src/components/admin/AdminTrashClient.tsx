@@ -8,6 +8,8 @@ import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
 import type { TrashItem } from '@/types'
 import { useT } from '@/contexts/locale'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { useConfirm } from '@/hooks/useConfirm'
 
 const TABLE_META: Record<string, { label: string; icon: typeof Package; color: string }> = {
   products:         { label: 'Product',  icon: Package,    color: '#6366f1' },
@@ -37,6 +39,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
+  const { confirm, confirmProps } = useConfirm()
   const typeLabels: Record<string, string> = { products: t.admin.product, orders: t.admin.order, contact_messages: t.admin.messageTr, coupons: t.admin.coupon, brands: t.admin.brandTr, categories: t.admin.categoryTr }
 
   const [searchQ, setSearchQ] = useState('')
@@ -85,7 +88,8 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
   }
 
   async function handlePermanentDelete(item: TrashItem) {
-    if (!confirm(t.admin.permanentDeleteConfirm)) return
+    const ok = await confirm({ message: t.admin.permanentDeleteConfirm, title: t.admin.deletePermanently })
+    if (!ok) return
     setLoadingId(item.id)
     setError(null)
 
@@ -99,7 +103,8 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
   }
 
   async function handleEmptyTrash() {
-    if (!confirm(t.admin.emptyTrashConfirm)) return
+    const ok = await confirm({ message: t.admin.emptyTrashConfirm, title: t.admin.emptyTrash })
+    if (!ok) return
     setLoadingId('all')
     setError(null)
 
@@ -306,6 +311,7 @@ export default function AdminTrashClient({ items: initial }: { items: TrashItem[
           <AdminPagination total={filtered.length} page={page} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
         </>
       )}
+      <ConfirmModal {...confirmProps} />
     </div>
   )
 }

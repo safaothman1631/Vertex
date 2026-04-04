@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useCallback, useEffect } from 'react'
 import { useCartStore } from '@/store/cart'
@@ -7,6 +7,7 @@ import { ShoppingBag, CreditCard, Truck, Lock, AlertCircle, Tag, Check } from 'l
 import type { ShippingAddress } from '@/types'
 import { useT } from '@/contexts/locale'
 import { usePreferences } from '@/contexts/preferences'
+import ShippingMethodSelector from '@/components/shop/ShippingMethodSelector'
 
 const EMPTY: ShippingAddress = { name: '', email: '', phone: '', address: '', city: '', country: '', zip: '' }
 type FieldKey = keyof ShippingAddress
@@ -17,7 +18,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export default function CheckoutPage() {
   const t = useT()
   const { formatPrice } = usePreferences()
-  const { items, totalPrice, clearCart } = useCartStore()
+  const { items, totalPrice } = useCartStore()
   const [form, setForm] = useState<ShippingAddress>(EMPTY)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -27,6 +28,8 @@ export default function CheckoutPage() {
   const [couponApplied, setCouponApplied] = useState<{ code: string; discount_type: 'percent' | 'fixed'; discount_value: number } | null>(null)
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
+  const [shippingMethod, setShippingMethod] = useState('standard')
+  const [shippingCost, setShippingCost] = useState(0)
   const router = useRouter()
 
   // Redirect client-side only when cart is empty (avoids SSR router.replace issue)
@@ -107,7 +110,7 @@ export default function CheckoutPage() {
       ? subtotal * couponApplied.discount_value / 100
       : couponApplied.discount_value
     : 0
-  const finalTotal = Math.max(0, subtotal - discount)
+  const finalTotal = Math.max(0, subtotal - discount + shippingCost)
 
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault()
@@ -122,12 +125,15 @@ export default function CheckoutPage() {
           items: items.map(i => ({ productId: i.product.id, quantity: i.quantity })),
           shippingAddress: form,
           couponCode: couponApplied?.code || undefined,
+          shippingMethod,
+          shippingCost,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Checkout failed')
       if (data.url) {
-        clearCart()
+        // Mark that checkout succeeded — cart will be cleared on success page
+        try { sessionStorage.setItem('checkout_completed', '1') } catch {}
         router.push(data.url)
       }
     } catch (err: unknown) {
@@ -160,7 +166,7 @@ export default function CheckoutPage() {
       <div className="container" style={{ maxWidth: 1100 }}>
 
         {/* Header */}
-        <div style={{ marginBottom: 40 }}>
+        <div style={{ marginBottom: 40, animation: 'anim-fade-up .5s var(--ease-smooth) both' }}>
           <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '.82rem', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>{t.checkout.secureCheckout}</p>
           <h1 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-.02em' }}>{t.checkout.title}</h1>
         </div>
@@ -169,7 +175,7 @@ export default function CheckoutPage() {
           <div className="resp-grid-sidebar">
 
             {/* LEFT  Shipping */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24, animation: 'anim-fade-up .6s var(--ease-smooth) .1s both' }}>
               <div className="resp-card-padding" style={{
                 background: 'var(--bg2)', border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-xl)',
@@ -185,47 +191,53 @@ export default function CheckoutPage() {
                   {/* Name */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.fullName}</label>
-                    <input type="text" placeholder="Safa Othman" value={form.name} onChange={e => handleChange('name', e.target.value)} onBlur={() => handleBlur('name')} style={inputStyle('name')} />
+                    <input type="text" enterKeyHint="next" placeholder="Safa Othman" value={form.name} onChange={e => handleChange('name', e.target.value)} onBlur={() => handleBlur('name')} style={inputStyle('name')} />
                     {fieldError('name')}
                   </div>
                   {/* Email */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.email}</label>
-                    <input type="email" placeholder="you@email.com" value={form.email} onChange={e => handleChange('email', e.target.value)} onBlur={() => handleBlur('email')} style={inputStyle('email')} />
+                    <input type="email" inputMode="email" enterKeyHint="next" placeholder="you@email.com" value={form.email} onChange={e => handleChange('email', e.target.value)} onBlur={() => handleBlur('email')} style={inputStyle('email')} />
                     {fieldError('email')}
                   </div>
                   {/* Phone */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.phone}</label>
-                    <input type="tel" placeholder="+1 (555) 000-0000" value={form.phone || ''} onChange={e => handleChange('phone', e.target.value)} onBlur={() => handleBlur('phone')} style={inputStyle('phone')} />
+                    <input type="tel" inputMode="tel" enterKeyHint="next" placeholder="+1 (555) 000-0000" value={form.phone || ''} onChange={e => handleChange('phone', e.target.value)} onBlur={() => handleBlur('phone')} style={inputStyle('phone')} />
                     {fieldError('phone')}
                   </div>
                   {/* Address */}
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.address}</label>
-                    <input type="text" placeholder="123 Main Street, Apt 4B" value={form.address} onChange={e => handleChange('address', e.target.value)} onBlur={() => handleBlur('address')} style={inputStyle('address')} />
+                    <input type="text" enterKeyHint="next" placeholder="123 Main Street, Apt 4B" value={form.address} onChange={e => handleChange('address', e.target.value)} onBlur={() => handleBlur('address')} style={inputStyle('address')} />
                     {fieldError('address')}
                   </div>
                   {/* City */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.city}</label>
-                    <input type="text" placeholder="New York" value={form.city} onChange={e => handleChange('city', e.target.value)} onBlur={() => handleBlur('city')} style={inputStyle('city')} />
+                    <input type="text" enterKeyHint="next" placeholder="New York" value={form.city} onChange={e => handleChange('city', e.target.value)} onBlur={() => handleBlur('city')} style={inputStyle('city')} />
                     {fieldError('city')}
                   </div>
                   {/* Country */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.country}</label>
-                    <input type="text" placeholder="United States" value={form.country} onChange={e => handleChange('country', e.target.value)} onBlur={() => handleBlur('country')} style={inputStyle('country')} />
+                    <input type="text" enterKeyHint="next" placeholder="United States" value={form.country} onChange={e => handleChange('country', e.target.value)} onBlur={() => handleBlur('country')} style={inputStyle('country')} />
                     {fieldError('country')}
                   </div>
                   {/* ZIP */}
                   <div>
                     <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t.checkout.zip}</label>
-                    <input type="text" placeholder="10001" value={form.zip} onChange={e => handleChange('zip', e.target.value)} onBlur={() => handleBlur('zip')} style={inputStyle('zip')} />
+                    <input type="text" inputMode="numeric" enterKeyHint="done" placeholder="10001" value={form.zip} onChange={e => handleChange('zip', e.target.value)} onBlur={() => handleBlur('zip')} style={inputStyle('zip')} />
                     {fieldError('zip')}
                   </div>
                 </div>
               </div>
+
+              {/* Shipping Method */}
+              <ShippingMethodSelector
+                selected={shippingMethod}
+                onChange={(id, cost) => { setShippingMethod(id); setShippingCost(cost) }}
+              />
 
               {/* Trust badges */}
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
@@ -246,6 +258,7 @@ export default function CheckoutPage() {
             <div className="resp-sticky resp-card-padding" style={{
               background: 'var(--bg2)', border: '1px solid var(--border)',
               borderRadius: 'var(--radius-xl)',
+              animation: 'anim-fade-up .6s var(--ease-smooth) .2s both',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(99,102,241,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -259,7 +272,7 @@ export default function CheckoutPage() {
                   <div key={product.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                     <span style={{ color: 'var(--text2)', fontSize: '.85rem', flex: 1 }}>
                       {product.name}
-                      <span style={{ color: 'var(--text3)', marginLeft: 4 }}>{quantity}</span>
+                      <span style={{ color: 'var(--text3)', marginInlineStart: 4 }}>{quantity}</span>
                     </span>
                     <span style={{ fontWeight: 600, fontSize: '.88rem', flexShrink: 0 }}>{formatPrice(product.price * quantity)}</span>
                   </div>
@@ -270,7 +283,7 @@ export default function CheckoutPage() {
                 {/* Coupon Code */}
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 6 }}>
-                    <Tag size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+                    <Tag size={12} style={{ display: 'inline', verticalAlign: 'middle', marginInlineEnd: 4 }} />
                     {t.checkout.couponCode}
                   </label>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -304,12 +317,12 @@ export default function CheckoutPage() {
                         opacity: couponLoading || !couponCode.trim() ? .6 : 1,
                         transition: 'opacity .2s',
                       }}>
-                        {couponLoading ? '⏳' : t.checkout.apply}
+                        {couponLoading ? '?' : t.checkout.apply}
                       </button>
                     )}
                   </div>
                   {couponError && (
-                    <p style={{ fontSize: '.75rem', color: 'var(--danger)', marginTop: 4 }}>{couponError}</p>
+                    <p role="alert" style={{ fontSize: '.75rem', color: 'var(--danger)', marginTop: 4 }}>{couponError}</p>
                   )}
                   {couponApplied && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: '.78rem', color: '#22c55e', fontWeight: 600 }}>
@@ -333,6 +346,12 @@ export default function CheckoutPage() {
                     <span style={{ fontSize: '.88rem', color: '#22c55e', fontWeight: 600 }}>-{formatPrice(discount)}</span>
                   </div>
                 )}
+                {shippingCost > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>Shipping</span>
+                    <span style={{ fontSize: '.88rem', color: 'var(--text2)' }}>{formatPrice(shippingCost)}</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 800 }}>{t.cartPage.total}</span>
                   <span style={{ fontWeight: 900, fontSize: '1.3rem', color: 'var(--primary)' }}>{formatPrice(finalTotal)}</span>
@@ -341,7 +360,7 @@ export default function CheckoutPage() {
               </div>
 
               {error && (
-                <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: '.85rem', color: 'var(--danger)' }}>
+                <div role="alert" style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: '.85rem', color: 'var(--danger)' }}>
                   {error}
                 </div>
               )}

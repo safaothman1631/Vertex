@@ -9,6 +9,8 @@ import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
 import type { Promotion } from '@/types'
 import { useT } from '@/contexts/locale'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { useConfirm } from '@/hooks/useConfirm'
 
 const POSITION_LABELS: Record<string, string> = {
   hero_banner: 'Hero Banner',
@@ -43,6 +45,7 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
   const [searchQ, setSearchQ] = useState('')
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(25)
+  const { confirm, confirmProps } = useConfirm()
 
   const positionLabel = (pos: string) => ({ hero_banner: t.admin.heroBanner, bar: t.admin.topBar, popup: t.admin.popup, sidebar: t.admin.sidebar }[pos] ?? pos)
 
@@ -115,7 +118,8 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
   }
 
   async function handleDelete(id: string, title: string) {
-    if (!confirm(t.admin.movePromotionToTrash)) return
+    const ok = await confirm({ message: t.admin.movePromotionToTrash, title: t.admin.delete })
+    if (!ok) return
     const promo = promotions.find(p => p.id === id)
     if (promo) await supabase.from('trash').insert({ table_name: 'promotions', record_id: id, record_data: promo })
     await supabase.from('promotions').delete().eq('id', id)
@@ -186,7 +190,7 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                     <button onClick={() => setPreview(p)} title={t.admin.preview} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Eye size={14} /></button>
                     <button onClick={() => openEdit(p)} title={t.admin.edit} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Pencil size={14} /></button>
-                    <button onClick={() => handleDelete(p.id, p.title)} title={t.admin.delete} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Trash2 size={14} /></button>
+                    <button onClick={() => handleDelete(p.id, p.title)} title={t.admin.delete} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Trash2 size={14} /></button>
                   </div>
                 </td>
               </tr>
@@ -210,7 +214,7 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => toggleActive(p)} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>{p.is_active ? <EyeOff size={15} /> : <Eye size={15} />}</button>
                 <button onClick={() => openEdit(p)} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Pencil size={15} /></button>
-                <button onClick={() => handleDelete(p.id, p.title)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
+                <button onClick={() => handleDelete(p.id, p.title)} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
               </div>
             </div>
           </div>
@@ -353,6 +357,7 @@ export default function AdminPromotionsClient({ promotions: initial }: { promoti
           </div>
         </div>
       )}
+      <ConfirmModal {...confirmProps} />
     </div>
   )
 }

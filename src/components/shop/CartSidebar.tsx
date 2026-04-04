@@ -7,11 +7,13 @@ import { useT } from '@/contexts/locale'
 import { usePreferences } from '@/contexts/preferences'
 import { ShoppingCart, X, Trash2, Package } from 'lucide-react'
 import Image from 'next/image'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 export default function CartSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore()
   const t = useT()
   const { formatPrice } = usePreferences()
+  const trapRef = useFocusTrap<HTMLDivElement>(open)
 
   useEffect(() => {
     if (!open) return
@@ -27,14 +29,14 @@ export default function CartSidebar({ open, onClose }: { open: boolean; onClose:
   return (
     <>
       <div className={`cart-overlay${open ? ' open' : ''}`} onClick={onClose} role="presentation" />
-      <div className={`cart-sidebar${open ? ' open' : ''}`} role="dialog" aria-modal="true" aria-label={t.cartSidebar.title}>
+      <div ref={trapRef} className={`cart-sidebar${open ? ' open' : ''}`} role="dialog" aria-modal="true" aria-label={t.cartSidebar.title}>
         <div className="cart-header">
-          <h3><ShoppingCart size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} /> {t.cartSidebar.title} ({items.length})</h3>
+          <h3><ShoppingCart size={18} style={{ display: 'inline', verticalAlign: 'middle', marginInlineEnd: 6 }} /> {t.cartSidebar.title} ({items.length})</h3>
           <button
             onClick={onClose}
             aria-label="Close cart"
             style={{
-              width: 36, height: 36, borderRadius: '50%',
+              width: 44, height: 44, borderRadius: '50%',
               background: 'var(--bg3)', border: '1px solid var(--border)',
               color: 'var(--text2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', fontSize: '.85rem',
@@ -73,7 +75,7 @@ export default function CartSidebar({ open, onClose }: { open: boolean; onClose:
                 <button
                   onClick={() => removeItem(product.id)}
                   aria-label={`Remove ${product.name}`}
-                  style={{ color: 'var(--text3)', cursor: 'pointer', marginLeft: 8, background: 'none', border: 'none', padding: 4 }}
+                  style={{ color: 'var(--text3)', cursor: 'pointer', marginInlineStart: 8, background: 'none', border: 'none', padding: 4 }}
                 >
                   <Trash2 size={15} />
                 </button>

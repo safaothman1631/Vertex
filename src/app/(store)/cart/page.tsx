@@ -32,12 +32,12 @@ export default function CartPage() {
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Cart items */}
-        <div className="flex-1 flex flex-col gap-4">
-          {items.map(({ product, quantity }) => (
+        <div className="flex-1 flex flex-col gap-4 stagger-children">
+          {items.map(({ product, quantity }, idx) => (
             <div
               key={product.id}
-              className="flex gap-4 p-4 rounded-xl"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+              className="flex gap-4 p-4 rounded-xl reveal reveal-up"
+              style={{ '--stagger-i': idx, background: 'var(--bg-card)', border: '1px solid var(--border)' } as React.CSSProperties}
             >
               <div className="relative w-20 h-20 bg-white rounded-lg overflow-hidden shrink-0">
                 {product.images?.[0] ? (

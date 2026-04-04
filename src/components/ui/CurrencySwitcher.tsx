@@ -97,7 +97,7 @@ export default function CurrencySwitcher({ variant = 'navbar', previewAmount }: 
                 color: active ? 'var(--primary)' : 'var(--text3)',
               }}
             >
-              {cur.symbol} {cur.code}
+              {cur.symbol}<span className="admin-cur-code"> {cur.code}</span>
             </button>
           )
         })}

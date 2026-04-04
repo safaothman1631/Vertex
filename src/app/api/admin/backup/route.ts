@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
+import { createRateLimiter, getClientIP } from '@/lib/rate-limit'
+
+// 5 backup requests per hour
+const backupLimiter = createRateLimiter({ window: 60 * 60_000, max: 5 })
 
 const TABLES = [
   'brands', 'categories', 'profiles', 'products', 'coupons',
@@ -8,7 +12,12 @@ const TABLES = [
   'trash', 'promotions', 'system_logs',
 ]
 
-export async function GET() {
+export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  if (!backupLimiter.check(ip)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -5,6 +5,8 @@ import { PreferencesProvider } from '@/contexts/preferences'
 import ScrollbarEffect from '@/components/ui/ScrollbarEffect'
 import { ToastProvider } from '@/components/ui/Toast'
 import { validateEnv } from '@/lib/env'
+import LiveChat from '@/components/shop/LiveChat'
+import CompareDrawer from '@/components/shop/CompareDrawer'
 
 // Validate required environment variables at startup (server-side only)
 if (typeof window === 'undefined') {
@@ -50,12 +52,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#080810" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="apple-touch-icon" href="/icon-192.svg" />
+      </head>
       <body>
         <PreferencesProvider>
           <LocaleProvider>
             <ToastProvider>
               <ScrollbarEffect />
               {children}
+              <CompareDrawer />
+              <LiveChat />
             </ToastProvider>
           </LocaleProvider>
         </PreferencesProvider>

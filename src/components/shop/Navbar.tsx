@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
@@ -19,7 +20,10 @@ const LANG_OPTIONS: { value: Locale; label: string; flag: string }[] = [
   { value: 'tr', label: 'Türkçe', flag: '🇹🇷' },
 ]
 
-export default function Navbar() {
+export default function Navbar({ initialUser, initialWishlistCount }: {
+  initialUser?: { id: string; email: string; name: string; role: string; avatar_url?: string | null } | null
+  initialWishlistCount?: number
+}) {
   const [scrolled, setScrolled] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [activeSection, setActiveSection] = useState('hero')
@@ -29,8 +33,8 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [user, setUser] = useState<{ email: string; name: string; role: string; id: string; avatar_url?: string | null } | null>(null)
-  const [wishlistCount, setWishlistCount] = useState(0)
+  const [user, setUser] = useState<{ email: string; name: string; role: string; id: string; avatar_url?: string | null } | null>(initialUser ?? null)
+  const [wishlistCount, setWishlistCount] = useState(initialWishlistCount ?? 0)
   const totalItems = useCartStore((s) => s.totalItems())
   const router = useRouter()
   const pathname = usePathname()
@@ -88,13 +92,16 @@ export default function Navbar() {
           avatar_url: profile?.avatar_url,
         })
         setWishlistCount(count ?? 0)
-      } catch {}
+      } catch (err) { console.error('[Navbar] loadProfile:', err) }
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) loadProfile(session.user)
-      else setUser(null)
-    }).catch(() => {})
+    // Skip redundant getUser if server already provided initialUser (prevents FOUC)
+    if (!initialUser) {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) loadProfile(user)
+        else setUser(null)
+      }).catch(() => {})
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) loadProfile(session.user)
@@ -216,10 +223,9 @@ export default function Navbar() {
                   aria-expanded={profileOpen}
                   aria-haspopup="true"
                 >
-                  <div className="nav-avatar">
+                  <div className="nav-avatar" style={{ position: 'relative' }}>
                     {user.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={user.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                      <Image src={user.avatar_url} alt="" fill style={{ objectFit: 'cover', borderRadius: 'inherit' }} sizes="36px" />
                     ) : initials}
                   </div>
                   <span className="nav-profile-name" style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--text)', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -241,10 +247,9 @@ export default function Navbar() {
                     {/* Header */}
                     <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg3)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: user.avatar_url ? 'transparent' : 'var(--gradient)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.82rem', fontWeight: 800, flexShrink: 0, overflow: 'hidden' }}>
+                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: user.avatar_url ? 'transparent' : 'var(--gradient)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.82rem', fontWeight: 800, flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
                           {user.avatar_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={user.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <Image src={user.avatar_url} alt="" fill style={{ objectFit: 'cover' }} sizes="36px" />
                           ) : initials}
                         </div>
                         <div style={{ minWidth: 0 }}>
@@ -284,7 +289,7 @@ export default function Navbar() {
                     {/* Sign out */}
                     <div style={{ padding: '6px', borderTop: '1px solid var(--border)' }}>
                       <button onClick={handleSignOut}
-                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 12px', borderRadius: 9, color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', fontSize: '.85rem', fontWeight: 600, transition: 'background .15s', textAlign: 'left' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 12px', borderRadius: 9, color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', fontSize: '.85rem', fontWeight: 600, transition: 'background .15s', textAlign: 'start' }}
                         onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,.08)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
@@ -336,7 +341,7 @@ export default function Navbar() {
                         padding: '10px 14px', background: opt.value === locale ? 'rgba(99,102,241,.1)' : 'transparent',
                         border: 'none', cursor: 'pointer', color: opt.value === locale ? 'var(--primary)' : 'var(--text)',
                         fontSize: '.84rem', fontWeight: opt.value === locale ? 700 : 500,
-                        transition: 'background .15s', textAlign: 'left', fontFamily: 'inherit',
+                        transition: 'background .15s', textAlign: 'start', fontFamily: 'inherit',
                       }}
                       onMouseEnter={e => { if (opt.value !== locale) (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg3)' }}
                       onMouseLeave={e => { if (opt.value !== locale) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}

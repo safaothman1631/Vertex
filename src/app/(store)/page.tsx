@@ -35,20 +35,20 @@ export default async function Home() {
     { data: terminalProducts },
     { data: activePromos },
   ] = await Promise.all([
-    supabase.from('products').select('*').order('created_at', { ascending: false }),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'user'),
-    supabase.from('orders').select('*', { count: 'exact', head: true }),
-    supabase.from('brands').select('*').order('name', { ascending: true }),
+    supabase.from('products').select('id, name, brand, model, category, price, old_price, description, specs, images, rating, review_count, in_stock, is_new, is_hot, created_at').eq('hidden', false).order('created_at', { ascending: false }),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'user'),
+    supabase.from('orders').select('id', { count: 'exact', head: true }),
+    supabase.from('brands').select('id, name, logo, category_key, color1, color2').order('name', { ascending: true }),
     supabase.from('reviews').select('id, rating, comment, created_at, profiles!reviews_user_id_fkey(full_name), products!reviews_product_id_fkey(name, brand)').neq('comment', '').order('created_at', { ascending: false }).limit(24),
     supabase.from('orders').select('total, status').gte('created_at', todayStart).neq('status', 'cancelled'),
     supabase.from('orders').select('total, status').gte('created_at', yesterdayStart).lt('created_at', todayStart).neq('status', 'cancelled'),
-    supabase.from('reviews').select('*', { count: 'exact', head: true }),
+    supabase.from('reviews').select('id', { count: 'exact', head: true }),
     supabase.from('reviews').select('rating'),
     supabase.from('products').select('name, model, price, brand').eq('in_stock', true).eq('hidden', false).limit(3),
     supabase.from('promotions').select('*').eq('is_active', true).lte('starts_at', new Date().toISOString()).or(`ends_at.is.null,ends_at.gte.${new Date().toISOString()}`).order('sort_order'),
   ])
 
-  const visible = ((products as Product[]) ?? []).filter(p => !p.hidden)
+  const visible = (products as Product[]) ?? []
   const visibleCount = visible.length
 
   const statsData = {

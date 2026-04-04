@@ -65,7 +65,7 @@ export default function RecentlyViewed({ excludeId }: { excludeId?: string }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Star size={10} fill="#f59e0b" stroke="#f59e0b" />
                   <span style={{ fontSize: '.7rem', color: 'var(--text2)' }}>{p.rating.toFixed(1)}</span>
-                  <span style={{ fontWeight: 800, fontSize: '.85rem', color: 'var(--primary)', marginLeft: 'auto' }}>{formatPrice(p.price)}</span>
+                  <span style={{ fontWeight: 800, fontSize: '.85rem', color: 'var(--primary)', marginInlineStart: 'auto' }}>{formatPrice(p.price)}</span>
                 </div>
               </div>
             </Link>

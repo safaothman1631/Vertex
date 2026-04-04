@@ -6,6 +6,8 @@ import type { Profile } from '@/types'
 import { useT } from '@/contexts/locale'
 import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { useConfirm } from '@/hooks/useConfirm'
 
 type UserWithOrders = Profile & { order_count: number }
 
@@ -19,6 +21,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(25)
   const t = useT()
+  const { confirm, confirmProps } = useConfirm()
 
   useEffect(() => { setPage(1) }, [searchQ, filterRole])
 
@@ -58,7 +61,8 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
   }
 
   async function handleDelete(id: string) {
-    if (!confirm(t.admin.deleteUserConfirm)) return
+    const ok = await confirm({ message: t.admin.deleteUserConfirm, title: t.admin.deleteUser })
+    if (!ok) return
     setError(null)
     const res = await fetch('/api/admin/users', {
       method: 'DELETE',
@@ -80,9 +84,9 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
   return (
     <div>
       {error && (
-        <div style={{ margin: '0 0 16px', padding: '12px 16px', borderRadius: 10, background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.3)', color: '#ef4444', fontSize: '.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ margin: '0 0 16px', padding: '12px 16px', borderRadius: 10, background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.3)', color: 'var(--danger)', fontSize: '.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{error}</span>
-          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0 4px' }}><X size={14} /></button>
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', padding: '0 4px' }}><X size={14} /></button>
         </div>
       )}
       <div className="admin-page-head">
@@ -92,7 +96,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
+      <div className="admin-filter-toolbar" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
         <AdminSearch value={searchQ} onChange={setSearchQ} placeholder={t.admin.search} />
         <select
           value={filterRole}
@@ -161,7 +165,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
                     <button
                       onClick={() => handleDelete(u.id)}
                       title={t.admin.deleteUser}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: '#ef4444' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: 'var(--danger)' }}
                     >
                       <Trash2 size={15} />
                     </button>
@@ -190,7 +194,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
                 <button onClick={() => setDetail(u)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--primary)' }}>
                   <Eye size={15} />
                 </button>
-                <button onClick={() => handleDelete(u.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#ef4444' }}>
+                <button onClick={() => handleDelete(u.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--danger)' }}>
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -220,7 +224,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 400, padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setDetail(null) }}
         >
-          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 460 }}>
+          <div className="admin-modal-inner" style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 460 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <h2 style={{ fontWeight: 900, fontSize: '1.05rem' }}>{t.admin.userDetails}</h2>
               <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text2)', padding: 4 }}>
@@ -270,7 +274,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
                 onClick={() => handleDelete(detail.id)}
                 style={{
                   padding: '10px 18px', borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(239,68,68,.12)', color: '#ef4444',
+                  background: 'rgba(239,68,68,.12)', color: 'var(--danger)',
                   border: '1px solid rgba(239,68,68,.25)', cursor: 'pointer', fontWeight: 700, fontSize: '.85rem',
                 }}
               >
@@ -280,6 +284,7 @@ export default function AdminUsersClient({ users: initial }: { users: UserWithOr
           </div>
         </div>
       )}
+      <ConfirmModal {...confirmProps} />
     </div>
   )
 }

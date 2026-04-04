@@ -83,7 +83,7 @@ export default function PromoBar({ promotions }: Props) {
 
           {promo.link_url && (
             <Link href={promo.link_url} className="promo-bar-cta">
-              Shop Now <ArrowRight size={13} strokeWidth={2.5} />
+              Shop Now <ArrowRight className="rtl-flip" size={13} strokeWidth={2.5} />
             </Link>
           )}
         </div>

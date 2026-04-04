@@ -6,6 +6,8 @@ import { Mail, Check, RefreshCw, Trash2 } from 'lucide-react'
 import { useT } from '@/contexts/locale'
 import AdminSearch from './AdminSearch'
 import AdminPagination from './AdminPagination'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { useConfirm } from '@/hooks/useConfirm'
 
 interface Msg {
   id: string
@@ -27,6 +29,7 @@ export default function MessagesClient({ initial }: { initial: Msg[] }) {
   const [perPage, setPerPage] = useState(25)
   const supabase = createClient()
   const t = useT()
+  const { confirm, confirmProps } = useConfirm()
 
   useEffect(() => { setPage(1) }, [searchQ, filterRead])
 
@@ -54,7 +57,8 @@ export default function MessagesClient({ initial }: { initial: Msg[] }) {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm(t.admin.moveMessageToTrash)) return
+    const ok = await confirm({ message: t.admin.moveMessageToTrash, title: t.admin.delete })
+    if (!ok) return
     setDeleting(id)
     const msg = messages.find(m => m.id === id)
     if (msg) {
@@ -76,7 +80,7 @@ export default function MessagesClient({ initial }: { initial: Msg[] }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
+      <div className="admin-filter-toolbar" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
         <AdminSearch value={searchQ} onChange={setSearchQ} placeholder={t.admin.search} />
         <select
           value={filterRead}
@@ -189,6 +193,7 @@ export default function MessagesClient({ initial }: { initial: Msg[] }) {
       )}
 
       <AdminPagination total={filtered.length} page={page} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
+      <ConfirmModal {...confirmProps} />
     </div>
   )
 }
