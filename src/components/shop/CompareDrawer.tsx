@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'motion/react'
 import { X, Scale, ChevronDown, ChevronUp, Star } from 'lucide-react'
 import { useCompareStore } from '@/store/compare'
 import { usePreferences } from '@/contexts/preferences'
@@ -78,9 +79,20 @@ export default function CompareDrawer() {
       </div>
 
       {/* Comparison table modal */}
+      <AnimatePresence>
       {open && (
-        <div className="compare-overlay" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label="Product comparison">
-          <div className="compare-modal" onClick={e => e.stopPropagation()}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="compare-overlay" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label="Product comparison">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, scale: 0.95, y: 20, filter: 'blur(4px)' }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="compare-modal" onClick={e => e.stopPropagation()}>
             <div className="compare-modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Scale size={18} />
@@ -169,9 +181,10 @@ export default function CompareDrawer() {
                 </tbody>
               </table>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </>
   )
 }

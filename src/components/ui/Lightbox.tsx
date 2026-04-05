@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { motion, AnimatePresence } from 'motion/react'
 import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
 
 interface Props {
@@ -30,17 +31,20 @@ export default function Lightbox({ images, startIndex = 0, onClose }: Props) {
   if (!mounted) return null
 
   return createPortal(
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
       style={{
         position: 'fixed', inset: 0, zIndex: 10000,
         background: 'rgba(0,0,0,.92)', backdropFilter: 'blur(20px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        animation: 'scaleIn .25s ease forwards',
       }}
     >
       {/* Close */}
-      <button onClick={onClose} style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,.1)', border: 'none', borderRadius: 12, padding: 10, cursor: 'pointer', color: '#fff', zIndex: 2 }}>
+      <button onClick={onClose} style={{ position: 'absolute', top: 20, insetInlineEnd: 20, background: 'rgba(255,255,255,.1)', border: 'none', borderRadius: 12, padding: 10, cursor: 'pointer', color: '#fff', zIndex: 2 }}>
         <X size={20} />
       </button>
 
@@ -73,7 +77,12 @@ export default function Lightbox({ images, startIndex = 0, onClose }: Props) {
       )}
 
       {/* Image */}
-      <img
+      <motion.img
+        key={idx}
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.92 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         src={images[idx]}
         alt=""
         style={{
@@ -102,7 +111,7 @@ export default function Lightbox({ images, startIndex = 0, onClose }: Props) {
           ))}
         </div>
       )}
-    </div>,
+    </motion.div>,
     document.body,
   )
 }

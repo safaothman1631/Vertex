@@ -12,6 +12,7 @@ import { Heart, ShoppingBag, Search, User, LogOut, Settings, Package, ChevronDow
 import { useLocale, useT, type Locale } from '@/contexts/locale'
 import NotificationsPanel from './NotificationsPanel'
 import CurrencySwitcher from '@/components/ui/CurrencySwitcher'
+import { VertexMark } from '@/components/ui/VertexLogo'
 
 const LANG_OPTIONS: { value: Locale; label: string; flag: string }[] = [
   { value: 'en', label: 'English', flag: '🇬🇧' },
@@ -161,6 +162,7 @@ export default function Navbar({ initialUser, initialWishlistCount }: {
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             onClick={() => scrollToSection('hero')}
           >
+            <VertexMark size={28} />
             <span>Ver<span className="logo-accent">tex</span></span>
           </button>
 
@@ -237,7 +239,7 @@ export default function Navbar({ initialUser, initialWishlistCount }: {
                 {/* Dropdown */}
                 {profileOpen && (
                   <div style={{
-                    position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+                    position: 'absolute', top: 'calc(100% + 10px)', insetInlineEnd: 0,
                     background: 'var(--bg2)', border: '1px solid var(--border)',
                     borderRadius: 14, minWidth: 220, maxWidth: 'calc(100vw - 32px)', overflow: 'hidden',
                     boxShadow: '0 16px 40px rgba(0,0,0,.4)',
@@ -325,7 +327,7 @@ export default function Navbar({ initialUser, initialWishlistCount }: {
               </button>
               {langOpen && (
                 <div style={{
-                  position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                  position: 'absolute', top: 'calc(100% + 8px)', insetInlineEnd: 0,
                   background: 'var(--bg2)', border: '1px solid var(--border)',
                   borderRadius: 12, overflow: 'hidden', minWidth: 140,
                   boxShadow: '0 12px 32px rgba(0,0,0,.4)',

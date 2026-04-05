@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
 import { AlertTriangle } from 'lucide-react'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 
@@ -38,8 +39,6 @@ export default function ConfirmModal({
     }
   }, [open, onCancel])
 
-  if (!open) return null
-
   const colors = {
     danger: { bg: 'rgba(239,68,68,.12)', icon: 'var(--danger)', btn: '#ef4444' },
     warning: { bg: 'rgba(245,158,11,.12)', icon: '#f59e0b', btn: '#f59e0b' },
@@ -47,7 +46,13 @@ export default function ConfirmModal({
   }[variant]
 
   return (
-    <div
+    <AnimatePresence>
+      {open && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel() }}
       style={{
         position: 'fixed',
@@ -59,10 +64,13 @@ export default function ConfirmModal({
         background: 'rgba(0,0,0,.5)',
         backdropFilter: 'blur(4px)',
         padding: 16,
-        animation: 'fadeIn .15s ease',
       }}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10, filter: 'blur(4px)' }}
+        animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+        exit={{ opacity: 0, scale: 0.95, y: 10, filter: 'blur(4px)' }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
         ref={trapRef}
         role="alertdialog"
         aria-modal="true"
@@ -75,7 +83,6 @@ export default function ConfirmModal({
           maxWidth: 400,
           width: '100%',
           boxShadow: '0 24px 48px rgba(0,0,0,.3)',
-          animation: 'slideUp .2s ease',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
@@ -124,7 +131,9 @@ export default function ConfirmModal({
             {confirmLabel}
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

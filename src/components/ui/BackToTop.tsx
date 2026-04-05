@@ -19,7 +19,7 @@ export default function BackToTop() {
       style={{
         position: 'fixed',
         bottom: 28,
-        right: 28,
+        insetInlineEnd: 28,
         zIndex: 90,
         width: 44,
         height: 44,

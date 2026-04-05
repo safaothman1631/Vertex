@@ -136,7 +136,7 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
             )}
             {product.images?.length ? (
               <div style={{
-                position: 'absolute', bottom: 12, right: 12,
+                position: 'absolute', bottom: 12, insetInlineEnd: 12,
                 background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(8px)',
                 borderRadius: 10, padding: '6px 10px',
                 display: 'flex', alignItems: 'center', gap: 5,

@@ -79,7 +79,7 @@ export default function ScrollbarEffect() {
     <div
       ref={trackRef}
       style={{
-        position: 'fixed', top: 8, bottom: 8, right: 4,
+        position: 'fixed', top: 8, bottom: 8, insetInlineEnd: 4,
         width: 4, zIndex: 9999,
         opacity: 0, transition: 'opacity 0.4s ease',
         pointerEvents: 'none', borderRadius: 99,

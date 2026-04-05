@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useT } from '@/contexts/locale'
 import NewsletterBox from './NewsletterBox'
+import { VertexMark } from '@/components/ui/VertexLogo'
 
 export default function Footer() {
   const t = useT()
@@ -16,6 +17,7 @@ export default function Footer() {
         <div className="footer-inner">
           <div className="footer-brand">
             <div className="logo" style={{ fontSize: '1.4rem' }}>
+              <VertexMark size={26} />
               <span>Ver<span className="logo-accent">tex</span></span>
             </div>
             <p>{t.footer.desc}</p>

@@ -80,7 +80,10 @@ export default function ProductCard({ product: p }: Props) {
           {/* Slide 0 — photo or art */}
           <div className={`prod-slide${slide === 0 ? ' active' : ''}`}>
             {p.img ? (
-              <Image src={p.img} alt={p.name} className="prod-photo" width={400} height={400} />
+              <Image src={p.img} alt={p.name} className="prod-photo" width={400} height={400}
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTVlN2ViIi8+PC9zdmc+"
+              />
             ) : (
               <div className="prod-art" style={artStyle}>
                 <span className="prod-art-type">{p.artType}</span>

@@ -1,6 +1,7 @@
 'use client'
 import { createContext, useContext, useCallback, useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { motion, AnimatePresence } from 'motion/react'
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react'
 
 type ToastType = 'success' | 'error' | 'info'
@@ -38,33 +39,39 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       {mounted && createPortal(
         <div role="status" aria-live="polite" style={{
-          position: 'fixed', bottom: 24, right: 24, zIndex: 99999,
+          position: 'fixed', bottom: 24, insetInlineEnd: 24, zIndex: 99999,
           display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 380,
           pointerEvents: 'none',
         }}>
-          {toasts.map((t, i) => {
-            const Icon = icons[t.type]
-            const c = colors[t.type]
-            return (
-              <div
-                key={t.id}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '14px 18px', borderRadius: 14,
-                  background: c.bg, border: `1px solid ${c.border}`,
-                  backdropFilter: 'blur(20px)',
-                  pointerEvents: 'auto', cursor: 'pointer',
-                  animation: 'toastIn .35s cubic-bezier(.21,1.02,.73,1) forwards',
-                  boxShadow: '0 8px 30px rgba(0,0,0,.25)',
-                }}
-                onClick={() => remove(t.id)}
-              >
-                <Icon size={18} style={{ color: c.text, flexShrink: 0 }} />
-                <span style={{ fontSize: '.88rem', fontWeight: 600, color: 'var(--text)', flex: 1 }}>{t.message}</span>
-                <X size={14} style={{ color: 'var(--text2)', flexShrink: 0, opacity: .5 }} />
-              </div>
-            )
-          })}
+          <AnimatePresence>
+            {toasts.map((t) => {
+              const Icon = icons[t.type]
+              const c = colors[t.type]
+              return (
+                <motion.div
+                  key={t.id}
+                  layout
+                  initial={{ opacity: 0, y: 20, scale: 0.95, filter: 'blur(4px)' }}
+                  animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, x: 80, scale: 0.95, filter: 'blur(4px)' }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  onClick={() => remove(t.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '14px 18px', borderRadius: 14,
+                    background: c.bg, border: `1px solid ${c.border}`,
+                    backdropFilter: 'blur(20px)',
+                    pointerEvents: 'auto', cursor: 'pointer',
+                    boxShadow: '0 8px 30px rgba(0,0,0,.25)',
+                  }}
+                >
+                  <Icon size={18} style={{ color: c.text, flexShrink: 0 }} />
+                  <span style={{ fontSize: '.88rem', fontWeight: 600, color: 'var(--text)', flex: 1 }}>{t.message}</span>
+                  <X size={14} style={{ color: 'var(--text2)', flexShrink: 0, opacity: .5 }} />
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
         </div>,
         document.body,
       )}

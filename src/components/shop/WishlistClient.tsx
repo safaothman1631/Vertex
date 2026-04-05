@@ -78,7 +78,7 @@ export default function WishlistClient({
                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}></div>
               )}
               {item.product.is_new && (
-                <span style={{ position: 'absolute', top: 10, left: 10, background: 'var(--primary)', color: '#fff', fontSize: '.65rem', fontWeight: 800, padding: '3px 8px', borderRadius: 6, textTransform: 'uppercase' }}>{t.productCard.new.replace('✨ ', '')}</span>
+                <span style={{ position: 'absolute', top: 10, insetInlineStart: 10, background: 'var(--primary)', color: '#fff', fontSize: '.65rem', fontWeight: 800, padding: '3px 8px', borderRadius: 6, textTransform: 'uppercase' }}>{t.productCard.new.replace('✨ ', '')}</span>
               )}
             </Link>
 

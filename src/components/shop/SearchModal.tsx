@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { motion, AnimatePresence } from 'motion/react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Search, X, ArrowRight } from 'lucide-react'
@@ -18,7 +19,10 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Product[]>([])
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (open) {
@@ -76,10 +80,16 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
     if (query.trim()) goToAll()
   }
 
-  if (!open) return null
+  if (!mounted) return null
 
   return createPortal(
-    <div
+    <AnimatePresence>
+      {open && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       style={{
         position: 'fixed', inset: 0, zIndex: 10000,
         background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(12px)',
@@ -88,10 +98,13 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
       }}
       onClick={onClose}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: -10, filter: 'blur(4px)' }}
+        animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+        exit={{ opacity: 0, scale: 0.96, y: -10, filter: 'blur(4px)' }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
         style={{
           width: '100%', maxWidth: 580, margin: '0 16px',
-          animation: 'scaleIn .2s cubic-bezier(.21,1.02,.73,1)',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -205,8 +218,10 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
             <p style={{ color: 'var(--text3)', fontSize: '.82rem', marginTop: 4 }}>{t.search?.tryDifferent ?? 'Try a different search term'}</p>
           </div>
         )}
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>
+      )}
+    </AnimatePresence>,
     document.body
   )
 }

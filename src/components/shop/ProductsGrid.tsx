@@ -183,7 +183,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             {/* search */}
             <div style={{ position: 'relative', flex: 1 }}>
-              <Search size={13} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
+              <Search size={13} style={{ position: 'absolute', insetInlineStart: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
               <input
                 value={search}
                 onChange={e => { setSearch(e.target.value); updateURL({ q: e.target.value }) }}
@@ -198,7 +198,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                 onBlur={e => (e.target.style.borderColor = 'var(--border)')}
               />
               {search && (
-                <button onClick={() => { setSearch(''); updateURL({ q: '' }) }} style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', display: 'flex', padding: 2 }}>
+                <button onClick={() => { setSearch(''); updateURL({ q: '' }) }} style={{ position: 'absolute', insetInlineEnd: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', display: 'flex', padding: 2 }}>
                   <X size={13} />
                 </button>
               )}
@@ -206,7 +206,7 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
 
             {/* sort */}
             <div style={{ position: 'relative', flexShrink: 0 }}>
-              <ArrowUpDown size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
+              <ArrowUpDown size={13} style={{ position: 'absolute', insetInlineStart: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
               <select
                 value={sort}
                 onChange={e => { setSort(e.target.value); updateURL({ sort: e.target.value }) }}
@@ -415,12 +415,12 @@ export default function ProductsGrid({ products }: { products: Product[] }) {
                     ) : (
                       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3.5rem' }}></div>
                     )}
-                    <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 4 }}>
+                    <div style={{ position: 'absolute', top: 10, insetInlineStart: 10, display: 'flex', gap: 4 }}>
                       {p.is_hot && <span style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', fontSize: '.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.hot}</span>}
                       {p.is_new && <span style={{ background: 'var(--gradient)', color: '#fff', fontSize: '.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.productCard.new}</span>}
                       {!p.in_stock && <span style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)', color: '#fff', fontSize: '.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: 20 }}>{t.common.outOfStock}</span>}
                     </div>
-                    <div style={{ position: 'absolute', top: 8, right: 8 }} onClick={e => e.preventDefault()}>
+                    <div style={{ position: 'absolute', top: 8, insetInlineEnd: 8 }} onClick={e => e.preventDefault()}>
                       <WishlistButton productId={p.id} size={14} />
                     </div>
                   </Link>

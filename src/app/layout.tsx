@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
+import { Inter, Noto_Sans_Arabic } from 'next/font/google'
 import './globals.css'
 import { LocaleProvider, type Locale } from '@/contexts/locale'
 import { PreferencesProvider } from '@/contexts/preferences'
@@ -8,6 +9,19 @@ import { ToastProvider } from '@/components/ui/Toast'
 import { validateEnv } from '@/lib/env'
 import LiveChat from '@/components/shop/LiveChat'
 import CompareDrawer from '@/components/shop/CompareDrawer'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
+
+const notoArabic = Noto_Sans_Arabic({
+  subsets: ['arabic'],
+  display: 'swap',
+  variable: '--font-arabic',
+  weight: ['400', '500', '600', '700', '800'],
+})
 
 // Validate required environment variables at startup (server-side only)
 if (typeof window === 'undefined') {
@@ -67,7 +81,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icon-192.svg" />
       </head>
-      <body>
+      <body className={`${inter.variable} ${notoArabic.variable}`}>
         <PreferencesProvider>
           <LocaleProvider initialLocale={initialLocale}>
             <ToastProvider>

@@ -108,7 +108,7 @@ export default function NotificationsPanel({ userId }: { userId: string }) {
 
       {open && (
         <div style={{
-          position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+          position: 'absolute', top: 'calc(100% + 10px)', insetInlineEnd: 0,
           background: 'var(--bg2)', border: '1px solid var(--border)',
           borderRadius: 14, width: 340, maxHeight: 420, overflow: 'hidden',
           boxShadow: '0 16px 40px rgba(0,0,0,.4)',

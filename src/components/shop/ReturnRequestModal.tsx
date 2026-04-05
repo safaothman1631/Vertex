@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import { motion } from 'motion/react'
 import { X, Loader2, Package, CheckCircle2 } from 'lucide-react'
 import { RETURN_REASONS } from '@/types'
 
@@ -37,15 +38,23 @@ export default function ReturnRequestModal({ orderId, orderNumber, onClose }: Pr
   }
 
   return createPortal(
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Return Request"
     >
-      <div
-        style={{ width: '100%', maxWidth: 480, background: 'var(--bg1)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', animation: 'scaleIn .22s cubic-bezier(.21,1.02,.73,1)' }}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10, filter: 'blur(4px)' }}
+        animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+        exit={{ opacity: 0, scale: 0.95, y: 10, filter: 'blur(4px)' }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        style={{ width: '100%', maxWidth: 480, background: 'var(--bg1)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -123,8 +132,8 @@ export default function ReturnRequestModal({ orderId, orderNumber, onClose }: Pr
             </form>
           )}
         </div>
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>,
     document.body
   )
 }

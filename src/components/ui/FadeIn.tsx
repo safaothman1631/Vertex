@@ -11,8 +11,14 @@ interface Props {
 export default function FadeIn({ children, delay = 0, className, style }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
+  const [reduced, setReduced] = useState(false)
 
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setReduced(true)
+      setVisible(true)
+      return
+    }
     const el = ref.current
     if (!el) return
     const obs = new IntersectionObserver(
@@ -31,7 +37,7 @@ export default function FadeIn({ children, delay = 0, className, style }: Props)
         ...style,
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(24px)',
-        transition: `opacity 0.5s cubic-bezier(.21,1.02,.73,1) ${delay}ms, transform 0.5s cubic-bezier(.21,1.02,.73,1) ${delay}ms`,
+        transition: reduced ? 'none' : `opacity 0.5s cubic-bezier(.21,1.02,.73,1) ${delay}ms, transform 0.5s cubic-bezier(.21,1.02,.73,1) ${delay}ms`,
       }}
     >
       {children}

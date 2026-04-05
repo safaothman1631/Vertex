@@ -552,7 +552,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
               <div>
                 <label style={labelStyle}>{t.settings.email}</label>
                 <div style={{ position: 'relative' }}>
-                  <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
+                  <Mail size={14} style={{ position: 'absolute', insetInlineStart: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
                   <input value={user.email ?? ''} disabled style={{ ...inputStyle, paddingInlineStart: 34, opacity: .6, cursor: 'not-allowed' }} />
                 </div>
                 <p style={{ fontSize: '.72rem', color: 'var(--text3)', marginTop: 5 }}>{t.settings.emailNote}</p>
@@ -560,7 +560,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
               <div>
                 <label style={labelStyle}>{t.settings.phone}</label>
                 <div style={{ position: 'relative' }}>
-                  <Phone size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
+                  <Phone size={14} style={{ position: 'absolute', insetInlineStart: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
                   <input value={phone} onChange={e => setPhone(e.target.value)} style={{ ...inputStyle, paddingInlineStart: 34 }} placeholder={t.settings.phonePlaceholder} />
                 </div>
               </div>
@@ -600,7 +600,7 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
                     <button
                       type="button"
                       onClick={() => setShowPw(p => ({ ...p, [key]: !p[key] }))}
-                      style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 2, display: 'flex', alignItems: 'center' }}
+                      style={{ position: 'absolute', insetInlineEnd: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 2, display: 'flex', alignItems: 'center' }}
                     >
                       {showPw[key] ? <EyeOff size={14} /> : <Eye size={14} />}
                     </button>
