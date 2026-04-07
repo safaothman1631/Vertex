@@ -1,18 +1,26 @@
 import type { MetadataRoute } from 'next'
 import { createAdminClient } from '@/lib/supabase-server'
 
+export const dynamic = 'force-dynamic'
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vertex-pos.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createAdminClient()
+  let products: { id: string; updated_at: string }[] = []
 
-  const { data: products } = await supabase
-    .from('products')
-    .select('id, updated_at')
-    .eq('hidden', false)
-    .order('updated_at', { ascending: false })
+  try {
+    const supabase = createAdminClient()
+    const { data } = await supabase
+      .from('products')
+      .select('id, updated_at')
+      .eq('hidden', false)
+      .order('updated_at', { ascending: false })
+    products = data ?? []
+  } catch {
+    // Return static pages only if DB is unavailable
+  }
 
-  const productEntries: MetadataRoute.Sitemap = (products ?? []).map((p) => ({
+  const productEntries: MetadataRoute.Sitemap = products.map((p) => ({
     url: `${SITE_URL}/products/${p.id}`,
     lastModified: p.updated_at || undefined,
     changeFrequency: 'weekly' as const,
