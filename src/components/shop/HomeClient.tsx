@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/Toast'
 import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
 import PromoBar from '@/components/shop/PromoBar'
 import HeroSection from '@/components/shop/home/HeroSection'
+import Spline3DSection from '@/components/shop/home/Spline3DSection'
 import TestimonialsSection from '@/components/shop/home/TestimonialsSection'
 import ContactSection from '@/components/shop/home/ContactSection'
 import { useT } from '@/contexts/locale'
@@ -172,6 +173,9 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
 
       {/* ── HERO ── */}
       <HeroSection statsData={statsData} heroData={heroData} />
+
+      {/* ── SPLINE 3D ── */}
+      <Spline3DSection />
 
       {/* ── BRANDS TICKER ── */}
       <div className="brands-ticker">

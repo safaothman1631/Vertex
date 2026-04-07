@@ -3,19 +3,22 @@ import path from 'path';
 
 const SUPABASE_HOST = 'xlzcnxketisxbuznfipn.supabase.co'
 
+const isDev = process.env.NODE_ENV === 'development'
+
 // ─── Content Security Policy ───────────────────────────────────────────────
 const csp = [
   "default-src 'self'",
   // Next.js needs unsafe-inline for its injected scripts; Stripe needs its CDN
-  "script-src 'self' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com",
+  // unsafe-eval only in dev for React debugging (never in production)
+  `script-src 'self' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com https://unpkg.com${isDev ? " 'unsafe-eval'" : ''}`,
   // Inline styles used throughout the app
   "style-src 'self' 'unsafe-inline'",
   // Images: own origin, Supabase storage, base64 data URIs, blobs
   `img-src 'self' data: blob: https://${SUPABASE_HOST} https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.googleusercontent.com`,
   // Fonts: own origin + data: URIs
   "font-src 'self' data:",
-  // XHR / fetch / WebSocket: Supabase REST + Realtime, Stripe API, Nominatim geocoding
-  `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://api.stripe.com https://nominatim.openstreetmap.org`,
+  // XHR / fetch / WebSocket: Supabase REST + Realtime, Stripe API, Nominatim geocoding, Spline CDN
+  `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://api.stripe.com https://nominatim.openstreetmap.org https://prod.spline.design https://unpkg.com`,
   // Stripe payment iframe + Google Maps
   "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://maps.googleapis.com https://maps.google.com https://www.google.com",
   // Never load plugins (Flash, etc.)
