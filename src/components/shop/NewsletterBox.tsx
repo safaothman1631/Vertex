@@ -2,12 +2,14 @@
 
 import { useState } from 'react'
 import { Mail, Loader2, Check } from 'lucide-react'
+import { useT } from '@/contexts/locale'
 
 interface Props {
   dark?: boolean
 }
 
 export default function NewsletterBox({ dark = false }: Props) {
+  const t = useT()
   const [email, setEmail]   = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone]     = useState(false)
@@ -27,12 +29,12 @@ export default function NewsletterBox({ dark = false }: Props) {
       })
       const json = await res.json()
       if (!res.ok) {
-        setError(json.error || 'Subscription failed')
+        setError(json.error || t.footer.subscribeFail)
       } else {
         setDone(true)
       }
     } catch {
-      setError('Network error — please try again')
+      setError(t.footer.networkError)
     }
     setLoading(false)
   }
@@ -43,12 +45,12 @@ export default function NewsletterBox({ dark = false }: Props) {
         <Mail size={20} />
       </div>
       <div className="nl-content">
-        <h3 className="nl-title">Stay in the loop</h3>
-        <p className="nl-desc">Latest deals, new products &amp; tech updates — right to your inbox.</p>
+        <h3 className="nl-title">{t.footer.stayInTheLoop}</h3>
+        <p className="nl-desc">{t.footer.nlBoxDesc}</p>
         {done ? (
           <div className="nl-success" role="status">
             <Check size={16} />
-            You&apos;re subscribed! Check your inbox.
+            {t.footer.subscribeSuccess}
           </div>
         ) : (
           <form className="nl-form" onSubmit={handleSubmit} noValidate>
@@ -63,8 +65,8 @@ export default function NewsletterBox({ dark = false }: Props) {
               aria-label="Email address"
               required
             />
-            <button type="submit" className="nl-btn" disabled={loading || !email.trim()} aria-label="Subscribe">
-              {loading ? <Loader2 size={16} className="spin" /> : 'Subscribe'}
+            <button type="submit" className="nl-btn" disabled={loading || !email.trim()} aria-label={t.footer.subscribe}>
+              {loading ? <Loader2 size={16} className="spin" /> : t.footer.subscribe}
             </button>
           </form>
         )}

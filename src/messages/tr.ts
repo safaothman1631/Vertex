@@ -482,6 +482,12 @@ const tr = {
     rights: 'Tüm hakları saklıdır.',
     privacy: 'Gizlilik Politikası',
     terms: 'Hizmet Şartları',
+    stayInTheLoop: 'Güncel kalın',
+    nlBoxDesc: 'En son fırsatlar, yeni ürünler ve teknoloji güncellemeleri — doğrudan gelen kutunuza.',
+    subscribe: 'Abone ol',
+    subscribeSuccess: 'Abone oldunuz! Gelen kutunuzu kontrol edin.',
+    subscribeFail: 'Abonelik başarısız. Lütfen tekrar deneyin.',
+    networkError: 'Ağ hatası — lütfen tekrar deneyin.',
   },
 
   // ── ADMIN

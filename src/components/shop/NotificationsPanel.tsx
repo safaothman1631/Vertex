@@ -61,8 +61,8 @@ export default function NotificationsPanel({ userId }: { userId: string }) {
         schema: 'public',
         table: 'notifications',
         filter: `user_id=eq.${userId}`,
-      }, (payload) => {
-        setNotifications(prev => [payload.new as Notification, ...prev])
+      }, (payload: { new: Notification }) => {
+        setNotifications(prev => [payload.new, ...prev])
       })
       .subscribe()
 

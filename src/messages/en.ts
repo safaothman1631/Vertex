@@ -488,6 +488,12 @@ const en = {
     rights: 'All rights reserved.',
     privacy: 'Privacy Policy',
     terms: 'Terms of Service',
+    stayInTheLoop: 'Stay in the loop',
+    nlBoxDesc: 'Latest deals, new products & tech updates — right to your inbox.',
+    subscribe: 'Subscribe',
+    subscribeSuccess: "You're subscribed! Check your inbox.",
+    subscribeFail: 'Subscription failed. Please try again.',
+    networkError: 'Network error — please try again.',
   },
 
   // ── ADMIN

@@ -98,13 +98,14 @@ export default function Navbar({ initialUser, initialWishlistCount }: {
 
     // Skip redundant getUser if server already provided initialUser (prevents FOUC)
     if (!initialUser) {
-      supabase.auth.getUser().then(({ data: { user } }) => {
+      void (async () => {
+        const { data: { user } } = await supabase.auth.getUser()
         if (user) loadProfile(user)
         else setUser(null)
-      }).catch(() => {})
+      })()
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: import('@supabase/supabase-js').Session | null) => {
       if (session?.user) loadProfile(session.user)
       else setUser(null)
     })

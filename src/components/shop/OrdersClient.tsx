@@ -407,8 +407,8 @@ export default function OrdersClient({ orders: initialOrders, userId }: { orders
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${userId}` },
-        (payload) => {
-          const updated = payload.new as Partial<Order>
+        (payload: { new: Partial<Order> }) => {
+          const updated = payload.new
           setOrders(prev => prev.map(o => o.id === updated.id ? { ...o, ...updated } : o))
           setSelected(prev => prev && prev.id === updated.id ? { ...prev, ...updated } : prev)
         }

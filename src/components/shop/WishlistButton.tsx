@@ -20,7 +20,8 @@ export default function WishlistButton({ productId, size = 16, style }: Props) {
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
+    void (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       setUserId(user.id)
       const { data } = await supabase
@@ -33,7 +34,7 @@ export default function WishlistButton({ productId, size = 16, style }: Props) {
         setInWishlist(true)
         setWishlistId(data.id)
       }
-    })
+    })()
   }, [productId])
 
   async function toggle(e: React.MouseEvent) {

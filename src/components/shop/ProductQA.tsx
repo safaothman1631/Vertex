@@ -21,7 +21,10 @@ export default function ProductQA({ productId }: Props) {
   const [expanded, setExpanded]   = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data: { user } }) => setUserId(user?.id ?? null))
+    void (async () => {
+      const { data: { user } } = await createClient().auth.getUser()
+      setUserId(user?.id ?? null)
+    })()
   }, [])
 
   useEffect(() => {

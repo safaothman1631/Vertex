@@ -46,9 +46,10 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
   }, [product.id])
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    void (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
       setUserId(user?.id ?? null)
-    })
+    })()
   }, [])
 
   const alreadyReviewed = userId ? reviews.some(r => r.user_id === userId) : false
@@ -60,8 +61,10 @@ export default function ProductDetailClient({ product, relatedProducts = [], rev
   // Check if already subscribed to stock alert
   useEffect(() => {
     if (!userId || product.in_stock) return
-    supabase.from('stock_subscribers').select('id').eq('user_id', userId).eq('product_id', product.id).eq('notified', false).maybeSingle()
-      .then(({ data }) => { if (data) setStockAlertSubscribed(true) })
+    void (async () => {
+      const res = await supabase.from('stock_subscribers').select('id').eq('user_id', userId).eq('product_id', product.id).eq('notified', false).maybeSingle()
+      if (res.data) setStockAlertSubscribed(true)
+    })()
   }, [userId, product.id, product.in_stock])
 
   async function subscribeStockAlert() {

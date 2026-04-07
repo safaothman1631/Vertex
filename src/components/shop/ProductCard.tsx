@@ -56,7 +56,7 @@ export default function ProductCard({ product: p }: Props) {
       images: p.img ? [p.img] : [],
       rating: p.rating, review_count: p.reviews,
       in_stock: true, is_new: p.isNew, is_hot: p.isHot, hidden: false, created_at: '',
-      stock_quantity: 0,
+      stock_quantity: 0, sort_order: 0,
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
@@ -159,7 +159,7 @@ export default function ProductCard({ product: p }: Props) {
                     images: p.img ? [p.img] : [],
                     rating: p.rating, review_count: p.reviews,
                     in_stock: true, is_new: p.isNew, is_hot: p.isHot, hidden: false, created_at: '',
-                    stock_quantity: 0,
+                    stock_quantity: 0, sort_order: 0,
                   }
                   hasCompare(p.id) ? removeCompare(p.id) : addCompare(product)
                 }}

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { useT } from '@/contexts/locale'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState('')
@@ -19,15 +20,16 @@ function ResetPasswordForm() {
   // Supabase sends access_token as hash fragment (#access_token=...&type=recovery)
   // The browser client detects it and fires PASSWORD_RECOVERY event
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       if (event === 'PASSWORD_RECOVERY' || (session && event === 'SIGNED_IN')) {
         setReady(true)
       }
     })
     // Also check if session already exists
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    void (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
       if (user) setReady(true)
-    })
+    })()
     return () => subscription.unsubscribe()
   }, [supabase])
 

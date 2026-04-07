@@ -108,8 +108,8 @@ export default function SettingsClient({ user, profile, addresses: initAddresses
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'notifications',
         filter: `user_id=eq.${user.id}`,
-      }, payload => {
-        setNotifications(prev => [payload.new as Notification, ...prev])
+      }, (payload: { new: Notification }) => {
+        setNotifications(prev => [payload.new, ...prev])
         setUnreadCount(prev => prev + 1)
       })
       .subscribe()
