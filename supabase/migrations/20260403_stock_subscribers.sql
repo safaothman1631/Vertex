@@ -11,5 +11,6 @@ create table if not exists public.stock_subscribers (
 
 alter table public.stock_subscribers enable row level security;
 
+drop policy if exists "Users manage own stock subscriptions" on public.stock_subscribers;
 create policy "Users manage own stock subscriptions"
   on public.stock_subscribers for all using (auth.uid() = user_id);

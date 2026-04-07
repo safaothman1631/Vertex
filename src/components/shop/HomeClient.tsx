@@ -19,7 +19,7 @@ import type { Product, Promotion } from '@/types'
 const PER_PAGE = 10
 
 const BRANDS_TICKER = [
-  'Honeywell', 'Zebra', 'Ingenico', 'Verifone', 'PAX Technology',
+  'Honeywell', 'Zebra', 'PAX Technology',
   'Square', 'Epson', 'Star Micronics', 'ID Tech', 'Bixolon',
   'Clover', 'Toast', 'NCR', 'Lightspeed', 'Revel Systems',
 ]
@@ -27,8 +27,6 @@ const BRANDS_TICKER = [
 const BRAND_CARDS = [
   { name: 'Honeywell',      logo: 'honeywell.svg', catKey: 'scanners-mobility',  c1: '#ff4d00', c2: '#c03200' },
   { name: 'Zebra',          logo: 'zebra.svg',     catKey: 'labels-mobility',    c1: '#1a1aaa', c2: '#0d0d55' },
-  { name: 'Ingenico',       logo: 'ingenico.svg',  catKey: 'payment-terminals',  c1: '#e30613', c2: '#8b0008' },
-  { name: 'Verifone',       logo: 'verifone.svg',  catKey: 'pos-terminals',      c1: '#007dc5', c2: '#004d88' },
   { name: 'PAX',            logo: 'pax.svg',       catKey: 'smart-terminals',    c1: '#00a859', c2: '#006633' },
   { name: 'Epson',          logo: 'epson.svg',     catKey: 'printers-scanners',  c1: '#003087', c2: '#001a55' },
   { name: 'Star Micronics', logo: 'star.svg',      catKey: 'receipt-printers',   c1: '#c0392b', c2: '#7d1f17' },
@@ -144,6 +142,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
     else if (sort === 'price-desc') list = [...list].sort((a, b) => b.price - a.price)
     else if (sort === 'rating') list = [...list].sort((a, b) => b.rating - a.rating)
     else if (sort === 'newest') list = [...list].filter(p => p.is_new).concat(list.filter(p => !p.is_new))
+    // default sort = DB order (sort_order ASC, created_at DESC)
     return list
   }, [products, activeCat, activeBrand, search, sort])
 
@@ -193,7 +192,7 @@ export default function HomeClient({ products, statsData = DEFAULT_STATS, dbBran
           <FadeIn>
           <div className="section-header">
             <h2 className="section-title">{t.productsSection.sectionTitle} <span className="gradient-text">{t.productsSection.sectionTitleHighlight}</span></h2>
-            <p className="section-sub">{t.productsSection.sectionSub}</p>
+            <p className="section-sub">{t.productsSection.sectionSub.replace('{count}', String(products.length))}</p>
           </div>
           </FadeIn>
 

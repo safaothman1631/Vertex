@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
-import { Plus, Pencil, Trash2, X, Eye, EyeOff, ImageOff, Download } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Eye, EyeOff, ImageOff, Download, ArrowUp, ArrowDown, GripVertical } from 'lucide-react'
 import { exportProducts } from '@/lib/csv-export'
 import Image from 'next/image'
 import ImageUploader from './ImageUploader'
@@ -23,7 +23,7 @@ const EMPTY_PRODUCT: Partial<Product> = {
   name: '', brand: '', model: '', category: '',
   price: 0, old_price: null, description: '', specs: [],
   images: [], rating: 4.5, review_count: 0,
-  in_stock: true, is_new: false, is_hot: false, hidden: false,
+  in_stock: true, is_new: false, is_hot: false, hidden: false, sort_order: 0,
 }
 
 export default function AdminProductsClient({ products: initial, dbCategories = [], dbBrands = [] }: { products: Product[]; dbCategories?: string[]; dbBrands?: string[] }) {
@@ -49,8 +49,25 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
   const [filterStock, setFilterStock] = useState<'' | 'in' | 'out'>('')
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(25)
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const [editingSortId, setEditingSortId] = useState<string | null>(null)
+  const [editingSortVal, setEditingSortVal] = useState('')
   const supabase = createClient()
   const modalRef = useRef<HTMLDivElement>(null)
+
+  // Fix duplicate sort_order values on mount
+  useEffect(() => {
+    const orders = initial.map(p => p.sort_order ?? 0)
+    const hasDupes = new Set(orders).size !== orders.length
+    if (!hasDupes) return
+    const sorted = [...initial].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    const fixed = sorted.map((p, i) => ({ ...p, sort_order: i }))
+    setProducts(fixed)
+    // Persist
+    Promise.all(fixed.map(p => supabase.from('products').update({ sort_order: p.sort_order }).eq('id', p.id)))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -185,6 +202,92 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
     }
   }
 
+  async function handleSortOrder(id: string, direction: 'up' | 'down') {
+    const idx = products.findIndex(p => p.id === id)
+    if (idx < 0) return
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (swapIdx < 0 || swapIdx >= products.length) return
+
+    let current = products
+    const allSame = current.length > 1 && current.every(p => (p.sort_order ?? 0) === (current[0].sort_order ?? 0))
+    if (allSame) {
+      await Promise.all(current.map((p, i) =>
+        supabase.from('products').update({ sort_order: i }).eq('id', p.id)
+      ))
+      current = current.map((p, i) => ({ ...p, sort_order: i }))
+    }
+
+    const a = current[idx]
+    const b = current[swapIdx]
+    await Promise.all([
+      supabase.from('products').update({ sort_order: b.sort_order }).eq('id', a.id),
+      supabase.from('products').update({ sort_order: a.sort_order }).eq('id', b.id),
+    ])
+    setProducts(() => {
+      const next = [...current]
+      next[idx] = { ...a, sort_order: b.sort_order }
+      next[swapIdx] = { ...b, sort_order: a.sort_order }
+      next.sort((x, y) => (x.sort_order ?? 0) - (y.sort_order ?? 0))
+      return next
+    })
+  }
+
+  // Inline sort_order edit
+  async function handleSortOrderEdit(id: string, val: string) {
+    const num = parseInt(val, 10)
+    if (isNaN(num) || num < 0) { setEditingSortId(null); return }
+    setEditingSortId(null)
+    await supabase.from('products').update({ sort_order: num }).eq('id', id)
+    setProducts(prev => {
+      const next = prev.map(p => p.id === id ? { ...p, sort_order: num } : p)
+      next.sort((x, y) => (x.sort_order ?? 0) - (y.sort_order ?? 0))
+      return next
+    })
+  }
+
+  // Drag-and-drop reorder
+  function handleDragStart(e: React.DragEvent, id: string) {
+    setDragId(id)
+    e.dataTransfer.effectAllowed = 'move'
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.4'
+    }
+  }
+  function handleDragEnd(e: React.DragEvent) {
+    setDragId(null)
+    setDragOverId(null)
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1'
+    }
+  }
+  function handleDragOver(e: React.DragEvent, id: string) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (id !== dragOverId) setDragOverId(id)
+  }
+  async function handleDrop(e: React.DragEvent, targetId: string) {
+    e.preventDefault()
+    if (!dragId || dragId === targetId) { setDragId(null); setDragOverId(null); return }
+    const fromIdx = products.findIndex(p => p.id === dragId)
+    const toIdx = products.findIndex(p => p.id === targetId)
+    if (fromIdx < 0 || toIdx < 0) { setDragId(null); setDragOverId(null); return }
+    const next = [...products]
+    const [moved] = next.splice(fromIdx, 1)
+    next.splice(toIdx, 0, moved)
+    const updated = next.map((p, i) => ({ ...p, sort_order: i }))
+    setProducts(updated)
+    setDragId(null)
+    setDragOverId(null)
+    // Persist only changed sort_orders
+    const changes = updated.filter(p => {
+      const orig = products.find(o => o.id === p.id)
+      return orig && orig.sort_order !== p.sort_order
+    })
+    await Promise.all(changes.map(p =>
+      supabase.from('products').update({ sort_order: p.sort_order }).eq('id', p.id)
+    ))
+  }
+
   function toggleSelect(id: string) {
     setSelectedIds(prev => {
       const next = new Set(prev)
@@ -283,21 +386,36 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
               <th style={{ width: 36 }}>
                 <input type="checkbox" checked={paginated.length > 0 && selectedIds.size === paginated.length} onChange={toggleSelectAll} style={{ cursor: 'pointer', accentColor: 'var(--primary)' }} />
               </th>
-              {[t.admin.name, t.admin.brand, t.admin.category, t.admin.price, t.admin.status, t.admin.actions].map((h) => (
+              {[t.admin.name, t.admin.brand, t.admin.category, t.admin.price, '#', t.admin.status, t.admin.actions].map((h) => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {paginated.length === 0 ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text2)', padding: '32px' }}>{t.admin.noProducts}</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text2)', padding: '32px' }}>{t.admin.noProducts}</td></tr>
             ) : paginated.map((p) => (
-              <tr key={p.id} style={{ background: selectedIds.has(p.id) ? 'rgba(99,102,241,.06)' : undefined }}>
+              <tr
+                key={p.id}
+                draggable
+                onDragStart={e => handleDragStart(e, p.id)}
+                onDragEnd={handleDragEnd}
+                onDragOver={e => handleDragOver(e, p.id)}
+                onDrop={e => handleDrop(e, p.id)}
+                style={{
+                  background: dragOverId === p.id && dragId !== p.id ? 'rgba(99,102,241,.12)' : selectedIds.has(p.id) ? 'rgba(99,102,241,.06)' : undefined,
+                  borderTop: dragOverId === p.id && dragId !== p.id ? '2px solid var(--primary)' : undefined,
+                  transition: 'background .15s',
+                }}
+              >
                 <td>
                   <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => toggleSelect(p.id)} style={{ cursor: 'pointer', accentColor: 'var(--primary)' }} />
                 </td>
                 <td style={{ maxWidth: '280px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ cursor: 'grab', color: 'var(--text3)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                      <GripVertical size={16} />
+                    </div>
                     <div style={{ width: 38, height: 38, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
                       {p.images?.[0] ? (
                         <Image src={p.images[0]} alt={p.name} width={38} height={38} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
@@ -314,6 +432,26 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
                 <td>{p.brand}</td>
                 <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
                 <td style={{ color: 'var(--primary)', fontWeight: 700 }}>{formatPrice(p.price)}</td>
+                <td>
+                  {editingSortId === p.id ? (
+                    <input
+                      type="number"
+                      min={0}
+                      autoFocus
+                      value={editingSortVal}
+                      onChange={e => setEditingSortVal(e.target.value)}
+                      onBlur={() => handleSortOrderEdit(p.id, editingSortVal)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleSortOrderEdit(p.id, editingSortVal); if (e.key === 'Escape') setEditingSortId(null) }}
+                      style={{ width: 48, fontSize: '.75rem', fontFamily: 'monospace', textAlign: 'center', padding: '2px 4px', border: '1px solid var(--primary)', borderRadius: 4, outline: 'none', background: 'var(--bg2)', color: 'var(--text)' }}
+                    />
+                  ) : (
+                    <span
+                      onClick={() => { setEditingSortId(p.id); setEditingSortVal(String(p.sort_order ?? 0)) }}
+                      style={{ fontSize: '.75rem', fontFamily: 'monospace', color: 'var(--text2)', cursor: 'pointer', padding: '2px 6px', borderRadius: 4, border: '1px solid transparent' }}
+                      title="Click to edit"
+                    >{p.sort_order ?? 0}</span>
+                  )}
+                </td>
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
                     <button onClick={() => handleToggle(p.id, 'in_stock', p.in_stock)} title={p.in_stock ? t.admin.markOutOfStock : t.admin.markInStock} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -374,6 +512,28 @@ export default function AdminProductsClient({ products: initial, dbCategories = 
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '1rem' }}>{formatPrice(p.price)}</span>
+              {editingSortId === p.id ? (
+                <input
+                  type="number"
+                  min={0}
+                  autoFocus
+                  value={editingSortVal}
+                  onChange={e => setEditingSortVal(e.target.value)}
+                  onBlur={() => handleSortOrderEdit(p.id, editingSortVal)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleSortOrderEdit(p.id, editingSortVal); if (e.key === 'Escape') setEditingSortId(null) }}
+                  style={{ width: 48, fontSize: '.7rem', fontFamily: 'monospace', textAlign: 'center', padding: '2px 4px', border: '1px solid var(--primary)', borderRadius: 6, outline: 'none', background: 'var(--bg2)', color: 'var(--text)' }}
+                />
+              ) : (
+                <span
+                  onClick={() => { setEditingSortId(p.id); setEditingSortVal(String(p.sort_order ?? 0)) }}
+                  style={{ fontSize: '.7rem', color: 'var(--text2)', fontFamily: 'monospace', background: 'var(--bg3)', borderRadius: 6, padding: '2px 6px', cursor: 'pointer' }}
+                  title="Click to edit"
+                >#{p.sort_order ?? 0}</span>
+              )}
+              <div style={{ display: 'flex', gap: 2 }}>
+                <button onClick={() => handleSortOrder(p.id, 'up')} title={t.admin.moveUp} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--text2)' }}><ArrowUp size={13} /></button>
+                <button onClick={() => handleSortOrder(p.id, 'down')} title={t.admin.moveDown} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--text2)' }}><ArrowDown size={13} /></button>
+              </div>
               <span style={{ fontSize: '.75rem', color: 'var(--text2)', textTransform: 'capitalize', background: 'var(--bg3)', borderRadius: 6, padding: '2px 8px' }}>{p.category}</span>
               <button onClick={() => handleToggle(p.id, 'in_stock', p.in_stock)} title={p.in_stock ? t.admin.markOutOfStock : t.admin.markInStock} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 {p.in_stock

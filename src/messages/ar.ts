@@ -55,7 +55,7 @@ const ar = {
   productsSection: {
     sectionTitle: 'جميع',
     sectionTitleHighlight: 'المنتجات',
-    sectionSub: '32 منتجًا احترافيًا لأجهزة POS من أفضل الشركات المصنعة',
+    sectionSub: '{count} منتجًا احترافيًا لأجهزة POS من أفضل الشركات المصنعة',
     searchPlaceholder: 'ابحث عن منتج، ماركة، طراز...',
     sortDefault: 'الافتراضي',
     sortPriceAsc: 'السعر ↑',
@@ -76,6 +76,14 @@ const ar = {
     availability: 'التوفر',
     inStockOnly: 'المتوفر فقط',
     clearFilters: 'مسح الفلاتر',
+  },
+
+  // ── LATEST BY CATEGORY
+  latestByCategory: {
+    sectionTitle: 'أحدث من',
+    sectionTitleHighlight: 'كل فئة',
+    sectionSub: 'أحدث الإضافات في جميع الفئات',
+    viewAll: 'عرض الكل',
   },
 
   // ── PRODUCT CARD
@@ -510,6 +518,8 @@ const ar = {
     search: 'بحث',
     filter: 'تصفية',
     actions: 'الإجراءات',
+    moveUp: 'تحريك للأعلى',
+    moveDown: 'تحريك للأسفل',
     confirm: 'تأكيد',
     loading: 'جارٍ التحميل...',
     noResults: 'لم يتم العثور على نتائج',

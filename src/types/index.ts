@@ -55,6 +55,7 @@ export interface Product {
   is_new: boolean
   is_hot: boolean
   hidden: boolean
+  sort_order: number
   created_at: string
   variants?: ProductVariant[]
 }

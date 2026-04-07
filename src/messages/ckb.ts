@@ -55,7 +55,7 @@ const ckb = {
   productsSection: {
     sectionTitle: 'هەموو',
     sectionTitleHighlight: 'بەرهەمەکان',
-    sectionSub: '32 بەرهەمی پیشەیی POS لە باشترین بەرهەمهێنەران',
+    sectionSub: '{count} بەرهەمی پیشەیی POS لە باشترین بەرهەمهێنەران',
     searchPlaceholder: 'بگەڕێ بەرهەم، براند، مۆدێل...',
     sortDefault: 'ئاسایی',
     sortPriceAsc: 'نرخ ↑',
@@ -76,6 +76,14 @@ const ckb = {
     availability: 'بەردەستبوون',
     inStockOnly: 'تەنها بەردەست',
     clearFilters: 'پاککردنەوەی فلتەر',
+  },
+
+  // ── LATEST BY CATEGORY
+  latestByCategory: {
+    sectionTitle: 'نوێترین لە',
+    sectionTitleHighlight: 'هەر کەتەگۆری',
+    sectionSub: 'نوێترین بەرهەمەکان لە هەموو کەتەگۆرییەکان',
+    viewAll: 'هەمووی ببینە',
   },
 
   // ── PRODUCT CARD
@@ -509,6 +517,8 @@ const ckb = {
     search: 'گەڕان',
     filter: 'فلتەر',
     actions: 'کردارەکان',
+    moveUp: 'بۆ سەرەوە',
+    moveDown: 'بۆ خوارەوە',
     confirm: 'دڵنیاکردنەوە',
     loading: 'بارکردن...',
     noResults: 'هیچ ئەنجامێک نەدۆزرایەوە',

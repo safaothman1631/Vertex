@@ -5,7 +5,7 @@ import type { Product } from '@/types'
 export default async function AdminProductsPage() {
   const supabase = await createClient()
   const [{ data: products }, { data: categories }, { data: brands }] = await Promise.all([
-    supabase.from('products').select('*').order('created_at', { ascending: false }),
+    supabase.from('products').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
     supabase.from('categories').select('name, slug').order('sort_order', { ascending: true }),
     supabase.from('brands').select('name').order('name', { ascending: true }),
   ])

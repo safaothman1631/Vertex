@@ -55,7 +55,7 @@ const en = {
   productsSection: {
     sectionTitle: 'All',
     sectionTitleHighlight: 'Products',
-    sectionSub: '32 professional POS products from the top manufacturers',
+    sectionSub: '{count} professional POS products from the top manufacturers',
     searchPlaceholder: 'Search products, brands, models...',
     sortDefault: 'Default',
     sortPriceAsc: 'Price ↑',
@@ -76,6 +76,14 @@ const en = {
     availability: 'Availability',
     inStockOnly: 'In Stock Only',
     clearFilters: 'Clear Filters',
+  },
+
+  // ── LATEST BY CATEGORY
+  latestByCategory: {
+    sectionTitle: 'Latest from',
+    sectionTitleHighlight: 'Each Category',
+    sectionSub: 'The newest additions across every product category',
+    viewAll: 'View All',
   },
 
   // ── PRODUCT CARD
@@ -521,6 +529,8 @@ const en = {
     search: 'Search',
     filter: 'Filter',
     actions: 'Actions',
+    moveUp: 'Move up',
+    moveDown: 'Move down',
     confirm: 'Confirm',
     loading: 'Loading...',
     noResults: 'No results found',

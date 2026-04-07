@@ -55,7 +55,7 @@ const tr = {
   productsSection: {
     sectionTitle: 'Tüm',
     sectionTitleHighlight: 'Ürünler',
-    sectionSub: "En iyi üreticilerden 32 profesyonel POS ürünü",
+    sectionSub: "En iyi üreticilerden {count} profesyonel POS ürünü",
     searchPlaceholder: 'Ürün, marka, model ara...',
     sortDefault: 'Varsayılan',
     sortPriceAsc: 'Fiyat ↑',
@@ -76,6 +76,14 @@ const tr = {
     availability: 'Stok Durumu',
     inStockOnly: 'Sadece Stokta',
     clearFilters: 'Filtreleri Temizle',
+  },
+
+  // ── LATEST BY CATEGORY
+  latestByCategory: {
+    sectionTitle: 'Her Kategoriden',
+    sectionTitleHighlight: 'En Yeniler',
+    sectionSub: 'Tüm kategorilerdeki en yeni ürünler',
+    viewAll: 'Tümünü Gör',
   },
 
   // ── PRODUCT CARD
@@ -514,6 +522,8 @@ const tr = {
     search: 'Ara',
     filter: 'Filtrele',
     actions: 'İşlemler',
+    moveUp: 'Yukarı taşı',
+    moveDown: 'Aşağı taşı',
     confirm: 'Onayla',
     loading: 'Yükleniyor...',
     noResults: 'Sonuç bulunamadı',

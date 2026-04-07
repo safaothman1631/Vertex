@@ -36,8 +36,6 @@ export default function Footer() {
               <h4>{t.footer.brandsTitle}</h4>
               <Link href="/products?brand=Honeywell">Honeywell</Link>
               <Link href="/products?brand=Zebra">Zebra</Link>
-              <Link href="/products?brand=Ingenico">Ingenico</Link>
-              <Link href="/products?brand=Verifone">Verifone</Link>
               <Link href="/products?brand=Epson">Epson</Link>
             </div>
             <div className="f-col">

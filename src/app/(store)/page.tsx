@@ -35,7 +35,7 @@ export default async function Home() {
     { data: terminalProducts },
     { data: activePromos },
   ] = await Promise.all([
-    supabase.from('products').select('id, name, brand, model, category, price, old_price, description, specs, images, rating, review_count, in_stock, is_new, is_hot, created_at').eq('hidden', false).order('created_at', { ascending: false }),
+    supabase.from('products').select('id, name, brand, model, category, price, old_price, description, specs, images, rating, review_count, in_stock, is_new, is_hot, sort_order, created_at').eq('hidden', false).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'user'),
     supabase.from('orders').select('id', { count: 'exact', head: true }),
     supabase.from('brands').select('id, name, logo, category_key, color1, color2').order('name', { ascending: true }),

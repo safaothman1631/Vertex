@@ -9,7 +9,6 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       auth: {
-        lock: 'no-op' as any,
         flowType: 'pkce',
       },
     }
