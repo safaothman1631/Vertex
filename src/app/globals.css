@@ -611,17 +611,7 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 }
 
 @media(max-width:768px){
-  .spline-3d-section{padding:48px 0 36px}
-  .spline-viewer-wrap{
-    max-width:100%;
-    aspect-ratio:3/2;
-    margin-top:24px;
-    border-radius:16px;
-  }
-  .spline-glass-frame{border-radius:16px}
-  .spline-mobile-fallback{display:flex !important}
-  .spline-canvas-wrap{display:none !important}
-  .spline-loader{display:none !important}
+  .spline-3d-section{display:none !important}
 }
 
 /* Brands ticker */
