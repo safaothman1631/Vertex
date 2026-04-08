@@ -21,8 +21,8 @@ const csp = [
   "worker-src blob: 'self'",
   // XHR / fetch / WebSocket: Supabase REST + Realtime, Stripe API, Nominatim geocoding, Spline CDN
   `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://api.stripe.com https://nominatim.openstreetmap.org https://prod.spline.design https://unpkg.com`,
-  // Stripe payment iframe + Google Maps
-  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://maps.googleapis.com https://maps.google.com https://www.google.com",
+  // Stripe payment iframe + Google Maps + Spline 3D viewer
+  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://maps.googleapis.com https://maps.google.com https://www.google.com https://my.spline.design",
   // Never load plugins (Flash, etc.)
   "object-src 'none'",
   // Prevent base-tag hijacking

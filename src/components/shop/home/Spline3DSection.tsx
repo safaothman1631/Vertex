@@ -1,70 +1,10 @@
 'use client'
-import { useRef, useEffect, useState } from 'react'
+import { useState } from 'react'
 import FadeIn from '@/components/ui/FadeIn'
 import { useT } from '@/contexts/locale'
 
 export default function Spline3DSection() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const [loaded, setLoaded] = useState(false)
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    // Don't load heavy WebGL on small phones only (< 480px)
-    if (window.innerWidth < 480) return
-
-    let disposed = false
-    const loadTimeout = setTimeout(() => { if (!disposed) setLoaded(true) }, 12000)
-
-    import('@splinetool/runtime').then(({ Application }) => {
-      if (disposed) return
-      const app = new Application(canvas)
-      app.load('/models/robot.splinecode')
-        .then(() => { if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) } })
-        .catch(() => { if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) } })
-    }).catch(() => { if (!disposed) setLoaded(true) })
-
-    return () => { disposed = true; clearTimeout(loadTimeout) }
-  }, [])
-
-  useEffect(() => {
-    const wrap = wrapRef.current
-    if (!wrap) return
-
-    function purge() {
-      wrap!.querySelectorAll('a').forEach(a => a.remove())
-      const canvas = canvasRef.current
-      if (canvas?.parentElement) {
-        Array.from(canvas.parentElement.children).forEach(child => {
-          if (child.tagName === 'A') child.remove()
-        })
-      }
-    }
-
-    const observer = new MutationObserver(purge)
-    observer.observe(wrap, { childList: true, subtree: true })
-
-    let rafId: number
-    function loop() { purge(); rafId = requestAnimationFrame(loop) }
-    rafId = requestAnimationFrame(loop)
-
-    const stopTimer = setTimeout(() => {
-      cancelAnimationFrame(rafId)
-      const slowId = setInterval(purge, 2000)
-      ;(wrap as unknown as Record<string, unknown>).__slowId = slowId
-    }, 15000)
-
-    return () => {
-      observer.disconnect()
-      cancelAnimationFrame(rafId)
-      clearTimeout(stopTimer)
-      const slowId = (wrap as unknown as Record<string, unknown>).__slowId
-      if (slowId) clearInterval(slowId as ReturnType<typeof setInterval>)
-    }
-  }, [])
-
+  const [iframeLoaded, setIframeLoaded] = useState(false)
   const t = useT()
 
   return (
@@ -84,10 +24,10 @@ export default function Spline3DSection() {
         </FadeIn>
 
         <FadeIn delay={200}>
-          <div className="spline-viewer-wrap" ref={wrapRef}>
+          <div className="spline-viewer-wrap">
             <div className="spline-glass-frame" />
 
-            {/* Mobile fallback ï¿½ CSS shows this on small screens */}
+            {/* Mobile fallback (phones < 480px) — CSS shows/hides */}
             <div className="spline-mobile-fallback" aria-hidden="true">
               <div className="spline-mobile-glow" />
               <svg className="spline-mobile-icon" viewBox="0 0 120 120" fill="none">
@@ -112,23 +52,32 @@ export default function Spline3DSection() {
               <span className="spline-mobile-sub">Professional POS Hardware</span>
             </div>
 
-            {/* Desktop 3D canvas ï¿½ CSS hides this on mobile */}
+            {/* Desktop iframe — official Spline embed, no WebGL/CSP issues */}
             <div className="spline-canvas-wrap">
-              {!loaded && (
+              {!iframeLoaded && (
                 <div className="spline-loader">
                   <div className="spline-spinner" />
                 </div>
               )}
-              <canvas
-                ref={canvasRef}
-                style={{ display: 'block', width: '100%', height: '100%' }}
+              <iframe
+                src="https://my.spline.design/mDdxXJLr8ElI7pmF/"
+                loading="lazy"
+                onLoad={() => setIframeLoaded(true)}
+                style={{
+                  width: '100%', height: '100%',
+                  border: 'none', display: 'block',
+                  borderRadius: '24px',
+                }}
+                title="Vertex 3D Robot"
+                allow="autoplay"
               />
+              {/* Gradient cover hides the Spline watermark at the bottom */}
               <div
                 style={{
                   position: 'absolute', bottom: 0, left: 0, right: 0,
                   width: '100%', height: 120,
-                  background: 'linear-gradient(to bottom, transparent 0%, #090913 45%)',
-                  zIndex: 2147483647, pointerEvents: 'none',
+                  background: 'linear-gradient(to bottom, transparent 0%, #090913 50%)',
+                  zIndex: 10, pointerEvents: 'none',
                   borderRadius: '0 0 24px 24px',
                 }}
               />
