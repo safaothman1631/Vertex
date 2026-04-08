@@ -1,4 +1,4 @@
-'use client'
+ï»¿'use client'
 import { useState } from 'react'
 import FadeIn from '@/components/ui/FadeIn'
 import { useT } from '@/contexts/locale'
@@ -27,15 +27,13 @@ export default function Spline3DSection() {
           <div className="spline-viewer-wrap">
             <div className="spline-glass-frame" />
 
-            {/* Mobile fallback (phones < 480px) — CSS shows/hides */}
             <div className="spline-mobile-fallback" aria-hidden="true">
               <div className="spline-mobile-glow" />
               <svg className="spline-mobile-icon" viewBox="0 0 120 120" fill="none">
                 <circle cx="60" cy="60" r="50" stroke="url(#g1)" strokeWidth="2" opacity="0.4"/>
                 <circle cx="60" cy="60" r="35" stroke="url(#g1)" strokeWidth="1.5" opacity="0.3"/>
                 <circle cx="60" cy="60" r="18" fill="url(#g2)" opacity="0.6"/>
-                <path d="M60 20 L70 45 L97 45 L75 62 L83 88 L60 72 L37 88 L45 62 L23 45 L50 45 Z"
-                  fill="url(#g3)" opacity="0.5"/>
+                <path d="M60 20 L70 45 L97 45 L75 62 L83 88 L60 72 L37 88 L45 62 L23 45 L50 45 Z" fill="url(#g3)" opacity="0.5"/>
                 <defs>
                   <linearGradient id="g1" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
                     <stop stopColor="#818cf8"/><stop offset="1" stopColor="#a78bfa"/>
@@ -52,7 +50,6 @@ export default function Spline3DSection() {
               <span className="spline-mobile-sub">Professional POS Hardware</span>
             </div>
 
-            {/* Desktop iframe — official Spline embed, no WebGL/CSP issues */}
             <div className="spline-canvas-wrap">
               {!iframeLoaded && (
                 <div className="spline-loader">
@@ -71,7 +68,6 @@ export default function Spline3DSection() {
                 title="Vertex 3D Robot"
                 allow="autoplay"
               />
-              {/* Gradient cover hides the Spline watermark at the bottom */}
               <div
                 style={{
                   position: 'absolute', bottom: 0, left: 0, right: 0,
