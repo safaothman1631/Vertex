@@ -7,24 +7,35 @@ export default function Spline3DSection() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const [loaded, setLoaded] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
+    // Check if mobile — skip heavy Spline load on small screens
+    const mobile = window.innerWidth < 768
+    setIsMobile(mobile)
+    if (mobile) return
+
     const canvas = canvasRef.current
     if (!canvas) return
 
     let disposed = false
+
+    // Timeout fallback: if scene hasn't loaded in 12s, remove spinner
+    const loadTimeout = setTimeout(() => {
+      if (!disposed) setLoaded(true)
+    }, 12000)
 
     import('@splinetool/runtime').then(({ Application }) => {
       if (disposed) return
       const app = new Application(canvas)
       app.load('https://prod.spline.design/mDdxXJLr8ElI7pmF/scene.splinecode')
         .then(() => {
-          if (!disposed) setLoaded(true)
+          if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) }
         })
-        .catch(() => {})
-    })
+        .catch(() => { if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) } })
+    }).catch(() => { if (!disposed) setLoaded(true) })
 
-    return () => { disposed = true }
+    return () => { disposed = true; clearTimeout(loadTimeout) }
   }, [])
 
   // Aggressively remove any <a> watermark injected by Spline runtime
@@ -95,30 +106,41 @@ export default function Spline3DSection() {
         <FadeIn delay={200}>
           <div className="spline-viewer-wrap" ref={wrapRef}>
             <div className="spline-glass-frame" />
-            {!loaded && (
-              <div className="spline-loader">
-                <div className="spline-spinner" />
+
+            {/* Mobile static fallback — no heavy WebGL */}
+            {isMobile ? (
+              <div className="spline-mobile-fallback">
+                <div className="spline-mobile-glow" />
+                <span className="spline-mobile-label">VERTEX</span>
               </div>
+            ) : (
+              <>
+                {!loaded && (
+                  <div className="spline-loader">
+                    <div className="spline-spinner" />
+                  </div>
+                )}
+                <canvas
+                  ref={canvasRef}
+                  style={{ display: 'block', width: '100%', height: '100%' }}
+                />
+                {/* Cover watermark logo */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    width: '100%',
+                    height: 120,
+                    background: 'linear-gradient(to bottom, transparent 0%, #090913 45%)',
+                    zIndex: 2147483647,
+                    pointerEvents: 'none',
+                    borderRadius: '0 0 24px 24px',
+                  }}
+                />
+              </>
             )}
-            <canvas
-              ref={canvasRef}
-              style={{ display: 'block', width: '100%', height: '100%' }}
-            />
-            {/* Cover watermark logo */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                width: '100%',
-                height: 120,
-                background: 'linear-gradient(to bottom, transparent 0%, #090913 45%)',
-                zIndex: 2147483647,
-                pointerEvents: 'none',
-                borderRadius: '0 0 24px 24px',
-              }}
-            />
           </div>
         </FadeIn>
       </div>
