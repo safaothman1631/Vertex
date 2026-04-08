@@ -619,8 +619,9 @@ html{scrollbar-width:none;-ms-overflow-style:none}
     border-radius:16px;
   }
   .spline-glass-frame{border-radius:16px}
-  .spline-mobile-fallback{display:flex}
-  .spline-canvas-wrap{display:none}
+  .spline-mobile-fallback{display:flex !important}
+  .spline-canvas-wrap{display:none !important}
+  .spline-loader{display:none !important}
 }
 
 /* Brands ticker */

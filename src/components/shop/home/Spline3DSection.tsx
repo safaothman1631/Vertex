@@ -12,8 +12,8 @@ export default function Spline3DSection() {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    // Skip heavy WebGL on phones and small tablets
-    if (window.innerWidth < 768 || 'ontouchstart' in window) return
+    // Skip heavy WebGL on phones and tablets
+    if (window.innerWidth < 768) return
 
     let disposed = false
     const loadTimeout = setTimeout(() => { if (!disposed) setLoaded(true) }, 15000)
