@@ -62,15 +62,15 @@ export default function Spline3DSection() {
       // Switch to a slow interval as maintenance
       const slowId = setInterval(purge, 2000)
       // Clean up slow interval on unmount handled below
-      ;(wrap as unknown as Record<string, number>).__slowId = slowId
+      ;(wrap as unknown as Record<string, unknown>).__slowId = slowId
     }, 15000)
 
     return () => {
       observer.disconnect()
       cancelAnimationFrame(rafId)
       clearTimeout(stopTimer)
-      const slowId = (wrap as unknown as Record<string, number>).__slowId
-      if (slowId) clearInterval(slowId)
+      const slowId = (wrap as unknown as Record<string, unknown>).__slowId
+      if (slowId) clearInterval(slowId as ReturnType<typeof setInterval>)
     }
   }, [])
 
