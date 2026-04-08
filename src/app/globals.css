@@ -552,6 +552,18 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* Edge gradients — blend light Spline bg into dark site */
+.spline-edge{position:absolute;pointer-events:none;z-index:10}
+.spline-edge-top{top:0;left:0;right:0;height:35%;background:linear-gradient(to bottom,#090913 0%,transparent 100%)}
+.spline-edge-bottom{bottom:0;left:0;right:0;height:35%;background:linear-gradient(to top,#090913 0%,transparent 100%);border-radius:0 0 24px 24px}
+.spline-edge-left{top:0;bottom:0;left:0;width:20%;background:linear-gradient(to right,#090913 0%,transparent 100%)}
+.spline-edge-right{top:0;bottom:0;right:0;width:20%;background:linear-gradient(to left,#090913 0%,transparent 100%)}
+
+[data-theme="light"] .spline-edge-top{background:linear-gradient(to bottom,var(--bg) 0%,transparent 100%)}
+[data-theme="light"] .spline-edge-bottom{background:linear-gradient(to top,var(--bg) 0%,transparent 100%)}
+[data-theme="light"] .spline-edge-left{background:linear-gradient(to right,var(--bg) 0%,transparent 100%)}
+[data-theme="light"] .spline-edge-right{background:linear-gradient(to left,var(--bg) 0%,transparent 100%)}
+
 [data-theme="light"] .spline-viewer-wrap{
   background:rgba(240,240,250,.5);
   box-shadow:
