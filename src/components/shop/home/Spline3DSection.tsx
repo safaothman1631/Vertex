@@ -21,7 +21,7 @@ export default function Spline3DSection() {
     import('@splinetool/runtime').then(({ Application }) => {
       if (disposed) return
       const app = new Application(canvas)
-      app.load('https://prod.spline.design/mDdxXJLr8ElI7pmF/scene.splinecode')
+      app.load('/models/robot.splinecode')
         .then(() => { if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) } })
         .catch(() => { if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) } })
     }).catch(() => { if (!disposed) setLoaded(true) })
@@ -87,7 +87,7 @@ export default function Spline3DSection() {
           <div className="spline-viewer-wrap" ref={wrapRef}>
             <div className="spline-glass-frame" />
 
-            {/* Mobile fallback — CSS shows this on small screens */}
+            {/* Mobile fallback ï¿½ CSS shows this on small screens */}
             <div className="spline-mobile-fallback" aria-hidden="true">
               <div className="spline-mobile-glow" />
               <svg className="spline-mobile-icon" viewBox="0 0 120 120" fill="none">
@@ -112,7 +112,7 @@ export default function Spline3DSection() {
               <span className="spline-mobile-sub">Professional POS Hardware</span>
             </div>
 
-            {/* Desktop 3D canvas — CSS hides this on mobile */}
+            {/* Desktop 3D canvas ï¿½ CSS hides this on mobile */}
             <div className="spline-canvas-wrap">
               {!loaded && (
                 <div className="spline-loader">

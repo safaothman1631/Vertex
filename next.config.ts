@@ -9,14 +9,16 @@ const isDev = process.env.NODE_ENV === 'development'
 const csp = [
   "default-src 'self'",
   // Next.js needs unsafe-inline for its injected scripts; Stripe needs its CDN
-  // unsafe-eval only in dev for React debugging (never in production)
-  `script-src 'self' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com https://unpkg.com${isDev ? " 'unsafe-eval'" : ''}`,
+  // unsafe-eval in dev + wasm-unsafe-eval always (needed for Spline/Three.js WASM shaders)
+  `script-src 'self' 'unsafe-inline' blob: https://js.stripe.com https://maps.googleapis.com https://unpkg.com 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ''}`,
   // Inline styles used throughout the app
   "style-src 'self' 'unsafe-inline'",
   // Images: own origin, Supabase storage, base64 data URIs, blobs
   `img-src 'self' data: blob: https://${SUPABASE_HOST} https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.googleusercontent.com`,
   // Fonts: own origin + data: URIs
   "font-src 'self' data:",
+  // Web Workers: Spline runtime creates blob: URL workers for WebGL rendering
+  "worker-src blob: 'self'",
   // XHR / fetch / WebSocket: Supabase REST + Realtime, Stripe API, Nominatim geocoding, Spline CDN
   `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://api.stripe.com https://nominatim.openstreetmap.org https://prod.spline.design https://unpkg.com`,
   // Stripe payment iframe + Google Maps
