@@ -1,19 +1,30 @@
 ﻿'use client'
-import { useRef, useEffect, useState, useCallback } from 'react'
-import dynamic from 'next/dynamic'
-import type { Application } from '@splinetool/runtime'
+import { useRef, useEffect, useState } from 'react'
 import FadeIn from '@/components/ui/FadeIn'
 import { useT } from '@/contexts/locale'
 
-const Spline = dynamic(() => import('@splinetool/react-spline'), { ssr: false })
+const SCENE_URL = 'https://prod.spline.design/mDdxXJLr8ElI7pmF/scene.splinecode'
 
 export default function Spline3DSection() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const [loaded, setLoaded] = useState(false)
 
-  const handleLoad = useCallback((app: Application) => {
-    void app
-    setLoaded(true)
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || window.innerWidth < 768) return
+
+    let disposed = false
+
+    import('@splinetool/runtime').then(({ Application }) => {
+      if (disposed) return
+      const app = new Application(canvas)
+      app.load(SCENE_URL)
+        .then(() => { if (!disposed) setLoaded(true) })
+        .catch(() => { if (!disposed) setLoaded(true) })
+    }).catch(() => { if (!disposed) setLoaded(true) })
+
+    return () => { disposed = true }
   }, [])
 
   useEffect(() => {
@@ -97,10 +108,9 @@ export default function Spline3DSection() {
                   <div className="spline-spinner" />
                 </div>
               )}
-              <Spline
-                scene="https://prod.spline.design/mDdxXJLr8ElI7pmF/scene.splinecode"
-                onLoad={handleLoad}
-                style={{ width: '100%', height: '100%' }}
+              <canvas
+                ref={canvasRef}
+                style={{ display: 'block', width: '100%', height: '100%' }}
               />
               <div
                 style={{
