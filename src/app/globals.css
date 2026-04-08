@@ -614,12 +614,14 @@ html{scrollbar-width:none;-ms-overflow-style:none}
   .spline-3d-section{padding:48px 0 36px}
   .spline-viewer-wrap{
     max-width:100%;
-    aspect-ratio:3/2;
+    aspect-ratio:4/3;
     margin-top:24px;
     border-radius:16px;
   }
   .spline-glass-frame{border-radius:16px}
-  /* Show mobile fallback, hide desktop canvas */
+}
+/* Only on real phones hide the canvas and show text fallback */
+@media(max-width:480px){
   .spline-mobile-fallback{display:flex}
   .spline-canvas-wrap{display:none}
 }
