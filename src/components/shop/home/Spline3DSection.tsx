@@ -1,32 +1,19 @@
 ﻿'use client'
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useCallback } from 'react'
+import dynamic from 'next/dynamic'
+import type { Application } from '@splinetool/runtime'
 import FadeIn from '@/components/ui/FadeIn'
 import { useT } from '@/contexts/locale'
 
+const Spline = dynamic(() => import('@splinetool/react-spline'), { ssr: false })
+
 export default function Spline3DSection() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const [loaded, setLoaded] = useState(false)
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    // Skip heavy WebGL on phones and tablets
-    if (window.innerWidth < 768) return
-
-    let disposed = false
-    const loadTimeout = setTimeout(() => { if (!disposed) setLoaded(true) }, 15000)
-
-    import('@splinetool/runtime').then(({ Application }) => {
-      if (disposed) return
-      const app = new Application(canvas)
-      app.load('/models/robot.splinecode')
-        .then(() => { if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) } })
-        .catch(() => { if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) } })
-    }).catch(() => { if (!disposed) setLoaded(true) })
-
-    return () => { disposed = true; clearTimeout(loadTimeout) }
+  const handleLoad = useCallback((app: Application) => {
+    void app
+    setLoaded(true)
   }, [])
 
   useEffect(() => {
@@ -81,30 +68,22 @@ export default function Spline3DSection() {
           <div className="spline-viewer-wrap" ref={wrapRef}>
             <div className="spline-glass-frame" />
 
-            {/* Mobile fallback - CSS shows on phones < 480px */}
             <div className="spline-mobile-fallback" aria-hidden="true">
               <div className="spline-mobile-glow" />
               <svg className="spline-mobile-icon" viewBox="0 0 120 120" fill="none">
                 <circle cx="60" cy="60" r="50" stroke="url(#g1)" strokeWidth="2" opacity="0.4" />
                 <circle cx="60" cy="60" r="35" stroke="url(#g1)" strokeWidth="1.5" opacity="0.3" />
                 <circle cx="60" cy="60" r="18" fill="url(#g2)" opacity="0.6" />
-                <path
-                  d="M60 20 L70 45 L97 45 L75 62 L83 88 L60 72 L37 88 L45 62 L23 45 L50 45 Z"
-                  fill="url(#g3)"
-                  opacity="0.5"
-                />
+                <path d="M60 20 L70 45 L97 45 L75 62 L83 88 L60 72 L37 88 L45 62 L23 45 L50 45 Z" fill="url(#g3)" opacity="0.5" />
                 <defs>
                   <linearGradient id="g1" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#818cf8" />
-                    <stop offset="1" stopColor="#a78bfa" />
+                    <stop stopColor="#818cf8" /><stop offset="1" stopColor="#a78bfa" />
                   </linearGradient>
                   <radialGradient id="g2" cx="50%" cy="50%" r="50%">
-                    <stop stopColor="#6366f1" />
-                    <stop offset="1" stopColor="#a78bfa" stopOpacity="0" />
+                    <stop stopColor="#6366f1" /><stop offset="1" stopColor="#a78bfa" stopOpacity="0" />
                   </radialGradient>
                   <linearGradient id="g3" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#818cf8" />
-                    <stop offset="1" stopColor="#c4b5fd" />
+                    <stop stopColor="#818cf8" /><stop offset="1" stopColor="#c4b5fd" />
                   </linearGradient>
                 </defs>
               </svg>
@@ -112,18 +91,17 @@ export default function Spline3DSection() {
               <span className="spline-mobile-sub">Professional POS Hardware</span>
             </div>
 
-            {/* Desktop 3D canvas - CSS hides on mobile */}
             <div className="spline-canvas-wrap">
               {!loaded && (
                 <div className="spline-loader">
                   <div className="spline-spinner" />
                 </div>
               )}
-              <canvas
-                ref={canvasRef}
-                style={{ display: 'block', width: '100%', height: '100%' }}
+              <Spline
+                scene="https://prod.spline.design/mDdxXJLr8ElI7pmF/scene.splinecode"
+                onLoad={handleLoad}
+                style={{ width: '100%', height: '100%' }}
               />
-              {/* Cover watermark logo at bottom */}
               <div
                 style={{
                   position: 'absolute',

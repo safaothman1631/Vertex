@@ -163,7 +163,6 @@ export default function Navbar({ initialUser, initialWishlistCount }: {
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             onClick={() => scrollToSection('hero')}
           >
-            <VertexMark size={28} />
             <span>Ver<span className="logo-accent">tex</span></span>
           </button>
 
