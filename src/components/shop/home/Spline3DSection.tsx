@@ -7,46 +7,34 @@ export default function Spline3DSection() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const [loaded, setLoaded] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    // Check if mobile — skip heavy Spline load on small screens
-    const mobile = window.innerWidth < 768
-    setIsMobile(mobile)
-    if (mobile) return
-
     const canvas = canvasRef.current
     if (!canvas) return
 
-    let disposed = false
+    // Don't load heavy WebGL on mobile
+    if (window.innerWidth < 768) return
 
-    // Timeout fallback: if scene hasn't loaded in 12s, remove spinner
-    const loadTimeout = setTimeout(() => {
-      if (!disposed) setLoaded(true)
-    }, 12000)
+    let disposed = false
+    const loadTimeout = setTimeout(() => { if (!disposed) setLoaded(true) }, 12000)
 
     import('@splinetool/runtime').then(({ Application }) => {
       if (disposed) return
       const app = new Application(canvas)
       app.load('https://prod.spline.design/mDdxXJLr8ElI7pmF/scene.splinecode')
-        .then(() => {
-          if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) }
-        })
+        .then(() => { if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) } })
         .catch(() => { if (!disposed) { clearTimeout(loadTimeout); setLoaded(true) } })
     }).catch(() => { if (!disposed) setLoaded(true) })
 
     return () => { disposed = true; clearTimeout(loadTimeout) }
   }, [])
 
-  // Aggressively remove any <a> watermark injected by Spline runtime
   useEffect(() => {
     const wrap = wrapRef.current
     if (!wrap) return
 
     function purge() {
-      // Remove every single <a> inside the wrapper — no exceptions
       wrap!.querySelectorAll('a').forEach(a => a.remove())
-      // Also check canvas parent for non-canvas, non-div children
       const canvas = canvasRef.current
       if (canvas?.parentElement) {
         Array.from(canvas.parentElement.children).forEach(child => {
@@ -55,24 +43,16 @@ export default function Spline3DSection() {
       }
     }
 
-    // MutationObserver catches immediate injections
     const observer = new MutationObserver(purge)
     observer.observe(wrap, { childList: true, subtree: true })
 
-    // requestAnimationFrame loop — runs every frame, cannot be beaten
     let rafId: number
-    function loop() {
-      purge()
-      rafId = requestAnimationFrame(loop)
-    }
+    function loop() { purge(); rafId = requestAnimationFrame(loop) }
     rafId = requestAnimationFrame(loop)
 
-    // Stop the RAF loop after 15 seconds (watermark is long gone by then)
     const stopTimer = setTimeout(() => {
       cancelAnimationFrame(rafId)
-      // Switch to a slow interval as maintenance
       const slowId = setInterval(purge, 2000)
-      // Clean up slow interval on unmount handled below
       ;(wrap as unknown as Record<string, unknown>).__slowId = slowId
     }, 15000)
 
@@ -107,40 +87,53 @@ export default function Spline3DSection() {
           <div className="spline-viewer-wrap" ref={wrapRef}>
             <div className="spline-glass-frame" />
 
-            {/* Mobile static fallback — no heavy WebGL */}
-            {isMobile ? (
-              <div className="spline-mobile-fallback">
-                <div className="spline-mobile-glow" />
-                <span className="spline-mobile-label">VERTEX</span>
-              </div>
-            ) : (
-              <>
-                {!loaded && (
-                  <div className="spline-loader">
-                    <div className="spline-spinner" />
-                  </div>
-                )}
-                <canvas
-                  ref={canvasRef}
-                  style={{ display: 'block', width: '100%', height: '100%' }}
-                />
-                {/* Cover watermark logo */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    width: '100%',
-                    height: 120,
-                    background: 'linear-gradient(to bottom, transparent 0%, #090913 45%)',
-                    zIndex: 2147483647,
-                    pointerEvents: 'none',
-                    borderRadius: '0 0 24px 24px',
-                  }}
-                />
-              </>
-            )}
+            {/* Mobile fallback � CSS shows this on small screens */}
+            <div className="spline-mobile-fallback" aria-hidden="true">
+              <div className="spline-mobile-glow" />
+              <svg className="spline-mobile-icon" viewBox="0 0 120 120" fill="none">
+                <circle cx="60" cy="60" r="50" stroke="url(#g1)" strokeWidth="2" opacity="0.4"/>
+                <circle cx="60" cy="60" r="35" stroke="url(#g1)" strokeWidth="1.5" opacity="0.3"/>
+                <circle cx="60" cy="60" r="18" fill="url(#g2)" opacity="0.6"/>
+                <path d="M60 20 L70 45 L97 45 L75 62 L83 88 L60 72 L37 88 L45 62 L23 45 L50 45 Z"
+                  fill="url(#g3)" opacity="0.5"/>
+                <defs>
+                  <linearGradient id="g1" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#818cf8"/><stop offset="1" stopColor="#a78bfa"/>
+                  </linearGradient>
+                  <radialGradient id="g2" cx="50%" cy="50%" r="50%">
+                    <stop stopColor="#6366f1"/><stop offset="1" stopColor="#a78bfa" stopOpacity="0"/>
+                  </radialGradient>
+                  <linearGradient id="g3" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#818cf8"/><stop offset="1" stopColor="#c4b5fd"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span className="spline-mobile-label">VERTEX</span>
+              <span className="spline-mobile-sub">Professional POS Hardware</span>
+            </div>
+
+            {/* Desktop 3D canvas � CSS hides this on mobile */}
+            <div className="spline-canvas-wrap">
+              {!loaded && (
+                <div className="spline-loader">
+                  <div className="spline-spinner" />
+                </div>
+              )}
+              <canvas
+                ref={canvasRef}
+                style={{ display: 'block', width: '100%', height: '100%' }}
+              />
+              <div
+                style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  width: '100%', height: 120,
+                  background: 'linear-gradient(to bottom, transparent 0%, #090913 45%)',
+                  zIndex: 2147483647, pointerEvents: 'none',
+                  borderRadius: '0 0 24px 24px',
+                }}
+              />
+            </div>
+
           </div>
         </FadeIn>
       </div>
