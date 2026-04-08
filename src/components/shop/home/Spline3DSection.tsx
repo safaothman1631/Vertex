@@ -123,11 +123,21 @@ export default function Spline3DSection() {
                 ref={canvasRef}
                 style={{ display: 'block', width: '100%', height: '100%' }}
               />
-              {/* Edge gradients to blend light Spline bg into dark site */}
-              <div className="spline-edge spline-edge-top" />
-              <div className="spline-edge spline-edge-bottom" />
-              <div className="spline-edge spline-edge-left" />
-              <div className="spline-edge spline-edge-right" />
+              {/* Cover watermark logo at bottom */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  width: '100%',
+                  height: 120,
+                  background: 'linear-gradient(to bottom, transparent 0%, #090913 45%)',
+                  zIndex: 2147483647,
+                  pointerEvents: 'none',
+                  borderRadius: '0 0 24px 24px',
+                }}
+              />
             </div>
           </div>
         </FadeIn>
